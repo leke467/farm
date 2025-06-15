@@ -72,8 +72,15 @@ WSGI_APPLICATION = 'terra_track.wsgi.application'
 # Database
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'mssql',
+        'NAME': config('DB_NAME', default='your_db_name'),
+        'USER': config('DB_USER', default='your_db_user'),
+        'PASSWORD': config('DB_PASSWORD', default='your_db_password'),
+        'HOST': config('DB_HOST', default='localhost'),
+        'PORT': config('DB_PORT', default='1433'),
+        'OPTIONS': {
+            'driver': config('DB_DRIVER', default='ODBC Driver 17 for SQL Server'),
+        },
     }
 }
 
