@@ -1,23 +1,25 @@
-import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { useUser } from '../../context/UserContext';
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { useUser } from "../../context/UserContext";
+import apiService from "../../services/api";
+import { users } from "../../data/mockData";
 
 function Register() {
   const [formData, setFormData] = useState({
-    firstName: '',
-    lastName: '',
-    email: '',
-    username: '',
-    password: '',
-    confirmPassword: '',
-    role: 'Manager',
+    firstName: "",
+    lastName: "",
+    email: "",
+    username: "",
+    password: "",
+    confirmPassword: "",
+    role: "Manager",
   });
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  
+
   const navigate = useNavigate();
   const { handleLogin } = useUser();
-  
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData({
@@ -25,50 +27,67 @@ function Register() {
       [name]: value,
     });
   };
-  
-  const handleSubmit = (e) => {
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    // Simple validation
+    setError("");
     if (formData.password !== formData.confirmPassword) {
-      setError('Passwords do not match');
+      setError("Passwords do not match");
       return;
     }
-    
     setLoading(true);
-    setError('');
-    
-    // Simulate API call delay
-    setTimeout(() => {
-      // Simulate successful registration
-      const newUser = {
-        id: Date.now().toString(),
-        firstName: formData.firstName,
-        lastName: formData.lastName,
-        email: formData.email,
+
+    // Demo registration (mock data)
+    if (
+      (formData.username === "demo" && formData.password === "demo123") ||
+      (formData.username === "admin" && formData.password === "admin123")
+    ) {
+      const demoUser = users.find(
+        (u) =>
+          u.username === formData.username && u.password === formData.password
+      );
+      if (demoUser) {
+        handleLogin(demoUser);
+        navigate("/dashboard");
+        setLoading(false);
+        return;
+      }
+    }
+
+    // Real backend registration
+    try {
+      const response = await apiService.register({
         username: formData.username,
+        password: formData.password,
+        email: formData.email,
+        first_name: formData.firstName,
+        last_name: formData.lastName,
         role: formData.role,
-        lastLogin: new Date().toISOString(),
-      };
-      
-      // Login the new user
-      handleLogin(newUser);
-      navigate('/dashboard');
-      
-      setLoading(false);
-    }, 1000);
+      });
+      if (response.token) {
+        handleLogin({ username: formData.username, token: response.token });
+        navigate("/dashboard");
+      } else {
+        setError(response.error || "Registration failed");
+      }
+    } catch (err) {
+      setError("Registration failed");
+    }
+    setLoading(false);
   };
-  
+
   return (
     <div>
-      <h2 className="text-2xl font-bold text-gray-900 mb-6">Create your account</h2>
-      
+      <h2 className="text-2xl font-bold text-gray-900 mb-6">
+        Create your account
+      </h2>
+
       {error && (
         <div className="mb-4 p-3 bg-error-50 text-error-600 rounded-lg border border-error-200">
           {error}
         </div>
       )}
-      
+
       <form className="space-y-6" onSubmit={handleSubmit}>
         <div className="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-2">
           <div>
@@ -100,7 +119,7 @@ function Register() {
             />
           </div>
         </div>
-        
+
         <div>
           <label htmlFor="email" className="label">
             Email
@@ -115,7 +134,7 @@ function Register() {
             className="input"
           />
         </div>
-        
+
         <div>
           <label htmlFor="username" className="label">
             Username
@@ -130,7 +149,7 @@ function Register() {
             className="input"
           />
         </div>
-        
+
         <div>
           <label htmlFor="password" className="label">
             Password
@@ -146,7 +165,7 @@ function Register() {
             className="input"
           />
         </div>
-        
+
         <div>
           <label htmlFor="confirmPassword" className="label">
             Confirm Password
@@ -161,7 +180,7 @@ function Register() {
             className="input"
           />
         </div>
-        
+
         <div>
           <label htmlFor="role" className="label">
             Role
@@ -179,21 +198,26 @@ function Register() {
             <option value="Worker">Worker</option>
           </select>
         </div>
-        
+
         <div>
           <button
             type="submit"
             disabled={loading}
-            className={`w-full btn btn-primary ${loading ? 'opacity-70 cursor-not-allowed' : ''}`}
+            className={`w-full btn btn-primary ${
+              loading ? "opacity-70 cursor-not-allowed" : ""
+            }`}
           >
-            {loading ? 'Creating account...' : 'Create account'}
+            {loading ? "Creating account..." : "Create account"}
           </button>
         </div>
-        
+
         <div className="text-center">
           <p className="text-sm text-gray-600">
-            Already have an account?{' '}
-            <Link to="/login" className="font-medium text-primary-500 hover:text-primary-600">
+            Already have an account?{" "}
+            <Link
+              to="/login"
+              className="font-medium text-primary-500 hover:text-primary-600"
+            >
               Sign in
             </Link>
           </p>

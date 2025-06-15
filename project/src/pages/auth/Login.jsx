@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useUser } from '../../context/UserContext';
 import { users } from '../../data/mockData';
+import apiService from '../../services/api';
 
 function Login() {
   const [formData, setFormData] = useState({
@@ -22,27 +23,45 @@ function Login() {
     });
   };
   
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError('');
-    
-    // Find user in mock data
-    const user = users.find(
+
+    // Demo login (mock data)
+    const demoUser = users.find(
       (u) => u.username === formData.username && u.password === formData.password
     );
-    
-    if (user) {
-      // Login successful
-      const { password, ...userData } = user;
+    if (demoUser) {
+      const { password, ...userData } = demoUser;
       handleLogin(userData);
+      setLoading(false);
       navigate('/dashboard');
-    } else {
-      // Login failed
-      setError('Invalid username or password');
+      return;
     }
-    
-    setLoading(false);
+
+    // Real backend login
+    try {
+      const response = await apiService.login({
+        username: formData.username,
+        password: formData.password,
+      });
+      if (response.token) {
+        handleLogin({
+          username: formData.username,
+          token: response.token,
+          ...response.user // include user info if available
+        });
+        setLoading(false);
+        navigate('/dashboard');
+      } else {
+        setError('Invalid username or password');
+        setLoading(false);
+      }
+    } catch (err) {
+      setError('Invalid username or password');
+      setLoading(false);
+    }
   };
   
   return (
