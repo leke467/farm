@@ -56,7 +56,6 @@ export function FarmDataProvider({ children }) {
         } else {
           // Fetch farms for the user
           const userFarms = await apiService.getFarms();
-          console.log("userFarms from backend (raw):", userFarms);
           let farmObj = null;
           if (
             userFarms &&
@@ -69,15 +68,6 @@ export function FarmDataProvider({ children }) {
           if (farmObj) {
             setActiveFarm(farmObj);
             setFarmSettings({
-              name: farmObj.name,
-              type: farmObj.farm_type,
-              size: farmObj.size,
-              location: farmObj.location,
-              address: farmObj.address,
-              total_area: farmObj.total_area,
-              description: farmObj.description,
-            });
-            console.log("Set farmSettings:", {
               name: farmObj.name,
               type: farmObj.farm_type,
               size: farmObj.size,

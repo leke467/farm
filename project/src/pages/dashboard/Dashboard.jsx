@@ -18,10 +18,6 @@ function Dashboard() {
   const safeExpenses = Array.isArray(expenses) ? expenses : [];
   const safeInventory = Array.isArray(inventory) ? inventory : [];
 
-  // Log the farm name from backend
-  console.log("Farm name from backend (activeFarm):", activeFarm?.name);
-  console.log("Farm name from backend (farmSettings):", farmSettings?.name);
-
   // Calculate total animals
   const totalAnimals = safeAnimals.reduce((total, animal) => {
     return total + (animal.isGroup ? animal.count : 1);

@@ -35,6 +35,7 @@ function Login() {
     );
     if (demoUser) {
       const { password, ...userData } = demoUser;
+      userData.isDemo = true; // Mark as demo
       handleLogin(userData);
       setLoading(false);
       navigate("/dashboard");
