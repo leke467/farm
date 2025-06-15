@@ -14,14 +14,20 @@ class AnimalListCreateView(generics.ListCreateAPIView):
     ordering = ['-created_at']
     
     def get_queryset(self):
-        return Animal.objects.filter(farm__owner=self.request.user)
+        farms = self.request.user.owned_farms.all()
+        if not farms.exists():
+            return Animal.objects.none()
+        return Animal.objects.filter(farm__in=farms)
 
 class AnimalDetailView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = AnimalSerializer
     permission_classes = [permissions.IsAuthenticated]
     
     def get_queryset(self):
-        return Animal.objects.filter(farm__owner=self.request.user)
+        farms = self.request.user.owned_farms.all()
+        if not farms.exists():
+            return Animal.objects.none()
+        return Animal.objects.filter(farm__in=farms)
 
 class WeightRecordListCreateView(generics.ListCreateAPIView):
     serializer_class = WeightRecordSerializer

@@ -46,8 +46,11 @@ function TaskScheduler() {
     });
   };
   
+  // Defensive: ensure tasks is an array
+  const safeTasks = Array.isArray(tasks) ? tasks : [];
+
   // Filter tasks
-  const filteredTasks = tasks.filter(task => {
+  const filteredTasks = safeTasks.filter(task => {
     if (filter === 'completed') return task.status === 'completed';
     if (filter === 'pending') return task.status === 'pending';
     if (filter === 'high') return task.priority === 'high';
@@ -108,61 +111,68 @@ function TaskScheduler() {
       
       {/* Task List */}
       <div className="space-y-4">
-        {filteredTasks.map(task => (
-          <motion.div
-            key={task.id}
-            className={`bg-white rounded-lg shadow p-6 ${
-              task.status === 'completed' ? 'opacity-75' : ''
-            }`}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-          >
-            <div className="flex items-start justify-between">
-              <div className="flex items-start space-x-4">
-                <input
-                  type="checkbox"
-                  checked={task.status === 'completed'}
-                  onChange={() => updateTask(task.id, {
-                    status: task.status === 'completed' ? 'pending' : 'completed'
-                  })}
-                  className="mt-1 h-5 w-5 text-primary-600 rounded"
-                />
-                <div>
-                  <h3 className={`font-medium ${
-                    task.status === 'completed' ? 'line-through text-gray-500' : ''
-                  }`}>
-                    {task.title}
-                  </h3>
-                  <p className="text-sm text-gray-600 mt-1">{task.description}</p>
-                  <div className="flex items-center space-x-4 mt-2 text-sm">
-                    <span className="flex items-center text-gray-500">
-                      <FiCalendar className="mr-1" size={14} />
-                      {new Date(task.dueDate).toLocaleDateString()}
-                    </span>
-                    <span className={`badge ${
-                      task.priority === 'high' ? 'badge-error' :
-                      task.priority === 'medium' ? 'badge-warning' :
-                      'badge-success'
-                    }`}>
-                      {task.priority}
-                    </span>
-                    {task.assignedTo && (
-                      <span className="badge bg-gray-100 text-gray-800">
-                        {task.assignedTo}
-                      </span>
-                    )}
-                  </div>
-                </div>
-              </div>
-              <button
-                onClick={() => deleteTask(task.id)}
-                className="text-gray-400 hover:text-error-500"
+        {/* Render task cards or a message if no tasks */}
+        {filteredTasks.length === 0 ? (
+          <div className="text-gray-500">No tasks to display.</div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredTasks.map(task => (
+              <motion.div
+                key={task.id}
+                className={`bg-white rounded-lg shadow p-6 ${
+                  task.status === 'completed' ? 'opacity-75' : ''
+                }`}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
               >
-                Delete
-              </button>
-            </div>
-          </motion.div>
-        ))}
+                <div className="flex items-start justify-between">
+                  <div className="flex items-start space-x-4">
+                    <input
+                      type="checkbox"
+                      checked={task.status === 'completed'}
+                      onChange={() => updateTask(task.id, {
+                        status: task.status === 'completed' ? 'pending' : 'completed'
+                      })}
+                      className="mt-1 h-5 w-5 text-primary-600 rounded"
+                    />
+                    <div>
+                      <h3 className={`font-medium ${
+                        task.status === 'completed' ? 'line-through text-gray-500' : ''
+                      }`}>
+                        {task.title}
+                      </h3>
+                      <p className="text-sm text-gray-600 mt-1">{task.description}</p>
+                      <div className="flex items-center space-x-4 mt-2 text-sm">
+                        <span className="flex items-center text-gray-500">
+                          <FiCalendar className="mr-1" size={14} />
+                          {new Date(task.dueDate).toLocaleDateString()}
+                        </span>
+                        <span className={`badge ${
+                          task.priority === 'high' ? 'badge-error' :
+                          task.priority === 'medium' ? 'badge-warning' :
+                          'badge-success'
+                        }`}>
+                          {task.priority}
+                        </span>
+                        {task.assignedTo && (
+                          <span className="badge bg-gray-100 text-gray-800">
+                            {task.assignedTo}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => deleteTask(task.id)}
+                    className="text-gray-400 hover:text-error-500"
+                  >
+                    Delete
+                  </button>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        )}
         
         {filteredTasks.length === 0 && (
           <div className="text-center py-12 bg-gray-50 rounded-xl">

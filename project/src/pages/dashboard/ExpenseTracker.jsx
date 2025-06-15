@@ -49,17 +49,20 @@ function ExpenseTracker() {
     });
   };
   
+  // Defensive: ensure expenses is an array
+  const safeExpenses = Array.isArray(expenses) ? expenses : [];
+
   // Calculate totals
-  const totalExpenses = expenses.reduce((sum, expense) => sum + expense.amount, 0);
+  const totalExpenses = safeExpenses.reduce((sum, expense) => sum + expense.amount, 0);
   
   // Group expenses by category
-  const expensesByCategory = expenses.reduce((acc, expense) => {
+  const expensesByCategory = safeExpenses.reduce((acc, expense) => {
     acc[expense.category] = (acc[expense.category] || 0) + expense.amount;
     return acc;
   }, {});
   
   // Filter expenses
-  const filteredExpenses = expenses
+  const filteredExpenses = safeExpenses
     .filter(expense => {
       if (filter === 'all') return true;
       return expense.category.toLowerCase() === filter.toLowerCase();
@@ -120,7 +123,7 @@ function ExpenseTracker() {
             </div>
           </div>
           <p className="text-3xl font-bold mt-4">
-            ${expenses
+            ${safeExpenses
               .filter(e => new Date(e.date).getMonth() === new Date().getMonth())
               .reduce((sum, e) => sum + e.amount, 0)
               .toLocaleString()}

@@ -16,14 +16,20 @@ class InventoryItemListCreateView(generics.ListCreateAPIView):
     ordering = ['name']
     
     def get_queryset(self):
-        return InventoryItem.objects.filter(farm__owner=self.request.user)
+        farms = self.request.user.owned_farms.all()
+        if not farms.exists():
+            return InventoryItem.objects.none()
+        return InventoryItem.objects.filter(farm__in=farms)
 
 class InventoryItemDetailView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = InventoryItemSerializer
     permission_classes = [permissions.IsAuthenticated]
     
     def get_queryset(self):
-        return InventoryItem.objects.filter(farm__owner=self.request.user)
+        farms = self.request.user.owned_farms.all()
+        if not farms.exists():
+            return InventoryItem.objects.none()
+        return InventoryItem.objects.filter(farm__in=farms)
 
 class InventoryTransactionListCreateView(generics.ListCreateAPIView):
     serializer_class = InventoryTransactionSerializer

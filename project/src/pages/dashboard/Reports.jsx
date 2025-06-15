@@ -31,6 +31,11 @@ ChartJS.register(
 function Reports() {
   const { animals, crops, expenses } = useFarmData();
   const [timeRange, setTimeRange] = useState('month');
+
+  // Defensive: ensure expenses is an array
+  const safeExpenses = Array.isArray(expenses) ? expenses : [];
+  const safeAnimals = Array.isArray(animals) ? animals : [];
+  const safeCrops = Array.isArray(crops) ? crops : [];
   
   // Prepare data for expense chart
   const expenseData = {
@@ -186,16 +191,16 @@ function Reports() {
           <div className="grid grid-cols-2 gap-4">
             <div className="p-4 bg-gray-50 rounded-lg">
               <p className="text-sm text-gray-500">Total Animals</p>
-              <p className="text-2xl font-bold">{animals.length}</p>
+              <p className="text-2xl font-bold">{safeAnimals.length}</p>
             </div>
             <div className="p-4 bg-gray-50 rounded-lg">
               <p className="text-sm text-gray-500">Active Crops</p>
-              <p className="text-2xl font-bold">{crops.length}</p>
+              <p className="text-2xl font-bold">{safeCrops.length}</p>
             </div>
             <div className="p-4 bg-gray-50 rounded-lg">
               <p className="text-sm text-gray-500">Monthly Expenses</p>
               <p className="text-2xl font-bold">
-                ${expenses
+                ${safeExpenses
                   .filter(e => new Date(e.date).getMonth() === new Date().getMonth())
                   .reduce((sum, e) => sum + e.amount, 0)
                   .toLocaleString()}

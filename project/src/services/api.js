@@ -1,33 +1,32 @@
 // API service for Terra Track frontend
-const API_BASE_URL = 'http://localhost:8000/api';
+const API_BASE_URL = "http://localhost:8000/api";
 
 class ApiService {
   constructor() {
-    this.token = localStorage.getItem('authToken');
+    this.token = localStorage.getItem("authToken");
   }
 
   // Set authentication token
   setToken(token) {
     this.token = token;
-    localStorage.setItem('authToken', token);
+    localStorage.setItem("authToken", token);
   }
 
   // Remove authentication token
   removeToken() {
     this.token = null;
-    localStorage.removeItem('authToken');
+    localStorage.removeItem("authToken");
   }
 
   // Get headers with authentication
   getHeaders() {
     const headers = {
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
     };
-    
-    if (this.token) {
-      headers['Authorization'] = `Token ${this.token}`;
+    const token = localStorage.getItem("authToken");
+    if (token) {
+      headers["Authorization"] = `Token ${token}`;
     }
-    
     return headers;
   }
 
@@ -41,50 +40,49 @@ class ApiService {
 
     try {
       const response = await fetch(url, config);
-      
+      const data = await response.json().catch(() => ({}));
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+        // Instead of throwing, return the error data with a flag
+        return { _error: true, ...data, status: response.status };
       }
-      
-      return await response.json();
+      return data;
     } catch (error) {
-      console.error('API request failed:', error);
-      throw error;
+      // Return a generic error object
+      return { _error: true, error: error.message };
     }
   }
 
   // Authentication methods
   async login(credentials) {
-    const response = await this.request('/auth/login/', {
-      method: 'POST',
+    const response = await this.request("/auth/login/", {
+      method: "POST",
       body: JSON.stringify(credentials),
     });
-    
+
     if (response.token) {
       this.setToken(response.token);
     }
-    
+
     return response;
   }
 
   async register(userData) {
-    const response = await this.request('/auth/register/', {
-      method: 'POST',
+    const response = await this.request("/auth/register/", {
+      method: "POST",
       body: JSON.stringify(userData),
     });
-    
+
     if (response.token) {
       this.setToken(response.token);
     }
-    
+
     return response;
   }
 
   async logout() {
     try {
-      await this.request('/auth/logout/', {
-        method: 'POST',
+      await this.request("/auth/logout/", {
+        method: "POST",
       });
     } finally {
       this.removeToken();
@@ -92,64 +90,64 @@ class ApiService {
   }
 
   async getProfile() {
-    return this.request('/auth/profile/');
+    return this.request("/auth/profile/");
   }
 
   async updateProfile(data) {
-    return this.request('/auth/profile/update/', {
-      method: 'PUT',
+    return this.request("/auth/profile/update/", {
+      method: "PUT",
       body: JSON.stringify(data),
     });
   }
 
   // Farm methods
   async getFarms() {
-    return this.request('/farms/');
+    return this.request("/farms/");
   }
 
   async createFarm(farmData) {
-    return this.request('/farms/', {
-      method: 'POST',
+    return this.request("/farms/", {
+      method: "POST",
       body: JSON.stringify(farmData),
     });
   }
 
   async updateFarm(id, farmData) {
     return this.request(`/farms/${id}/`, {
-      method: 'PUT',
+      method: "PUT",
       body: JSON.stringify(farmData),
     });
   }
 
   async deleteFarm(id) {
     return this.request(`/farms/${id}/`, {
-      method: 'DELETE',
+      method: "DELETE",
     });
   }
 
   // Animal methods
   async getAnimals(params = {}) {
     const queryString = new URLSearchParams(params).toString();
-    return this.request(`/animals/${queryString ? `?${queryString}` : ''}`);
+    return this.request(`/animals/${queryString ? `?${queryString}` : ""}`);
   }
 
   async createAnimal(animalData) {
-    return this.request('/animals/', {
-      method: 'POST',
+    return this.request("/animals/", {
+      method: "POST",
       body: JSON.stringify(animalData),
     });
   }
 
   async updateAnimal(id, animalData) {
     return this.request(`/animals/${id}/`, {
-      method: 'PUT',
+      method: "PUT",
       body: JSON.stringify(animalData),
     });
   }
 
   async deleteAnimal(id) {
     return this.request(`/animals/${id}/`, {
-      method: 'DELETE',
+      method: "DELETE",
     });
   }
 
@@ -159,7 +157,7 @@ class ApiService {
 
   async addAnimalWeight(animalId, weightData) {
     return this.request(`/animals/${animalId}/weights/`, {
-      method: 'POST',
+      method: "POST",
       body: JSON.stringify(weightData),
     });
   }
@@ -167,131 +165,131 @@ class ApiService {
   // Crop methods
   async getCrops(params = {}) {
     const queryString = new URLSearchParams(params).toString();
-    return this.request(`/crops/${queryString ? `?${queryString}` : ''}`);
+    return this.request(`/crops/${queryString ? `?${queryString}` : ""}`);
   }
 
   async createCrop(cropData) {
-    return this.request('/crops/', {
-      method: 'POST',
+    return this.request("/crops/", {
+      method: "POST",
       body: JSON.stringify(cropData),
     });
   }
 
   async updateCrop(id, cropData) {
     return this.request(`/crops/${id}/`, {
-      method: 'PUT',
+      method: "PUT",
       body: JSON.stringify(cropData),
     });
   }
 
   async deleteCrop(id) {
     return this.request(`/crops/${id}/`, {
-      method: 'DELETE',
+      method: "DELETE",
     });
   }
 
   // Task methods
   async getTasks(params = {}) {
     const queryString = new URLSearchParams(params).toString();
-    return this.request(`/tasks/${queryString ? `?${queryString}` : ''}`);
+    return this.request(`/tasks/${queryString ? `?${queryString}` : ""}`);
   }
 
   async createTask(taskData) {
-    return this.request('/tasks/', {
-      method: 'POST',
+    return this.request("/tasks/", {
+      method: "POST",
       body: JSON.stringify(taskData),
     });
   }
 
   async updateTask(id, taskData) {
     return this.request(`/tasks/${id}/`, {
-      method: 'PUT',
+      method: "PUT",
       body: JSON.stringify(taskData),
     });
   }
 
   async deleteTask(id) {
     return this.request(`/tasks/${id}/`, {
-      method: 'DELETE',
+      method: "DELETE",
     });
   }
 
   // Inventory methods
   async getInventory(params = {}) {
     const queryString = new URLSearchParams(params).toString();
-    return this.request(`/inventory/${queryString ? `?${queryString}` : ''}`);
+    return this.request(`/inventory/${queryString ? `?${queryString}` : ""}`);
   }
 
   async createInventoryItem(itemData) {
-    return this.request('/inventory/', {
-      method: 'POST',
+    return this.request("/inventory/", {
+      method: "POST",
       body: JSON.stringify(itemData),
     });
   }
 
   async updateInventoryItem(id, itemData) {
     return this.request(`/inventory/${id}/`, {
-      method: 'PUT',
+      method: "PUT",
       body: JSON.stringify(itemData),
     });
   }
 
   async deleteInventoryItem(id) {
     return this.request(`/inventory/${id}/`, {
-      method: 'DELETE',
+      method: "DELETE",
     });
   }
 
   async getLowStockItems() {
-    return this.request('/inventory/low-stock/');
+    return this.request("/inventory/low-stock/");
   }
 
   // Expense methods
   async getExpenses(params = {}) {
     const queryString = new URLSearchParams(params).toString();
-    return this.request(`/expenses/${queryString ? `?${queryString}` : ''}`);
+    return this.request(`/expenses/${queryString ? `?${queryString}` : ""}`);
   }
 
   async createExpense(expenseData) {
-    return this.request('/expenses/', {
-      method: 'POST',
+    return this.request("/expenses/", {
+      method: "POST",
       body: JSON.stringify(expenseData),
     });
   }
 
   async updateExpense(id, expenseData) {
     return this.request(`/expenses/${id}/`, {
-      method: 'PUT',
+      method: "PUT",
       body: JSON.stringify(expenseData),
     });
   }
 
   async deleteExpense(id) {
     return this.request(`/expenses/${id}/`, {
-      method: 'DELETE',
+      method: "DELETE",
     });
   }
 
   async getExpenseSummary() {
-    return this.request('/expenses/summary/');
+    return this.request("/expenses/summary/");
   }
 
   // Reports methods
   async getDashboardAnalytics() {
-    return this.request('/reports/analytics/');
+    return this.request("/reports/analytics/");
   }
 
   async getProductionReport(year) {
-    return this.request(`/reports/production/${year ? `?year=${year}` : ''}`);
+    return this.request(`/reports/production/${year ? `?year=${year}` : ""}`);
   }
 
   async getReports() {
-    return this.request('/reports/');
+    return this.request("/reports/");
   }
 
   async createReport(reportData) {
-    return this.request('/reports/', {
-      method: 'POST',
+    return this.request("/reports/", {
+      method: "POST",
       body: JSON.stringify(reportData),
     });
   }

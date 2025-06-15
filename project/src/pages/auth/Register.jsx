@@ -12,7 +12,15 @@ function Register() {
     username: "",
     password: "",
     confirmPassword: "",
-    role: "Manager",
+    role: "manager", // default to lowercase as required by backend
+    phone: "", // added phone field
+    farmName: "",
+    farmLocation: "",
+    farmSize: "medium",
+    farmType: "mixed",
+    farmAddress: "",
+    farmTotalArea: "1.0",
+    farmDescription: "",
   });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -59,16 +67,32 @@ function Register() {
       const response = await apiService.register({
         username: formData.username,
         password: formData.password,
+        confirm_password: formData.confirmPassword, // add this line
         email: formData.email,
         first_name: formData.firstName,
         last_name: formData.lastName,
         role: formData.role,
+        phone: formData.phone, // send phone field
+        farm_name: formData.farmName,
+        farm_location: formData.farmLocation,
+        farm_size: formData.farmSize,
+        farm_type: formData.farmType,
+        farm_address: formData.farmAddress,
+        farm_total_area: formData.farmTotalArea,
+        farm_description: formData.farmDescription,
       });
       if (response.token) {
         handleLogin({ username: formData.username, token: response.token });
         navigate("/dashboard");
+      } else if (response._error) {
+        // Show all backend errors if present
+        const errorMsg = Object.values(response)
+          .filter((v) => Array.isArray(v) || typeof v === "string")
+          .flat()
+          .join(" ");
+        setError(errorMsg || "Registration failed");
       } else {
-        setError(response.error || "Registration failed");
+        setError("Registration failed");
       }
     } catch (err) {
       setError("Registration failed");
@@ -193,10 +217,126 @@ function Register() {
             onChange={handleChange}
             className="input"
           >
-            <option value="Admin">Admin</option>
-            <option value="Manager">Manager</option>
-            <option value="Worker">Worker</option>
+            <option value="admin">Admin</option>
+            <option value="manager">Manager</option>
+            <option value="worker">Worker</option>
           </select>
+        </div>
+
+        <div>
+          <label htmlFor="phone" className="label">
+            Phone (optional)
+          </label>
+          <input
+            id="phone"
+            name="phone"
+            type="text"
+            value={formData.phone}
+            onChange={handleChange}
+            className="input"
+          />
+        </div>
+
+        <div>
+          <label htmlFor="farmName" className="label">
+            Farm Name
+          </label>
+          <input
+            id="farmName"
+            name="farmName"
+            type="text"
+            required
+            value={formData.farmName}
+            onChange={handleChange}
+            className="input"
+          />
+        </div>
+        <div>
+          <label htmlFor="farmLocation" className="label">
+            Farm Location
+          </label>
+          <input
+            id="farmLocation"
+            name="farmLocation"
+            type="text"
+            value={formData.farmLocation}
+            onChange={handleChange}
+            className="input"
+          />
+        </div>
+        <div>
+          <label htmlFor="farmSize" className="label">
+            Farm Size
+          </label>
+          <select
+            id="farmSize"
+            name="farmSize"
+            value={formData.farmSize}
+            onChange={handleChange}
+            className="input"
+          >
+            <option value="small">Small (&lt; 50 acres)</option>
+            <option value="medium">Medium (50-500 acres)</option>
+            <option value="large">Large (&gt; 500 acres)</option>
+          </select>
+        </div>
+        <div>
+          <label htmlFor="farmType" className="label">
+            Farm Type
+          </label>
+          <select
+            id="farmType"
+            name="farmType"
+            value={formData.farmType}
+            onChange={handleChange}
+            className="input"
+          >
+            <option value="mixed">Mixed</option>
+            <option value="livestock">Livestock</option>
+            <option value="crop">Crop</option>
+            <option value="dairy">Dairy</option>
+            <option value="poultry">Poultry</option>
+          </select>
+        </div>
+        <div>
+          <label htmlFor="farmAddress" className="label">
+            Farm Address
+          </label>
+          <input
+            id="farmAddress"
+            name="farmAddress"
+            type="text"
+            value={formData.farmAddress}
+            onChange={handleChange}
+            className="input"
+          />
+        </div>
+        <div>
+          <label htmlFor="farmTotalArea" className="label">
+            Farm Total Area (acres)
+          </label>
+          <input
+            id="farmTotalArea"
+            name="farmTotalArea"
+            type="number"
+            min="0.1"
+            step="0.1"
+            value={formData.farmTotalArea}
+            onChange={handleChange}
+            className="input"
+          />
+        </div>
+        <div>
+          <label htmlFor="farmDescription" className="label">
+            Farm Description
+          </label>
+          <textarea
+            id="farmDescription"
+            name="farmDescription"
+            value={formData.farmDescription}
+            onChange={handleChange}
+            className="input"
+          />
         </div>
 
         <div>

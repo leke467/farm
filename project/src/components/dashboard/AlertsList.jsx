@@ -3,11 +3,16 @@ import { useFarmData } from '../../context/FarmDataContext';
 
 function AlertsList() {
   const { animals, crops, inventory, tasks } = useFarmData();
-  
+
+  // Defensive: ensure all are arrays
+  const safeInventory = Array.isArray(inventory) ? inventory : [];
+  const safeTasks = Array.isArray(tasks) ? tasks : [];
+  const safeCrops = Array.isArray(crops) ? crops : [];
+
   // Generate alerts based on data
   const alerts = [
     // Low inventory alerts
-    ...inventory
+    ...safeInventory
       .filter(item => item.quantity <= item.minQuantity)
       .map(item => ({
         id: `inv-${item.id}`,
@@ -16,9 +21,9 @@ function AlertsList() {
         description: `Current quantity: ${item.quantity} ${item.unit} (minimum: ${item.minQuantity} ${item.unit})`,
         date: new Date().toISOString()
       })),
-    
+
     // Overdue tasks
-    ...tasks
+    ...safeTasks
       .filter(task => new Date(task.dueDate) < new Date() && task.status !== 'completed')
       .map(task => ({
         id: `task-${task.id}`,
@@ -27,42 +32,28 @@ function AlertsList() {
         description: `Due on ${new Date(task.dueDate).toLocaleDateString()}`,
         date: task.dueDate
       })),
-      
+
     // Upcoming harvests
-    ...crops
+    ...safeCrops
       .filter(crop => {
-        const harvestStage = crop.growthStages.find(stage => stage.stage === 'Harvest');
-        return harvestStage && !harvestStage.completed && 
+        const harvestStage = crop.growthStages && Array.isArray(crop.growthStages)
+          ? crop.growthStages.find(stage => stage.stage === 'Harvest')
+          : null;
+        return harvestStage && !harvestStage.completed &&
           new Date(harvestStage.date) <= new Date(new Date().getTime() + 7 * 24 * 60 * 60 * 1000);
       })
       .map(crop => ({
         id: `crop-${crop.id}`,
         type: 'info',
         title: `Upcoming harvest: ${crop.name}`,
-        description: `Scheduled for harvest on ${new Date(crop.expectedHarvestDate).toLocaleDateString()}`,
-        date: crop.expectedHarvestDate
+        description: `Harvest expected by ${crop.growthStages.find(stage => stage.stage === 'Harvest')?.date}`,
+        date: crop.growthStages.find(stage => stage.stage === 'Harvest')?.date
       })),
-      
-    // Example static alerts
-    {
-      id: 'weather-1',
-      type: 'info',
-      title: 'Weather alert: Rain expected',
-      description: 'Heavy rainfall expected in the next 48 hours',
-      date: new Date().toISOString()
-    },
-    {
-      id: 'maintenance-1',
-      type: 'low',
-      title: 'Equipment maintenance due',
-      description: 'Tractor regular service scheduled for next week',
-      date: new Date(new Date().getTime() + 5 * 24 * 60 * 60 * 1000).toISOString()
-    }
   ];
-  
+
   // Sort alerts by date (most recent first)
   const sortedAlerts = alerts.sort((a, b) => new Date(a.date) - new Date(b.date));
-  
+
   // Alert icon based on type
   const getAlertIcon = (type) => {
     switch(type) {

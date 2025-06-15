@@ -18,14 +18,20 @@ class ExpenseListCreateView(generics.ListCreateAPIView):
     ordering = ['-date']
     
     def get_queryset(self):
-        return Expense.objects.filter(farm__owner=self.request.user)
+        farms = self.request.user.owned_farms.all()
+        if not farms.exists():
+            return Expense.objects.none()
+        return Expense.objects.filter(farm__in=farms)
 
 class ExpenseDetailView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = ExpenseSerializer
     permission_classes = [permissions.IsAuthenticated]
     
     def get_queryset(self):
-        return Expense.objects.filter(farm__owner=self.request.user)
+        farms = self.request.user.owned_farms.all()
+        if not farms.exists():
+            return Expense.objects.none()
+        return Expense.objects.filter(farm__in=farms)
 
 class BudgetListCreateView(generics.ListCreateAPIView):
     serializer_class = BudgetSerializer

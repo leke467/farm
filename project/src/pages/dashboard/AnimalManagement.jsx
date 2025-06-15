@@ -109,9 +109,12 @@ function AnimalManagement() {
     }
   };
   
+  // Defensive: ensure animals is an array
+  const safeAnimals = Array.isArray(animals) ? animals : [];
+
   // Filter animals
   const filterAnimals = () => {
-    let filteredAnimals = animals;
+    let filteredAnimals = safeAnimals;
     
     // Apply type filter
     if (currentFilter !== 'all') {
@@ -132,9 +135,9 @@ function AnimalManagement() {
   };
   
   const filteredAnimals = filterAnimals();
-  
+
   // Get unique animal types for filter
-  const animalTypes = ['all', ...new Set(animals.map(animal => animal.type))];
+  const animalTypes = ['all', ...new Set(safeAnimals.map(animal => animal.type))];
   
   return (
     <div>
@@ -204,36 +207,18 @@ function AnimalManagement() {
       </div>
       
       {/* Animal List */}
-      {filteredAnimals.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-          {filteredAnimals.map((animal) => (
-            <AnimalCard 
-              key={animal.id} 
-              animal={animal} 
-              onEdit={handleEdit}
-              onDelete={handleDelete}
+      {filteredAnimals.length === 0 ? (
+        <div className="text-gray-500">No animals to display.</div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredAnimals.map(animal => (
+            <AnimalCard
+              key={animal.id}
+              animal={animal}
+              onEdit={() => handleEdit(animal)}
+              onDelete={() => handleDelete(animal.id)}
             />
           ))}
-        </div>
-      ) : (
-        <div className="text-center py-12 bg-gray-50 rounded-xl">
-          <div className="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-4">
-            <FiUsers size={32} className="text-gray-500" />
-          </div>
-          <h3 className="text-lg font-medium text-gray-900 mb-2">No animals found</h3>
-          <p className="text-gray-500 mb-6">
-            {searchTerm || currentFilter !== 'all' 
-              ? 'Try adjusting your filters or search terms'
-              : 'Add your first animal to get started'
-            }
-          </p>
-          <button 
-            className="btn btn-primary"
-            onClick={() => setIsAddModalOpen(true)}
-          >
-            <FiPlus className="mr-2" />
-            {farmType === 'large' ? 'Add Group' : 'Add Animal'}
-          </button>
         </div>
       )}
       

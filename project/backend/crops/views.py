@@ -14,14 +14,20 @@ class CropListCreateView(generics.ListCreateAPIView):
     ordering = ['-created_at']
     
     def get_queryset(self):
-        return Crop.objects.filter(farm__owner=self.request.user)
+        farms = self.request.user.owned_farms.all()
+        if not farms.exists():
+            return Crop.objects.none()
+        return Crop.objects.filter(farm__in=farms)
 
 class CropDetailView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = CropSerializer
     permission_classes = [permissions.IsAuthenticated]
     
     def get_queryset(self):
-        return Crop.objects.filter(farm__owner=self.request.user)
+        farms = self.request.user.owned_farms.all()
+        if not farms.exists():
+            return Crop.objects.none()
+        return Crop.objects.filter(farm__in=farms)
 
 class GrowthStageListCreateView(generics.ListCreateAPIView):
     serializer_class = GrowthStageSerializer

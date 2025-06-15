@@ -68,8 +68,11 @@ function CropManagement() {
     return Math.round((elapsed / totalDuration) * 100);
   };
   
+  // Defensive: ensure crops is an array
+  const safeCrops = Array.isArray(crops) ? crops : [];
+
   // Filter crops based on search
-  const filteredCrops = crops.filter(crop => 
+  const filteredCrops = safeCrops.filter(crop => 
     crop.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     crop.field.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -214,8 +217,10 @@ function CropManagement() {
       </div>
       
       {/* Crop List */}
-      {filteredCrops.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+      {filteredCrops.length === 0 ? (
+        <div className="text-gray-500">No crops to display.</div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredCrops.map((crop) => (
             <motion.div 
               key={crop.id}
@@ -324,23 +329,6 @@ function CropManagement() {
               </div>
             </motion.div>
           ))}
-        </div>
-      ) : (
-        <div className="text-center py-12 bg-gray-50 rounded-xl">
-          <div className="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-4">
-            <FiGrid size={32} className="text-gray-500" />
-          </div>
-          <h3 className="text-lg font-medium text-gray-900 mb-2">No crops found</h3>
-          <p className="text-gray-500 mb-6">
-            {searchTerm ? 'Try adjusting your search terms' : 'Add your first crop to get started'}
-          </p>
-          <button 
-            className="btn btn-primary"
-            onClick={() => setIsAddModalOpen(true)}
-          >
-            <FiPlus className="mr-2" />
-            Add Crop
-          </button>
         </div>
       )}
       

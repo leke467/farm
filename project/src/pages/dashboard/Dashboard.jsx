@@ -10,21 +10,27 @@ import AlertsList from '../../components/dashboard/AlertsList';
 
 function Dashboard() {
   const { animals, crops, expenses, inventory } = useFarmData();
-  
+
+  // Defensive: ensure all are arrays
+  const safeAnimals = Array.isArray(animals) ? animals : [];
+  const safeCrops = Array.isArray(crops) ? crops : [];
+  const safeExpenses = Array.isArray(expenses) ? expenses : [];
+  const safeInventory = Array.isArray(inventory) ? inventory : [];
+
   // Calculate total animals
-  const totalAnimals = animals.reduce((total, animal) => {
+  const totalAnimals = safeAnimals.reduce((total, animal) => {
     return total + (animal.isGroup ? animal.count : 1);
   }, 0);
   
   // Calculate total acres
-  const totalAcres = crops.reduce((total, crop) => {
+  const totalAcres = safeCrops.reduce((total, crop) => {
     return total + crop.area;
   }, 0);
   
   // Calculate total expenses this month
   const currentMonth = new Date().getMonth();
   const currentYear = new Date().getFullYear();
-  const thisMonthExpenses = expenses
+  const thisMonthExpenses = safeExpenses
     .filter(expense => {
       const expenseDate = new Date(expense.date);
       return expenseDate.getMonth() === currentMonth && expenseDate.getFullYear() === currentYear;
@@ -32,7 +38,7 @@ function Dashboard() {
     .reduce((total, expense) => total + expense.amount, 0);
   
   // Calculate low inventory items
-  const lowInventoryCount = inventory.filter(item => item.quantity <= item.minQuantity).length;
+  const lowInventoryCount = safeInventory.filter(item => item.quantity <= item.minQuantity).length;
   
   return (
     <div>

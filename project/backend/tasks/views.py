@@ -15,14 +15,20 @@ class TaskListCreateView(generics.ListCreateAPIView):
     ordering = ['due_date']
     
     def get_queryset(self):
-        return Task.objects.filter(farm__owner=self.request.user)
+        farms = self.request.user.owned_farms.all()
+        if not farms.exists():
+            return Task.objects.none()
+        return Task.objects.filter(farm__in=farms)
 
 class TaskDetailView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = TaskSerializer
     permission_classes = [permissions.IsAuthenticated]
     
     def get_queryset(self):
-        return Task.objects.filter(farm__owner=self.request.user)
+        farms = self.request.user.owned_farms.all()
+        if not farms.exists():
+            return Task.objects.none()
+        return Task.objects.filter(farm__in=farms)
     
     def perform_update(self, serializer):
         if serializer.validated_data.get('status') == 'completed' and not serializer.instance.completed_at:
