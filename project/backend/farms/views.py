@@ -1,4 +1,5 @@
 from rest_framework import generics, permissions
+from django.db import models
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from .models import Farm, FarmMember

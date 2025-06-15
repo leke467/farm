@@ -24,10 +24,13 @@ export function FarmDataProvider({ children }) {
   const [farms, setFarms] = useState([]);
   const [activeFarm, setActiveFarm] = useState(null);
   const [farmSettings, setFarmSettings] = useState({
-    name: "Green Valley Farm",
-    type: "Mixed",
-    size: "Medium",
-    location: "Fairfield, CA",
+    name: "",
+    type: "",
+    size: "",
+    location: "",
+    address: "",
+    total_area: "",
+    description: "",
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -53,8 +56,37 @@ export function FarmDataProvider({ children }) {
         } else {
           // Fetch farms for the user
           const userFarms = await apiService.getFarms();
-          setFarms(userFarms || []);
-          setActiveFarm((userFarms && userFarms[0]) || null);
+          console.log("userFarms from backend (raw):", userFarms);
+          let farmObj = null;
+          if (
+            userFarms &&
+            Array.isArray(userFarms.results) &&
+            userFarms.results.length > 0
+          ) {
+            farmObj = userFarms.results[0];
+          }
+          setFarms((userFarms && userFarms.results) || []);
+          if (farmObj) {
+            setActiveFarm(farmObj);
+            setFarmSettings({
+              name: farmObj.name,
+              type: farmObj.farm_type,
+              size: farmObj.size,
+              location: farmObj.location,
+              address: farmObj.address,
+              total_area: farmObj.total_area,
+              description: farmObj.description,
+            });
+            console.log("Set farmSettings:", {
+              name: farmObj.name,
+              type: farmObj.farm_type,
+              size: farmObj.size,
+              location: farmObj.location,
+              address: farmObj.address,
+              total_area: farmObj.total_area,
+              description: farmObj.description,
+            });
+          }
         }
       } catch (err) {
         setError("Failed to load farm data");
