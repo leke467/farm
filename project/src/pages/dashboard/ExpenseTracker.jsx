@@ -1,77 +1,87 @@
-import { useState } from 'react';
-import { FiPlus, FiFilter, FiSearch, FiDollarSign, FiPieChart } from 'react-icons/fi';
-import { useFarmData } from '../../context/FarmDataContext';
-import { Dialog } from '@headlessui/react';
-import { motion } from 'framer-motion';
+import { useState } from "react";
+import {
+  FiPlus,
+  FiFilter,
+  FiSearch,
+  FiDollarSign,
+  FiPieChart,
+} from "react-icons/fi";
+import { useFarmData } from "../../context/FarmDataContext";
+import { Dialog } from "@headlessui/react";
+import { motion } from "framer-motion";
 
 function ExpenseTracker() {
   const { expenses, addExpense, updateExpense, deleteExpense } = useFarmData();
-  const [filter, setFilter] = useState('all');
-  const [searchTerm, setSearchTerm] = useState('');
+  const [filter, setFilter] = useState("all");
+  const [searchTerm, setSearchTerm] = useState("");
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  
+
   // New expense form state
   const [formData, setFormData] = useState({
-    date: '',
-    category: 'Feed',
-    description: '',
-    amount: '',
-    vendor: '',
-    paymentMethod: 'Credit Card',
-    notes: ''
+    date: "",
+    category: "Feed",
+    description: "",
+    amount: "",
+    vendor: "",
+    paymentMethod: "Credit Card",
+    notes: "",
   });
-  
+
   // Handle form input change
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData({
       ...formData,
-      [name]: value
+      [name]: value,
     });
   };
-  
+
   // Handle form submit
   const handleSubmit = (e) => {
     e.preventDefault();
     addExpense({
       ...formData,
-      amount: parseFloat(formData.amount)
+      amount: parseFloat(formData.amount),
     });
     setIsAddModalOpen(false);
     setFormData({
-      date: '',
-      category: 'Feed',
-      description: '',
-      amount: '',
-      vendor: '',
-      paymentMethod: 'Credit Card',
-      notes: ''
+      date: "",
+      category: "Feed",
+      description: "",
+      amount: "",
+      vendor: "",
+      paymentMethod: "Credit Card",
+      notes: "",
     });
   };
-  
+
   // Defensive: ensure expenses is an array
   const safeExpenses = Array.isArray(expenses) ? expenses : [];
 
   // Calculate totals
-  const totalExpenses = safeExpenses.reduce((sum, expense) => sum + expense.amount, 0);
-  
+  const totalExpenses = safeExpenses.reduce(
+    (sum, expense) => sum + expense.amount,
+    0
+  );
+
   // Group expenses by category
   const expensesByCategory = safeExpenses.reduce((acc, expense) => {
     acc[expense.category] = (acc[expense.category] || 0) + expense.amount;
     return acc;
   }, {});
-  
+
   // Filter expenses
   const filteredExpenses = safeExpenses
-    .filter(expense => {
-      if (filter === 'all') return true;
+    .filter((expense) => {
+      if (filter === "all") return true;
       return expense.category.toLowerCase() === filter.toLowerCase();
     })
-    .filter(expense =>
-      expense.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      expense.vendor.toLowerCase().includes(searchTerm.toLowerCase())
+    .filter(
+      (expense) =>
+        expense.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        expense.vendor.toLowerCase().includes(searchTerm.toLowerCase())
     );
-  
+
   return (
     <div>
       <div className="mb-6 flex flex-col md:flex-row md:items-center md:justify-between">
@@ -79,9 +89,9 @@ function ExpenseTracker() {
           <h1 className="text-3xl font-display font-bold">Expense Tracker</h1>
           <p className="text-gray-600">Track and manage farm expenses</p>
         </div>
-        
+
         <div className="mt-4 md:mt-0">
-          <button 
+          <button
             className="btn btn-primary flex items-center"
             onClick={() => setIsAddModalOpen(true)}
           >
@@ -90,7 +100,7 @@ function ExpenseTracker() {
           </button>
         </div>
       </div>
-      
+
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         <div className="bg-white rounded-xl shadow-md p-6">
@@ -100,9 +110,11 @@ function ExpenseTracker() {
               <FiDollarSign size={24} />
             </div>
           </div>
-          <p className="text-3xl font-bold mt-4">${totalExpenses.toLocaleString()}</p>
+          <p className="text-3xl font-bold mt-4">
+            ${totalExpenses.toLocaleString()}
+          </p>
         </div>
-        
+
         <div className="bg-white rounded-xl shadow-md p-6">
           <div className="flex items-center justify-between">
             <h3 className="text-lg font-medium">Largest Category</h3>
@@ -111,10 +123,12 @@ function ExpenseTracker() {
             </div>
           </div>
           <p className="text-3xl font-bold mt-4">
-            {Object.entries(expensesByCategory).sort((a, b) => b[1] - a[1])[0]?.[0] || 'N/A'}
+            {Object.entries(expensesByCategory).sort(
+              (a, b) => b[1] - a[1]
+            )[0]?.[0] || "N/A"}
           </p>
         </div>
-        
+
         <div className="bg-white rounded-xl shadow-md p-6">
           <div className="flex items-center justify-between">
             <h3 className="text-lg font-medium">This Month</h3>
@@ -123,14 +137,17 @@ function ExpenseTracker() {
             </div>
           </div>
           <p className="text-3xl font-bold mt-4">
-            ${safeExpenses
-              .filter(e => new Date(e.date).getMonth() === new Date().getMonth())
+            $
+            {safeExpenses
+              .filter(
+                (e) => new Date(e.date).getMonth() === new Date().getMonth()
+              )
               .reduce((sum, e) => sum + e.amount, 0)
               .toLocaleString()}
           </p>
         </div>
       </div>
-      
+
       {/* Filters and Search */}
       <div className="mb-8 flex flex-col sm:flex-row sm:items-center space-y-3 sm:space-y-0 sm:space-x-4">
         <div className="relative flex-1">
@@ -145,7 +162,7 @@ function ExpenseTracker() {
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
-        
+
         <div className="flex space-x-2 items-center">
           <FiFilter className="text-gray-500" />
           <select
@@ -164,7 +181,7 @@ function ExpenseTracker() {
           </select>
         </div>
       </div>
-      
+
       {/* Expense List */}
       <div className="bg-white rounded-xl shadow-md overflow-hidden">
         <div className="overflow-x-auto">
@@ -234,16 +251,17 @@ function ExpenseTracker() {
               ))}
             </tbody>
           </table>
-          
+
           {filteredExpenses.length === 0 && (
             <div className="text-center py-12">
               <FiDollarSign className="mx-auto h-12 w-12 text-gray-400" />
-              <h3 className="mt-2 text-sm font-medium text-gray-900">No expenses found</h3>
+              <h3 className="mt-2 text-sm font-medium text-gray-900">
+                No expenses found
+              </h3>
               <p className="mt-1 text-sm text-gray-500">
-                {searchTerm || filter !== 'all'
-                  ? 'Try adjusting your filters or search terms'
-                  : 'Get started by adding an expense.'
-                }
+                {searchTerm || filter !== "all"
+                  ? "Try adjusting your filters or search terms"
+                  : "Get started by adding an expense."}
               </p>
               <div className="mt-6">
                 <button
@@ -258,7 +276,7 @@ function ExpenseTracker() {
           )}
         </div>
       </div>
-      
+
       {/* Add Expense Modal */}
       <Dialog
         open={isAddModalOpen}
@@ -267,14 +285,22 @@ function ExpenseTracker() {
       >
         <div className="min-h-screen px-4 text-center">
           <Dialog.Overlay className="fixed inset-0 bg-black opacity-30" />
-          
-          <span className="inline-block h-screen align-middle" aria-hidden="true">&#8203;</span>
-          
+
+          <span
+            className="inline-block h-screen align-middle"
+            aria-hidden="true"
+          >
+            &#8203;
+          </span>
+
           <div className="inline-block w-full max-w-md p-6 my-8 overflow-hidden text-left align-middle transition-all transform bg-white shadow-xl rounded-lg">
-            <Dialog.Title as="h3" className="text-lg font-medium leading-6 text-gray-900 mb-4">
+            <Dialog.Title
+              as="h3"
+              className="text-lg font-medium leading-6 text-gray-900 mb-4"
+            >
               Add New Expense
             </Dialog.Title>
-            
+
             <form onSubmit={handleSubmit}>
               <div className="space-y-4">
                 <div>
@@ -288,7 +314,7 @@ function ExpenseTracker() {
                     required
                   />
                 </div>
-                
+
                 <div>
                   <label className="label">Category</label>
                   <select
@@ -308,7 +334,7 @@ function ExpenseTracker() {
                     <option value="Other">Other</option>
                   </select>
                 </div>
-                
+
                 <div>
                   <label className="label">Description</label>
                   <input
@@ -320,7 +346,7 @@ function ExpenseTracker() {
                     required
                   />
                 </div>
-                
+
                 <div>
                   <label className="label">Amount ($)</label>
                   <input
@@ -334,7 +360,7 @@ function ExpenseTracker() {
                     required
                   />
                 </div>
-                
+
                 <div>
                   <label className="label">Vendor</label>
                   <input
@@ -346,7 +372,7 @@ function ExpenseTracker() {
                     required
                   />
                 </div>
-                
+
                 <div>
                   <label className="label">Payment Method</label>
                   <select
@@ -362,7 +388,7 @@ function ExpenseTracker() {
                     <option value="Check">Check</option>
                   </select>
                 </div>
-                
+
                 <div>
                   <label className="label">Notes</label>
                   <textarea
@@ -373,7 +399,7 @@ function ExpenseTracker() {
                   />
                 </div>
               </div>
-              
+
               <div className="mt-6 flex justify-end space-x-3">
                 <button
                   type="button"
@@ -382,10 +408,7 @@ function ExpenseTracker() {
                 >
                   Cancel
                 </button>
-                <button
-                  type="submit"
-                  className="btn btn-primary"
-                >
+                <button type="submit" className="btn btn-primary">
                   Add Expense
                 </button>
               </div>

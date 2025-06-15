@@ -1,25 +1,27 @@
-import { useState } from 'react';
-import { useFarmData } from '../../context/FarmDataContext';
-import { FiCheck, FiClock, FiX, FiCalendar, FiFlag } from 'react-icons/fi';
+import { useState } from "react";
+import { useFarmData } from "../../context/FarmDataContext";
+import { FiCheck, FiClock, FiX, FiCalendar, FiFlag } from "react-icons/fi";
 
 function TaskList({ limit = 5 }) {
   const { tasks, updateTask } = useFarmData();
-  const [filter, setFilter] = useState('upcoming');
+  const [filter, setFilter] = useState("upcoming");
 
   // Defensive: ensure tasks is an array
   const safeTasks = Array.isArray(tasks) ? tasks : [];
 
   // Sort tasks by due date
-  const sortedTasks = [...safeTasks].sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate));
+  const sortedTasks = [...safeTasks].sort(
+    (a, b) => new Date(a.dueDate) - new Date(b.dueDate)
+  );
 
   // Filter tasks
-  const filteredTasks = sortedTasks.filter(task => {
-    if (filter === 'upcoming') {
-      return task.status !== 'completed';
-    } else if (filter === 'completed') {
-      return task.status === 'completed';
-    } else if (filter === 'high') {
-      return task.priority === 'high';
+  const filteredTasks = sortedTasks.filter((task) => {
+    if (filter === "upcoming") {
+      return task.status !== "completed";
+    } else if (filter === "completed") {
+      return task.status === "completed";
+    } else if (filter === "high") {
+      return task.priority === "high";
     }
     return true;
   });
@@ -30,17 +32,17 @@ function TaskList({ limit = 5 }) {
   // Format date
   const formatDate = (dateString) => {
     const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
+    return date.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
     });
   };
 
   // Handle status toggle
   const handleStatusToggle = (id, currentStatus) => {
-    const newStatus = currentStatus === 'completed' ? 'pending' : 'completed';
+    const newStatus = currentStatus === "completed" ? "pending" : "completed";
     updateTask && updateTask(id, { status: newStatus });
   };
 
@@ -51,31 +53,31 @@ function TaskList({ limit = 5 }) {
         <div className="flex space-x-2">
           <button
             className={`px-3 py-1 rounded-md text-sm font-medium ${
-              filter === 'upcoming'
-                ? 'bg-primary-100 text-primary-700'
-                : 'text-gray-500 hover:bg-gray-100'
+              filter === "upcoming"
+                ? "bg-primary-100 text-primary-700"
+                : "text-gray-500 hover:bg-gray-100"
             }`}
-            onClick={() => setFilter('upcoming')}
+            onClick={() => setFilter("upcoming")}
           >
             Upcoming
           </button>
           <button
             className={`px-3 py-1 rounded-md text-sm font-medium ${
-              filter === 'completed'
-                ? 'bg-primary-100 text-primary-700'
-                : 'text-gray-500 hover:bg-gray-100'
+              filter === "completed"
+                ? "bg-primary-100 text-primary-700"
+                : "text-gray-500 hover:bg-gray-100"
             }`}
-            onClick={() => setFilter('completed')}
+            onClick={() => setFilter("completed")}
           >
             Completed
           </button>
           <button
             className={`px-3 py-1 rounded-md text-sm font-medium ${
-              filter === 'high'
-                ? 'bg-primary-100 text-primary-700'
-                : 'text-gray-500 hover:bg-gray-100'
+              filter === "high"
+                ? "bg-primary-100 text-primary-700"
+                : "text-gray-500 hover:bg-gray-100"
             }`}
-            onClick={() => setFilter('high')}
+            onClick={() => setFilter("high")}
           >
             High Priority
           </button>
@@ -86,34 +88,46 @@ function TaskList({ limit = 5 }) {
         {displayTasks.length === 0 ? (
           <div className="text-gray-500">No tasks to display.</div>
         ) : (
-          displayTasks.map(task => (
+          displayTasks.map((task) => (
             <div
               key={task.id}
               className={`flex items-start p-3 rounded-lg border ${
-                task.status === 'completed'
-                  ? 'border-gray-200 bg-gray-50'
+                task.status === "completed"
+                  ? "border-gray-200 bg-gray-50"
                   : new Date(task.dueDate) < new Date()
-                    ? 'border-error-200 bg-error-50'
-                    : 'border-gray-200 hover:bg-gray-50'
+                  ? "border-error-200 bg-error-50"
+                  : "border-gray-200 hover:bg-gray-50"
               }`}
             >
               <button
                 className={`w-6 h-6 rounded-full flex items-center justify-center mr-3 mt-0.5 ${
-                  task.status === 'completed'
-                    ? 'bg-success-100 text-success-600 border border-success-200'
-                    : 'border border-gray-300 hover:border-primary-500'
+                  task.status === "completed"
+                    ? "bg-success-100 text-success-600 border border-success-200"
+                    : "border border-gray-300 hover:border-primary-500"
                 }`}
                 onClick={() => handleStatusToggle(task.id, task.status)}
               >
-                {task.status === 'completed' && <FiCheck size={14} />}
+                {task.status === "completed" && <FiCheck size={14} />}
               </button>
 
               <div className="flex-1">
                 <div className="flex justify-between">
-                  <h4 className={`font-medium ${task.status === 'completed' ? 'text-gray-500 line-through' : ''}`}>
+                  <h4
+                    className={`font-medium ${
+                      task.status === "completed"
+                        ? "text-gray-500 line-through"
+                        : ""
+                    }`}
+                  >
                     {task.title}
                   </h4>
-                  <span className={`badge ${task.priority === 'high' ? 'bg-error-100 text-error-800' : 'bg-warning-100 text-warning-800'}`}>
+                  <span
+                    className={`badge ${
+                      task.priority === "high"
+                        ? "bg-error-100 text-error-800"
+                        : "bg-warning-100 text-warning-800"
+                    }`}
+                  >
                     {task.priority}
                   </span>
                 </div>

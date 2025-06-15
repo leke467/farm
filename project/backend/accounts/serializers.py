@@ -39,7 +39,7 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
         validated_data.pop('confirm_password')
         user = User.objects.create_user(**validated_data)
         # Create farm with provided details
-        Farm.objects.create(
+        farm = Farm.objects.create(
             name=farm_data['farm_name'],
             owner=user,
             farm_type=farm_data.get('farm_type') or 'mixed',
@@ -49,6 +49,7 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
             total_area=farm_data.get('farm_total_area') or 1.0,
             description=farm_data.get('farm_description') or ''
         )
+        farm.users.add(user)  # Add the user to the farm's users
         return user
 
 class LoginSerializer(serializers.Serializer):

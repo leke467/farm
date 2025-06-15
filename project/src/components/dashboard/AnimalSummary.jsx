@@ -1,5 +1,5 @@
-import { useFarmData } from '../../context/FarmDataContext';
-import { FiTrendingUp, FiTrendingDown } from 'react-icons/fi';
+import { useFarmData } from "../../context/FarmDataContext";
+import { FiTrendingUp, FiTrendingDown } from "react-icons/fi";
 
 function AnimalSummary() {
   const { animals } = useFarmData();
@@ -15,7 +15,10 @@ function AnimalSummary() {
   }, {});
 
   // Prepare data for pie chart (in a real app, you'd use a charting library)
-  const totalAnimals = Object.values(animalCounts).reduce((sum, count) => sum + count, 0);
+  const totalAnimals = Object.values(animalCounts).reduce(
+    (sum, count) => sum + count,
+    0
+  );
 
   return (
     <div className="bg-white rounded-xl shadow-md p-6">
@@ -42,10 +45,13 @@ function AnimalSummary() {
                   <div className="flex items-center">
                     <div
                       className={`w-3 h-3 rounded-full mr-2 ${
-                        type === 'Cow' ? 'bg-primary-500' :
-                        type === 'Goat' ? 'bg-green-500' :
-                        type === 'Chicken' ? 'bg-yellow-500' :
-                        'bg-gray-300'
+                        type === "Cow"
+                          ? "bg-primary-500"
+                          : type === "Goat"
+                          ? "bg-green-500"
+                          : type === "Chicken"
+                          ? "bg-yellow-500"
+                          : "bg-gray-300"
                       }`}
                     />
                     <span>{type}</span>
@@ -66,7 +72,8 @@ function AnimalSummary() {
                 <div>
                   <p className="text-success-700 font-medium">Healthy</p>
                   <p className="text-sm text-success-600">
-                    {animals.filter(a => a.status === 'Healthy').length} animals
+                    {animals.filter((a) => a.status === "Healthy").length}{" "}
+                    animals
                   </p>
                 </div>
               </div>
@@ -78,7 +85,8 @@ function AnimalSummary() {
                 <div>
                   <p className="text-warning-700 font-medium">Attention</p>
                   <p className="text-sm text-warning-600">
-                    {animals.filter(a => a.status !== 'Healthy').length} animals
+                    {animals.filter((a) => a.status !== "Healthy").length}{" "}
+                    animals
                   </p>
                 </div>
               </div>

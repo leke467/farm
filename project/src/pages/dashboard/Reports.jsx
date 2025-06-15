@@ -1,6 +1,6 @@
-import { useState } from 'react';
-import { FiBarChart2, FiPieChart, FiTrendingUp } from 'react-icons/fi';
-import { useFarmData } from '../../context/FarmDataContext';
+import { useState } from "react";
+import { FiBarChart2, FiPieChart, FiTrendingUp } from "react-icons/fi";
+import { useFarmData } from "../../context/FarmDataContext";
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -12,8 +12,8 @@ import {
   Title,
   Tooltip,
   Legend,
-} from 'chart.js';
-import { Line, Bar, Pie } from 'react-chartjs-2';
+} from "chart.js";
+import { Line, Bar, Pie } from "react-chartjs-2";
 
 // Register ChartJS components
 ChartJS.register(
@@ -30,69 +30,71 @@ ChartJS.register(
 
 function Reports() {
   const { animals, crops, expenses } = useFarmData();
-  const [timeRange, setTimeRange] = useState('month');
+  const [timeRange, setTimeRange] = useState("month");
 
   // Defensive: ensure expenses is an array
   const safeExpenses = Array.isArray(expenses) ? expenses : [];
   const safeAnimals = Array.isArray(animals) ? animals : [];
   const safeCrops = Array.isArray(crops) ? crops : [];
-  
+
   // Prepare data for expense chart
   const expenseData = {
-    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+    labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun"],
     datasets: [
       {
-        label: 'Monthly Expenses',
+        label: "Monthly Expenses",
         data: [12000, 19000, 15000, 17000, 22000, 18000],
-        borderColor: 'rgb(75, 192, 192)',
+        borderColor: "rgb(75, 192, 192)",
         tension: 0.1,
         fill: false,
       },
     ],
   };
-  
+
   // Prepare data for animal distribution
   const animalDistribution = {
-    labels: ['Cows', 'Goats', 'Chickens', 'Fish'],
+    labels: ["Cows", "Goats", "Chickens", "Fish"],
     datasets: [
       {
         data: [12, 19, 3, 5],
         backgroundColor: [
-          'rgba(255, 99, 132, 0.5)',
-          'rgba(54, 162, 235, 0.5)',
-          'rgba(255, 206, 86, 0.5)',
-          'rgba(75, 192, 192, 0.5)',
+          "rgba(255, 99, 132, 0.5)",
+          "rgba(54, 162, 235, 0.5)",
+          "rgba(255, 206, 86, 0.5)",
+          "rgba(75, 192, 192, 0.5)",
         ],
         borderColor: [
-          'rgba(255, 99, 132, 1)',
-          'rgba(54, 162, 235, 1)',
-          'rgba(255, 206, 86, 1)',
-          'rgba(75, 192, 192, 1)',
+          "rgba(255, 99, 132, 1)",
+          "rgba(54, 162, 235, 1)",
+          "rgba(255, 206, 86, 1)",
+          "rgba(75, 192, 192, 1)",
         ],
         borderWidth: 1,
       },
     ],
   };
-  
+
   // Prepare data for crop yield
   const cropYieldData = {
-    labels: ['Corn', 'Soybeans', 'Wheat', 'Tomatoes'],
+    labels: ["Corn", "Soybeans", "Wheat", "Tomatoes"],
     datasets: [
       {
-        label: 'Expected Yield (tons)',
+        label: "Expected Yield (tons)",
         data: [30, 25, 20, 15],
-        backgroundColor: 'rgba(53, 162, 235, 0.5)',
+        backgroundColor: "rgba(53, 162, 235, 0.5)",
       },
     ],
   };
-  
+
   return (
     <div>
       <div className="mb-6">
         <h1 className="text-3xl font-display font-bold">Reports & Analytics</h1>
-        <p className="text-gray-600">View insights and trends about your farm</p>
+        <p className="text-gray-600">
+          View insights and trends about your farm
+        </p>
       </div>
-      
+
       {/* Time Range Filter */}
       <div className="mb-8">
         <select
@@ -106,7 +108,7 @@ function Reports() {
           <option value="year">Last Year</option>
         </select>
       </div>
-      
+
       {/* Charts Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Expense Trends */}
@@ -123,7 +125,7 @@ function Reports() {
               responsive: true,
               plugins: {
                 legend: {
-                  position: 'bottom',
+                  position: "bottom",
                 },
                 title: {
                   display: false,
@@ -137,7 +139,7 @@ function Reports() {
             }}
           />
         </div>
-        
+
         {/* Animal Distribution */}
         <div className="bg-white rounded-xl shadow-md p-6">
           <div className="flex items-center justify-between mb-6">
@@ -152,13 +154,13 @@ function Reports() {
               responsive: true,
               plugins: {
                 legend: {
-                  position: 'bottom',
+                  position: "bottom",
                 },
               },
             }}
           />
         </div>
-        
+
         {/* Crop Yield */}
         <div className="bg-white rounded-xl shadow-md p-6">
           <div className="flex items-center justify-between mb-6">
@@ -173,7 +175,7 @@ function Reports() {
               responsive: true,
               plugins: {
                 legend: {
-                  position: 'bottom',
+                  position: "bottom",
                 },
               },
               scales: {
@@ -184,7 +186,7 @@ function Reports() {
             }}
           />
         </div>
-        
+
         {/* Summary Statistics */}
         <div className="bg-white rounded-xl shadow-md p-6">
           <h2 className="text-xl font-bold mb-6">Summary Statistics</h2>
@@ -200,8 +202,11 @@ function Reports() {
             <div className="p-4 bg-gray-50 rounded-lg">
               <p className="text-sm text-gray-500">Monthly Expenses</p>
               <p className="text-2xl font-bold">
-                ${safeExpenses
-                  .filter(e => new Date(e.date).getMonth() === new Date().getMonth())
+                $
+                {safeExpenses
+                  .filter(
+                    (e) => new Date(e.date).getMonth() === new Date().getMonth()
+                  )
                   .reduce((sum, e) => sum + e.amount, 0)
                   .toLocaleString()}
               </p>

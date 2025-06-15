@@ -1,87 +1,103 @@
-import { useState, useEffect } from 'react';
-import { FiPlus, FiFilter, FiSearch, FiUsers, FiUserPlus } from 'react-icons/fi';
-import { useFarmData } from '../../context/FarmDataContext';
-import AnimalCard from '../../components/animals/AnimalCard';
-import { Dialog } from '@headlessui/react';
+import { useState, useEffect } from "react";
+import {
+  FiPlus,
+  FiFilter,
+  FiSearch,
+  FiUsers,
+  FiUserPlus,
+} from "react-icons/fi";
+import { useFarmData } from "../../context/FarmDataContext";
+import AnimalCard from "../../components/animals/AnimalCard";
+import { Dialog } from "@headlessui/react";
 
 function AnimalManagement() {
-  const { animals, addAnimal, updateAnimal, deleteAnimal, addAnimalGroup, farmType, setFarmType } = useFarmData();
-  
-  const [searchTerm, setSearchTerm] = useState('');
-  const [currentFilter, setCurrentFilter] = useState('all');
+  const {
+    animals,
+    addAnimal,
+    updateAnimal,
+    deleteAnimal,
+    addAnimalGroup,
+    farmType,
+    setFarmType,
+  } = useFarmData();
+
+  const [searchTerm, setSearchTerm] = useState("");
+  const [currentFilter, setCurrentFilter] = useState("all");
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [currentAnimal, setCurrentAnimal] = useState(null);
-  
+
   // New animal form state
   const [formData, setFormData] = useState({
-    name: '',
-    type: 'Cow',
-    breed: '',
-    birthDate: '',
-    gender: 'Female',
-    weight: '',
-    status: 'Healthy',
-    notes: '',
+    name: "",
+    type: "Cow",
+    breed: "",
+    birthDate: "",
+    gender: "Female",
+    weight: "",
+    status: "Healthy",
+    notes: "",
     isGroup: false,
     count: 1,
   });
-  
+
   // Reset form when modal closes
   useEffect(() => {
     if (!isAddModalOpen && !isEditModalOpen) {
       setFormData({
-        name: '',
-        type: 'Cow',
-        breed: '',
-        birthDate: '',
-        gender: 'Female',
-        weight: '',
-        status: 'Healthy',
-        notes: '',
+        name: "",
+        type: "Cow",
+        breed: "",
+        birthDate: "",
+        gender: "Female",
+        weight: "",
+        status: "Healthy",
+        notes: "",
         isGroup: false,
         count: 1,
       });
     }
   }, [isAddModalOpen, isEditModalOpen]);
-  
+
   // Fill form when editing
   useEffect(() => {
     if (currentAnimal && isEditModalOpen) {
       setFormData({
         ...currentAnimal,
-        birthDate: formatDateForInput(currentAnimal.birthDate || currentAnimal.establishedDate || ''),
+        birthDate: formatDateForInput(
+          currentAnimal.birthDate || currentAnimal.establishedDate || ""
+        ),
       });
     }
   }, [currentAnimal, isEditModalOpen]);
-  
+
   // Format date for input field
   const formatDateForInput = (dateString) => {
-    if (!dateString) return '';
+    if (!dateString) return "";
     const date = new Date(dateString);
-    return date.toISOString().split('T')[0];
+    return date.toISOString().split("T")[0];
   };
-  
+
   // Handle form input change
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
     setFormData({
       ...formData,
-      [name]: type === 'checkbox' ? checked : value,
+      [name]: type === "checkbox" ? checked : value,
     });
   };
-  
+
   // Handle form submit
   const handleSubmit = (e) => {
     e.preventDefault();
-    
+
     const animalData = {
       ...formData,
-      weight: formData.isGroup ? '' : parseFloat(formData.weight),
+      weight: formData.isGroup ? "" : parseFloat(formData.weight),
       count: formData.isGroup ? parseInt(formData.count) : 1,
       avgWeight: formData.isGroup ? parseFloat(formData.weight) : 0,
     };
-    
+
     if (isEditModalOpen && currentAnimal) {
       updateAnimal(currentAnimal.id, animalData);
       setIsEditModalOpen(false);
@@ -95,50 +111,56 @@ function AnimalManagement() {
       setIsAddModalOpen(false);
     }
   };
-  
+
   // Handle edit button click
   const handleEdit = (animal) => {
     setCurrentAnimal(animal);
     setIsEditModalOpen(true);
   };
-  
+
   // Handle delete button click
   const handleDelete = (id) => {
-    if (window.confirm('Are you sure you want to delete this animal?')) {
+    if (window.confirm("Are you sure you want to delete this animal?")) {
       deleteAnimal(id);
     }
   };
-  
+
   // Defensive: ensure animals is an array
   const safeAnimals = Array.isArray(animals) ? animals : [];
 
   // Filter animals
   const filterAnimals = () => {
     let filteredAnimals = safeAnimals;
-    
+
     // Apply type filter
-    if (currentFilter !== 'all') {
-      filteredAnimals = filteredAnimals.filter(animal => animal.type === currentFilter);
+    if (currentFilter !== "all") {
+      filteredAnimals = filteredAnimals.filter(
+        (animal) => animal.type === currentFilter
+      );
     }
-    
+
     // Apply search
     if (searchTerm) {
       const term = searchTerm.toLowerCase();
-      filteredAnimals = filteredAnimals.filter(animal => 
-        animal.name.toLowerCase().includes(term) || 
-        animal.type.toLowerCase().includes(term) || 
-        animal.breed.toLowerCase().includes(term)
+      filteredAnimals = filteredAnimals.filter(
+        (animal) =>
+          animal.name.toLowerCase().includes(term) ||
+          animal.type.toLowerCase().includes(term) ||
+          animal.breed.toLowerCase().includes(term)
       );
     }
-    
+
     return filteredAnimals;
   };
-  
+
   const filteredAnimals = filterAnimals();
 
   // Get unique animal types for filter
-  const animalTypes = ['all', ...new Set(safeAnimals.map(animal => animal.type))];
-  
+  const animalTypes = [
+    "all",
+    ...new Set(safeAnimals.map((animal) => animal.type)),
+  ];
+
   return (
     <div>
       <div className="mb-6 flex flex-col md:flex-row md:items-center md:justify-between">
@@ -146,27 +168,31 @@ function AnimalManagement() {
           <h1 className="text-3xl font-display font-bold">Animal Management</h1>
           <p className="text-gray-600">Track and manage your livestock</p>
         </div>
-        
+
         <div className="mt-4 md:mt-0 flex flex-col sm:flex-row sm:space-x-3 space-y-2 sm:space-y-0">
-          <button 
+          <button
             className="btn btn-primary flex items-center"
             onClick={() => setIsAddModalOpen(true)}
           >
             <FiPlus className="mr-2" />
-            {farmType === 'large' ? 'Add Group' : 'Add Animal'}
+            {farmType === "large" ? "Add Group" : "Add Animal"}
           </button>
-          
+
           <div className="flex space-x-2 items-center">
-            <button 
-              className={`btn py-2 px-4 ${farmType === 'small' ? 'btn-primary' : 'btn-outline'}`}
-              onClick={() => setFarmType('small')}
+            <button
+              className={`btn py-2 px-4 ${
+                farmType === "small" ? "btn-primary" : "btn-outline"
+              }`}
+              onClick={() => setFarmType("small")}
             >
               <FiUserPlus className="mr-2" />
               Individual
             </button>
-            <button 
-              className={`btn py-2 px-4 ${farmType === 'large' ? 'btn-primary' : 'btn-outline'}`}
-              onClick={() => setFarmType('large')}
+            <button
+              className={`btn py-2 px-4 ${
+                farmType === "large" ? "btn-primary" : "btn-outline"
+              }`}
+              onClick={() => setFarmType("large")}
             >
               <FiUsers className="mr-2" />
               Group
@@ -174,7 +200,7 @@ function AnimalManagement() {
           </div>
         </div>
       </div>
-      
+
       {/* Filters and Search */}
       <div className="mb-8 flex flex-col sm:flex-row sm:items-center space-y-3 sm:space-y-0 sm:space-x-4">
         <div className="relative flex-1">
@@ -189,7 +215,7 @@ function AnimalManagement() {
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
-        
+
         <div className="flex space-x-2 items-center">
           <FiFilter className="text-gray-500" />
           <select
@@ -199,19 +225,19 @@ function AnimalManagement() {
           >
             {animalTypes.map((type) => (
               <option key={type} value={type}>
-                {type === 'all' ? 'All Types' : type}
+                {type === "all" ? "All Types" : type}
               </option>
             ))}
           </select>
         </div>
       </div>
-      
+
       {/* Animal List */}
       {filteredAnimals.length === 0 ? (
         <div className="text-gray-500">No animals to display.</div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredAnimals.map(animal => (
+          {filteredAnimals.map((animal) => (
             <AnimalCard
               key={animal.id}
               animal={animal}
@@ -221,27 +247,38 @@ function AnimalManagement() {
           ))}
         </div>
       )}
-      
+
       {/* Add/Edit Animal Modal */}
       {(isAddModalOpen || isEditModalOpen) && (
-        <Dialog 
-          open={isAddModalOpen || isEditModalOpen} 
-          onClose={() => isAddModalOpen ? setIsAddModalOpen(false) : setIsEditModalOpen(false)}
+        <Dialog
+          open={isAddModalOpen || isEditModalOpen}
+          onClose={() =>
+            isAddModalOpen
+              ? setIsAddModalOpen(false)
+              : setIsEditModalOpen(false)
+          }
           className="fixed inset-0 z-50 overflow-y-auto"
         >
           <div className="min-h-screen px-4 text-center">
             <Dialog.Overlay className="fixed inset-0 bg-black opacity-30" />
-            
+
             {/* Modal content */}
-            <span className="inline-block h-screen align-middle" aria-hidden="true">&#8203;</span>
+            <span
+              className="inline-block h-screen align-middle"
+              aria-hidden="true"
+            >
+              &#8203;
+            </span>
             <div className="inline-block w-full max-w-2xl p-6 my-8 overflow-hidden text-left align-middle transition-all transform bg-white shadow-xl rounded-lg">
-              <Dialog.Title 
-                as="h3" 
+              <Dialog.Title
+                as="h3"
                 className="text-xl font-bold text-gray-900 mb-4"
               >
-                {isEditModalOpen ? 'Edit Animal' : `Add ${formData.isGroup ? 'Group' : 'Animal'}`}
+                {isEditModalOpen
+                  ? "Edit Animal"
+                  : `Add ${formData.isGroup ? "Group" : "Animal"}`}
               </Dialog.Title>
-              
+
               <form onSubmit={handleSubmit}>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                   {/* Group/Individual toggle */}
@@ -254,10 +291,12 @@ function AnimalManagement() {
                         onChange={handleChange}
                         className="h-5 w-5 text-primary-600 rounded"
                       />
-                      <span className="font-medium">This is a group of animals (flock, herd, etc.)</span>
+                      <span className="font-medium">
+                        This is a group of animals (flock, herd, etc.)
+                      </span>
                     </label>
                   </div>
-                  
+
                   {/* Name field */}
                   <div>
                     <label className="label">Name</label>
@@ -267,11 +306,15 @@ function AnimalManagement() {
                       value={formData.name}
                       onChange={handleChange}
                       className="input"
-                      placeholder={formData.isGroup ? "Group name (e.g., Flock A)" : "Animal name"}
+                      placeholder={
+                        formData.isGroup
+                          ? "Group name (e.g., Flock A)"
+                          : "Animal name"
+                      }
                       required
                     />
                   </div>
-                  
+
                   {/* Type field */}
                   <div>
                     <label className="label">Type</label>
@@ -294,7 +337,7 @@ function AnimalManagement() {
                       <option value="Other">Other</option>
                     </select>
                   </div>
-                  
+
                   {/* Breed field */}
                   <div>
                     <label className="label">Breed</label>
@@ -307,11 +350,11 @@ function AnimalManagement() {
                       placeholder="Breed"
                     />
                   </div>
-                  
+
                   {/* Date field (birth or established) */}
                   <div>
                     <label className="label">
-                      {formData.isGroup ? 'Established Date' : 'Birth Date'}
+                      {formData.isGroup ? "Established Date" : "Birth Date"}
                     </label>
                     <input
                       type="date"
@@ -322,7 +365,7 @@ function AnimalManagement() {
                       required
                     />
                   </div>
-                  
+
                   {/* Status field */}
                   <div>
                     <label className="label">Status</label>
@@ -341,7 +384,7 @@ function AnimalManagement() {
                       <option value="Quarantined">Quarantined</option>
                     </select>
                   </div>
-                  
+
                   {formData.isGroup ? (
                     // Group-specific fields
                     <>
@@ -358,7 +401,10 @@ function AnimalManagement() {
                         />
                       </div>
                       <div>
-                        <label className="label">Average Weight ({formData.type === 'Fish' ? 'lb' : 'kg'})</label>
+                        <label className="label">
+                          Average Weight (
+                          {formData.type === "Fish" ? "lb" : "kg"})
+                        </label>
                         <input
                           type="number"
                           name="weight"
@@ -388,7 +434,9 @@ function AnimalManagement() {
                         </select>
                       </div>
                       <div>
-                        <label className="label">Weight ({formData.type === 'Fish' ? 'lb' : 'kg'})</label>
+                        <label className="label">
+                          Weight ({formData.type === "Fish" ? "lb" : "kg"})
+                        </label>
                         <input
                           type="number"
                           name="weight"
@@ -402,7 +450,7 @@ function AnimalManagement() {
                       </div>
                     </>
                   )}
-                  
+
                   {/* Notes field - spans full width */}
                   <div className="md:col-span-2">
                     <label className="label">Notes</label>
@@ -415,21 +463,22 @@ function AnimalManagement() {
                     ></textarea>
                   </div>
                 </div>
-                
+
                 {/* Buttons */}
                 <div className="flex justify-end space-x-3 mt-6">
                   <button
                     type="button"
                     className="btn btn-outline"
-                    onClick={() => isAddModalOpen ? setIsAddModalOpen(false) : setIsEditModalOpen(false)}
+                    onClick={() =>
+                      isAddModalOpen
+                        ? setIsAddModalOpen(false)
+                        : setIsEditModalOpen(false)
+                    }
                   >
                     Cancel
                   </button>
-                  <button
-                    type="submit"
-                    className="btn btn-primary"
-                  >
-                    {isEditModalOpen ? 'Update' : 'Add'}
+                  <button type="submit" className="btn btn-primary">
+                    {isEditModalOpen ? "Update" : "Add"}
                   </button>
                 </div>
               </form>

@@ -19,22 +19,24 @@ class ApiService {
   }
 
   // Get headers with authentication
-  getHeaders() {
+  getHeaders(skipAuth = false) {
     const headers = {
       "Content-Type": "application/json",
     };
-    const token = localStorage.getItem("authToken");
-    if (token) {
-      headers["Authorization"] = `Token ${token}`;
+    if (!skipAuth) {
+      const token = localStorage.getItem("authToken");
+      if (token) {
+        headers["Authorization"] = `Token ${token}`;
+      }
     }
     return headers;
   }
 
   // Generic API request method
-  async request(endpoint, options = {}) {
+  async request(endpoint, options = {}, skipAuth = false) {
     const url = `${API_BASE_URL}${endpoint}`;
     const config = {
-      headers: this.getHeaders(),
+      headers: this.getHeaders(skipAuth),
       ...options,
     };
 
@@ -54,10 +56,14 @@ class ApiService {
 
   // Authentication methods
   async login(credentials) {
-    const response = await this.request("/auth/login/", {
-      method: "POST",
-      body: JSON.stringify(credentials),
-    });
+    const response = await this.request(
+      "/auth/login/",
+      {
+        method: "POST",
+        body: JSON.stringify(credentials),
+      },
+      true
+    ); // skipAuth true for login
 
     if (response.token) {
       this.setToken(response.token);
@@ -67,10 +73,14 @@ class ApiService {
   }
 
   async register(userData) {
-    const response = await this.request("/auth/register/", {
-      method: "POST",
-      body: JSON.stringify(userData),
-    });
+    const response = await this.request(
+      "/auth/register/",
+      {
+        method: "POST",
+        body: JSON.stringify(userData),
+      },
+      true
+    ); // skipAuth true for register
 
     if (response.token) {
       this.setToken(response.token);
