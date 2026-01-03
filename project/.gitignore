@@ -41,9 +41,6 @@ __pycache__/
 build/
 dist/
 
-# Django migrations (ignore all except __init__.py)
-**/migrations/
-!**/migrations/__init__.py
 
 # SQLite database
 backend/db.sqlite3
