@@ -30,12 +30,12 @@ function AnimalManagement() {
   // New animal form state
   const [formData, setFormData] = useState({
     name: "",
-    type: "Cow",
+    type: "cow",
     breed: "",
     birthDate: "",
-    gender: "Female",
+    gender: "female",
     weight: "",
-    status: "Healthy",
+    status: "healthy",
     notes: "",
     isGroup: false,
     count: 1,
@@ -46,12 +46,12 @@ function AnimalManagement() {
     if (!isAddModalOpen && !isEditModalOpen) {
       setFormData({
         name: "",
-        type: "Cow",
+        type: "cow",
         breed: "",
         birthDate: "",
-        gender: "Female",
+        gender: "female",
         weight: "",
-        status: "Healthy",
+        status: "healthy",
         notes: "",
         isGroup: false,
         count: 1,
@@ -91,11 +91,24 @@ function AnimalManagement() {
   const handleSubmit = (e) => {
     e.preventDefault();
 
+    // TODO: Replace with actual farm ID from context or selection
+    const farmId = 1;
+
+    // Map frontend fields to backend fields
     const animalData = {
-      ...formData,
-      weight: formData.isGroup ? "" : parseFloat(formData.weight),
+      farm: farmId,
+      name: formData.name,
+      animal_type: formData.type,
+      breed: formData.breed,
+      birth_date: formData.birthDate,
+      gender: formData.gender,
+      weight: formData.isGroup ? null : parseFloat(formData.weight),
+      status: formData.status,
+      notes: formData.notes,
+      is_group: formData.isGroup,
       count: formData.isGroup ? parseInt(formData.count) : 1,
-      avgWeight: formData.isGroup ? parseFloat(formData.weight) : 0,
+      avg_weight: formData.isGroup ? parseFloat(formData.weight) : null,
+      established_date: formData.isGroup ? formData.birthDate : null,
     };
 
     if (isEditModalOpen && currentAnimal) {
@@ -325,16 +338,16 @@ function AnimalManagement() {
                       className="input"
                       required
                     >
-                      <option value="Cow">Cow</option>
-                      <option value="Goat">Goat</option>
-                      <option value="Sheep">Sheep</option>
-                      <option value="Pig">Pig</option>
-                      <option value="Chicken">Chicken</option>
-                      <option value="Duck">Duck</option>
-                      <option value="Turkey">Turkey</option>
-                      <option value="Fish">Fish</option>
-                      <option value="Horse">Horse</option>
-                      <option value="Other">Other</option>
+                      <option value="cow">Cow</option>
+                      <option value="goat">Goat</option>
+                      <option value="sheep">Sheep</option>
+                      <option value="pig">Pig</option>
+                      <option value="chicken">Chicken</option>
+                      <option value="duck">Duck</option>
+                      <option value="turkey">Turkey</option>
+                      <option value="fish">Fish</option>
+                      <option value="horse">Horse</option>
+                      <option value="other">Other</option>
                     </select>
                   </div>
 
@@ -376,12 +389,12 @@ function AnimalManagement() {
                       className="input"
                       required
                     >
-                      <option value="Healthy">Healthy</option>
-                      <option value="Sick">Sick</option>
-                      <option value="Injured">Injured</option>
-                      <option value="Pregnant">Pregnant</option>
-                      <option value="Nursing">Nursing</option>
-                      <option value="Quarantined">Quarantined</option>
+                      <option value="healthy">Healthy</option>
+                      <option value="sick">Sick</option>
+                      <option value="injured">Injured</option>
+                      <option value="pregnant">Pregnant</option>
+                      <option value="nursing">Nursing</option>
+                      <option value="quarantined">Quarantined</option>
                     </select>
                   </div>
 
@@ -403,7 +416,7 @@ function AnimalManagement() {
                       <div>
                         <label className="label">
                           Average Weight (
-                          {formData.type === "Fish" ? "lb" : "kg"})
+                          {formData.type === "fish" ? "lb" : "kg"})
                         </label>
                         <input
                           type="number"
@@ -429,13 +442,13 @@ function AnimalManagement() {
                           className="input"
                           required
                         >
-                          <option value="Female">Female</option>
-                          <option value="Male">Male</option>
+                          <option value="female">Female</option>
+                          <option value="male">Male</option>
                         </select>
                       </div>
                       <div>
                         <label className="label">
-                          Weight ({formData.type === "Fish" ? "lb" : "kg"})
+                          Weight ({formData.type === "fish" ? "lb" : "kg"})
                         </label>
                         <input
                           type="number"
