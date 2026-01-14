@@ -19,17 +19,21 @@ function CropManagement() {
     area: "",
     plantedDate: "",
     expectedHarvestDate: "",
-    status: "Planning",
-    stage: "Planning",
+    status: "planning",
+    stage: "planning",
     notes: "",
   });
 
   // Handle form input change
   const handleChange = (e) => {
     const { name, value } = e.target;
+    let newValue = value;
+    if (["status", "stage"].includes(name)) {
+      newValue = value.toLowerCase();
+    }
     setFormData({
       ...formData,
-      [name]: value,
+      [name]: newValue,
     });
   };
 
@@ -82,6 +86,9 @@ function CropManagement() {
   const handleSubmit = (e) => {
     e.preventDefault();
 
+    // TODO: Replace with actual farm ID from context or selection
+    const farmId = 1;
+
     // Create growth stages if adding new crop
     let cropData = { ...formData };
 
@@ -89,13 +96,13 @@ function CropManagement() {
       // Generate simple growth stages
       cropData.growthStages = [
         {
-          stage: "Planting",
+          stage: "planting",
           date: formData.plantedDate,
           completed: true,
           notes: "Initial planting",
         },
         {
-          stage: "Early Growth",
+          stage: "emergence",
           date: new Date(
             new Date(formData.plantedDate).getTime() + 14 * 24 * 60 * 60 * 1000
           )
@@ -105,7 +112,7 @@ function CropManagement() {
           notes: "",
         },
         {
-          stage: "Maturation",
+          stage: "maturation",
           date: new Date(
             new Date(formData.plantedDate).getTime() + 30 * 24 * 60 * 60 * 1000
           )
@@ -115,7 +122,7 @@ function CropManagement() {
           notes: "",
         },
         {
-          stage: "Harvest",
+          stage: "harvest",
           date: formData.expectedHarvestDate,
           completed: false,
           notes: "",
@@ -123,14 +130,25 @@ function CropManagement() {
       ];
     }
 
-    // Convert area to number
-    cropData.area = parseFloat(cropData.area);
+    // Map frontend fields to backend fields
+    const backendCropData = {
+      farm: farmId,
+      name: cropData.name,
+      field: cropData.field,
+      area: parseFloat(cropData.area),
+      planted_date: cropData.plantedDate,
+      expected_harvest_date: cropData.expectedHarvestDate,
+      status: cropData.status,
+      stage: cropData.stage,
+      notes: cropData.notes,
+      growth_stages: cropData.growthStages,
+    };
 
     if (isEditModalOpen && currentCrop) {
-      updateCrop(currentCrop.id, cropData);
+      updateCrop(currentCrop.id, backendCropData);
       setIsEditModalOpen(false);
     } else {
-      addCrop(cropData);
+      addCrop(backendCropData);
       setIsAddModalOpen(false);
     }
 
@@ -141,8 +159,8 @@ function CropManagement() {
       area: "",
       plantedDate: "",
       expectedHarvestDate: "",
-      status: "Planning",
-      stage: "Planning",
+      status: "planning",
+      stage: "planning",
       notes: "",
     });
 
@@ -463,11 +481,11 @@ function CropManagement() {
                       className="input"
                       required
                     >
-                      <option value="Planning">Planning</option>
-                      <option value="Growing">Growing</option>
-                      <option value="Harvesting">Harvesting</option>
-                      <option value="Completed">Completed</option>
-                      <option value="Failed">Failed</option>
+                      <option value="planning">Planning</option>
+                      <option value="growing">Growing</option>
+                      <option value="harvesting">Harvesting</option>
+                      <option value="completed">Completed</option>
+                      <option value="failed">Failed</option>
                     </select>
                   </div>
 
@@ -517,14 +535,14 @@ function CropManagement() {
                       className="input"
                       required
                     >
-                      <option value="Planning">Planning</option>
-                      <option value="Planting">Planting</option>
-                      <option value="Emergence">Emergence</option>
-                      <option value="Vegetative">Vegetative</option>
-                      <option value="Flowering">Flowering</option>
-                      <option value="Fruiting">Fruiting</option>
-                      <option value="Maturation">Maturation</option>
-                      <option value="Harvest">Harvest</option>
+                      <option value="planning">Planning</option>
+                      <option value="planting">Planting</option>
+                      <option value="emergence">Emergence</option>
+                      <option value="vegetative">Vegetative</option>
+                      <option value="flowering">Flowering</option>
+                      <option value="fruiting">Fruiting</option>
+                      <option value="maturation">Maturation</option>
+                      <option value="harvest">Harvest</option>
                     </select>
                   </div>
 
