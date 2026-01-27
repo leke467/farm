@@ -28,19 +28,14 @@ import Settings from "./pages/dashboard/Settings";
 import Landing from "./pages/public/Landing";
 
 // Context
-import { UserProvider, useUser } from "./context/UserContext";
-import { FarmDataProvider } from "./context/FarmDataContext";
-import { ApiProvider } from "./context/ApiContext";
-import apiService from "./services/api";
+import { useUser } from "./context/UserContext";
 
 function App() {
   const { isAuthenticated, handleLogout } = useUser();
 
   return (
-    <ApiProvider>
-      <FarmDataProvider>
-        <Router>
-          <Routes>
+    <Router>
+      <Routes>
             {/* Public routes */}
             <Route path="/" element={<Landing />} />
 
@@ -92,8 +87,6 @@ function App() {
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </Router>
-      </FarmDataProvider>
-    </ApiProvider>
   );
 }
 
