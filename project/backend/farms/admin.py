@@ -10,5 +10,5 @@ class FarmAdmin(admin.ModelAdmin):
 @admin.register(FarmMember)
 class FarmMemberAdmin(admin.ModelAdmin):
     list_display = ['user', 'farm', 'role', 'joined_at']
-    list_filter = ['role', 'joined_at']
+    list_filter = ['farm__name', 'role', 'joined_at']
     search_fields = ['user__username', 'farm__name']

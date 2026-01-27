@@ -5,12 +5,13 @@ from rest_framework.response import Response
 from rest_framework.authtoken.models import Token
 from django.contrib.auth import login, logout
 from .models import User
-from .serializers import UserSerializer, UserRegistrationSerializer, LoginSerializer
+from .serializers import UserSerializer, FarmRegistrationSerializer, LoginSerializer
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def register_view(request):
-    serializer = UserRegistrationSerializer(data=request.data)
+    """Register a new farm with the first admin user"""
+    serializer = FarmRegistrationSerializer(data=request.data)
     if serializer.is_valid():
         user = serializer.save()
         token, created = Token.objects.get_or_create(user=user)

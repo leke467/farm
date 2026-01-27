@@ -20,7 +20,6 @@ class Farm(models.Model):
     
     name = models.CharField(max_length=200)
     owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name='owned_farms')
-    users = models.ManyToManyField(User, related_name='farms')
     farm_type = models.CharField(max_length=20, choices=FARM_TYPE_CHOICES, default='mixed')
     size = models.CharField(max_length=20, choices=FARM_SIZE_CHOICES, default='medium')
     location = models.CharField(max_length=200)

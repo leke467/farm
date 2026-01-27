@@ -1,17 +1,18 @@
 from rest_framework import serializers
 from django.contrib.auth import authenticate
 from .models import User
-from farms.models import Farm
+from farms.models import Farm, FarmMember
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['id', 'username', 'email', 'first_name', 'last_name', 'role', 'phone', 'created_at']
+        fields = ['id', 'username', 'email', 'first_name', 'last_name', 'phone', 'is_admin', 'created_at']
         read_only_fields = ['id', 'created_at']
 
-class UserRegistrationSerializer(serializers.ModelSerializer):
+class FarmRegistrationSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, min_length=6)
     confirm_password = serializers.CharField(write_only=True)
+    role = serializers.CharField(write_only=True, required=False, default='owner')
     # Add farm fields
     farm_name = serializers.CharField(write_only=True, required=True)
     farm_location = serializers.CharField(write_only=False, required=False, allow_blank=True)
@@ -37,6 +38,12 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
         farm_fields = ['farm_name', 'farm_location', 'farm_size', 'farm_type', 'farm_address', 'farm_total_area', 'farm_description']
         farm_data = {k: validated_data.pop(k, None) for k in farm_fields}
         validated_data.pop('confirm_password')
+        
+        # Extract role for user (should be 'owner' from frontend)
+        user_role = validated_data.pop('role', 'owner')
+
+        validated_data['is_admin'] = True if user_role == 'admin' else False
+        
         user = User.objects.create_user(**validated_data)
         # Create farm with provided details
         farm = Farm.objects.create(
@@ -49,7 +56,14 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
             total_area=farm_data.get('farm_total_area') or 1.0,
             description=farm_data.get('farm_description') or ''
         )
-        farm.users.add(user)  # Add the user to the farm's users
+
+        # Create FarmMember with 'owner' role (farm creator is always owner)
+        FarmMember.objects.create(
+            farm=farm,
+            user=user,
+            role=user_role
+        )
+        
         return user
 
 class LoginSerializer(serializers.Serializer):

@@ -142,14 +142,18 @@ function Login() {
 
         <div className="text-center mt-4">
           <p className="text-sm text-gray-600">
-            Don't have an account?{" "}
+            Don't have an account?
+          </p>
+          <div className="mt-2 flex flex-col sm:flex-row gap-2 justify-center items-center">
             <Link
               to="/register"
               className="font-medium text-primary-500 hover:text-primary-600"
             >
-              Sign up
+              Create a farm
             </Link>
-          </p>
+            <span className="text-sm text-gray-500">or</span>
+            <span className="text-sm text-gray-600">contact your farm admin</span>
+          </div>
         </div>
       </form>
 
