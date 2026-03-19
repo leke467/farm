@@ -1,10 +1,17 @@
 from rest_framework import generics, permissions, status
+from rest_framework.pagination import PageNumberPagination
 from django.db import models
 from django.shortcuts import get_object_or_404
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from .models import Farm, FarmMember
 from .serializers import FarmSerializer, FarmMemberSerializer, FarmMemberCreateSerializer
+
+
+class FarmMembersPagination(PageNumberPagination):
+    page_size = 10
+    page_size_query_param = 'page_size'
+    max_page_size = 100
 
 class FarmListCreateView(generics.ListCreateAPIView):
     serializer_class = FarmSerializer
@@ -51,8 +58,10 @@ def farm_members_view(request, farm_id):
 
     if request.method == 'GET':
         members = FarmMember.objects.filter(farm=farm).select_related('user', 'farm').order_by('-joined_at')
-        serializer = FarmMemberSerializer(members, many=True)
-        return Response(serializer.data)
+        paginator = FarmMembersPagination()
+        page = paginator.paginate_queryset(members, request)
+        serializer = FarmMemberSerializer(page, many=True)
+        return paginator.get_paginated_response(serializer.data)
 
     if not request.user.is_admin:
         return Response(

@@ -142,8 +142,9 @@ class ApiService {
     });
   }
 
-  async getFarmMembers(farmId) {
-    return this.request(`/farms/${farmId}/members/`);
+  async getFarmMembers(farmId, params = {}) {
+    const queryString = new URLSearchParams(params).toString();
+    return this.request(`/farms/${farmId}/members/${queryString ? `?${queryString}` : ""}`);
   }
 
   async createFarmMember(farmId, memberData) {

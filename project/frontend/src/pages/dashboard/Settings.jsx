@@ -1,14 +1,24 @@
 import { useEffect, useState } from "react";
 import {
-  FiUser,
+  FiChevronDown,
+  FiChevronUp,
+  FiGlobe,
   FiLock,
   FiSettings,
-  FiGlobe,
+  FiUser,
   FiUserPlus,
+  FiUsers,
 } from "react-icons/fi";
 import { useUser } from "../../context/UserContext";
 import { useFarmData } from "../../context/FarmDataContext";
 import apiService from "../../services/api";
+
+const createEmptyMemberPagination = () => ({
+  count: 0,
+  next: null,
+  previous: null,
+  totalPages: 1,
+});
 
 const getErrorMessage = (response, fallback) => {
   if (!response) return fallback;
@@ -29,11 +39,57 @@ const getErrorMessage = (response, fallback) => {
   return entries[0] || fallback;
 };
 
+function SettingsAccordionSection({
+  id,
+  title,
+  description,
+  icon: Icon,
+  openSection,
+  onToggle,
+  children,
+}) {
+  const isOpen = openSection === id;
+
+  return (
+    <section className="bg-white rounded-xl shadow-md overflow-hidden">
+      <button
+        type="button"
+        className="w-full flex items-center justify-between p-4 sm:p-5 text-left hover:bg-gray-50 transition-colors"
+        onClick={() => onToggle(id)}
+        aria-expanded={isOpen}
+        aria-controls={`settings-section-${id}`}
+      >
+        <div className="flex items-center gap-3 min-w-0">
+          <div className="p-2 bg-primary-50 text-primary-600 rounded-lg">
+            <Icon size={18} />
+          </div>
+          <div className="min-w-0">
+            <h2 className="text-lg font-bold text-gray-900 truncate">{title}</h2>
+            <p className="text-sm text-gray-600 truncate">{description}</p>
+          </div>
+        </div>
+
+        <div className="text-gray-500 ml-3" aria-hidden="true">
+          {isOpen ? <FiChevronUp size={18} /> : <FiChevronDown size={18} />}
+        </div>
+      </button>
+
+      {isOpen && (
+        <div id={`settings-section-${id}`} className="border-t border-gray-100 p-5 sm:p-6">
+          {children}
+        </div>
+      )}
+    </section>
+  );
+}
+
 function Settings() {
   const { user, updateUserProfile } = useUser();
   const { farmSettings, updateFarmSettings, activeFarm, setActiveFarm } = useFarmData();
 
   const isAdmin = Boolean(user?.isAdmin ?? user?.is_admin);
+
+  const [openSection, setOpenSection] = useState("profile");
 
   const [profileData, setProfileData] = useState({
     firstName: "",
@@ -75,11 +131,72 @@ function Settings() {
   const [farmStatus, setFarmStatus] = useState({ type: "", message: "" });
   const [passwordStatus, setPasswordStatus] = useState({ type: "", message: "" });
   const [memberStatus, setMemberStatus] = useState({ type: "", message: "" });
+  const [membersViewStatus, setMembersViewStatus] = useState({ type: "", message: "" });
 
   const [profileLoading, setProfileLoading] = useState(false);
   const [farmLoading, setFarmLoading] = useState(false);
   const [passwordLoading, setPasswordLoading] = useState(false);
   const [memberLoading, setMemberLoading] = useState(false);
+
+  const [membersList, setMembersList] = useState([]);
+  const [membersLoading, setMembersLoading] = useState(false);
+  const [memberPage, setMemberPage] = useState(1);
+  const [memberPageSize, setMemberPageSize] = useState(10);
+  const [memberPagination, setMemberPagination] = useState(createEmptyMemberPagination());
+
+  const statusClass = (type) =>
+    type === "success"
+      ? "bg-success-50 border-success-200 text-success-700"
+      : "bg-error-50 border-error-200 text-error-600";
+
+  const toggleSection = (sectionId) => {
+    setOpenSection((current) => (current === sectionId ? "" : sectionId));
+  };
+
+  const fetchFarmMembers = async (farmId, page = 1, pageSize = memberPageSize) => {
+    setMembersLoading(true);
+    setMembersViewStatus({ type: "", message: "" });
+
+    const response = await apiService.getFarmMembers(farmId, {
+      page,
+      page_size: pageSize,
+    });
+
+    if (!response?._error) {
+      if (Array.isArray(response)) {
+        setMembersList(response);
+        setMemberPagination({
+          count: response.length,
+          next: null,
+          previous: null,
+          totalPages: 1,
+        });
+      } else if (Array.isArray(response.results)) {
+        const count = Number(response.count ?? 0);
+        setMembersList(response.results);
+        setMemberPagination({
+          count,
+          next: response.next ?? null,
+          previous: response.previous ?? null,
+          totalPages: Math.max(1, Math.ceil(count / pageSize)),
+        });
+      } else {
+        setMembersList([]);
+        setMemberPagination(createEmptyMemberPagination());
+      }
+
+      setMembersLoading(false);
+      return;
+    }
+
+    setMembersList([]);
+    setMemberPagination(createEmptyMemberPagination());
+    setMembersViewStatus({
+      type: "error",
+      message: getErrorMessage(response, "Failed to fetch farm members"),
+    });
+    setMembersLoading(false);
+  };
 
   useEffect(() => {
     setProfileData({
@@ -107,10 +224,20 @@ function Settings() {
     });
   }, [activeFarm, farmSettings]);
 
-  const statusClass = (type) =>
-    type === "success"
-      ? "bg-success-50 border-success-200 text-success-700"
-      : "bg-error-50 border-error-200 text-error-600";
+  useEffect(() => {
+    setMemberPage(1);
+  }, [activeFarm?.id]);
+
+  useEffect(() => {
+    if (!isAdmin || !activeFarm?.id) {
+      setMembersList([]);
+      setMemberPagination(createEmptyMemberPagination());
+      setMembersViewStatus({ type: "", message: "" });
+      return;
+    }
+
+    fetchFarmMembers(activeFarm.id, memberPage, memberPageSize);
+  }, [activeFarm?.id, isAdmin, memberPage, memberPageSize]);
 
   const handleProfileUpdate = async (e) => {
     e.preventDefault();
@@ -277,8 +404,36 @@ function Settings() {
       type: "success",
       message: "Member created. User must change password on first login.",
     });
+
+    setMemberPage(1);
+    if (memberPage === 1 && activeFarm?.id) {
+      fetchFarmMembers(activeFarm.id, 1, memberPageSize);
+    }
+
     setMemberLoading(false);
   };
+
+  const handleMembersPageSizeChange = (e) => {
+    const nextPageSize = Number(e.target.value) || 10;
+    setMemberPageSize(nextPageSize);
+    setMemberPage(1);
+  };
+
+  const handleMembersPreviousPage = () => {
+    if (memberPagination.previous && memberPage > 1) {
+      setMemberPage((current) => current - 1);
+    }
+  };
+
+  const handleMembersNextPage = () => {
+    if (memberPagination.next && memberPage < memberPagination.totalPages) {
+      setMemberPage((current) => current + 1);
+    }
+  };
+
+  const membersRangeStart =
+    memberPagination.count === 0 ? 0 : (memberPage - 1) * memberPageSize + 1;
+  const membersRangeEnd = Math.min(memberPage * memberPageSize, memberPagination.count);
 
   return (
     <div>
@@ -287,15 +442,15 @@ function Settings() {
         <p className="text-gray-600">Manage your account and farm settings</p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <div className="bg-white rounded-xl shadow-md p-6">
-          <div className="flex items-center mb-6">
-            <div className="p-2 bg-primary-100 text-primary-600 rounded-lg mr-4">
-              <FiUser size={24} />
-            </div>
-            <h2 className="text-xl font-bold">Profile Settings</h2>
-          </div>
-
+      <div className="space-y-4">
+        <SettingsAccordionSection
+          id="profile"
+          title="Profile Settings"
+          description="Name, email, contact details, and account role"
+          icon={FiUser}
+          openSection={openSection}
+          onToggle={toggleSection}
+        >
           {profileStatus.message && (
             <div className={`mb-4 p-3 rounded-lg border ${statusClass(profileStatus.type)}`}>
               {profileStatus.message}
@@ -362,23 +517,25 @@ function Settings() {
 
               <button
                 type="submit"
-                className={`btn btn-primary w-full ${profileLoading ? "opacity-70 cursor-not-allowed" : ""}`}
+                className={`btn btn-primary w-full ${
+                  profileLoading ? "opacity-70 cursor-not-allowed" : ""
+                }`}
                 disabled={profileLoading}
               >
                 {profileLoading ? "Updating..." : "Update Profile"}
               </button>
             </div>
           </form>
-        </div>
+        </SettingsAccordionSection>
 
-        <div className="bg-white rounded-xl shadow-md p-6">
-          <div className="flex items-center mb-6">
-            <div className="p-2 bg-secondary-100 text-secondary-600 rounded-lg mr-4">
-              <FiGlobe size={24} />
-            </div>
-            <h2 className="text-xl font-bold">Farm Settings</h2>
-          </div>
-
+        <SettingsAccordionSection
+          id="farm"
+          title="Farm Settings"
+          description="Farm type, size, location, and metadata"
+          icon={FiGlobe}
+          openSection={openSection}
+          onToggle={toggleSection}
+        >
           {farmStatus.message && (
             <div className={`mb-4 p-3 rounded-lg border ${statusClass(farmStatus.type)}`}>
               {farmStatus.message}
@@ -441,24 +598,26 @@ function Settings() {
 
               <button
                 type="submit"
-                className={`btn btn-primary w-full ${farmLoading ? "opacity-70 cursor-not-allowed" : ""}`}
+                className={`btn btn-primary w-full ${
+                  farmLoading ? "opacity-70 cursor-not-allowed" : ""
+                }`}
                 disabled={farmLoading}
               >
                 {farmLoading ? "Updating..." : "Update Farm Settings"}
               </button>
             </div>
           </form>
-        </div>
+        </SettingsAccordionSection>
 
         {isAdmin && (
-          <div className="bg-white rounded-xl shadow-md p-6">
-            <div className="flex items-center mb-6">
-              <div className="p-2 bg-primary-100 text-primary-600 rounded-lg mr-4">
-                <FiUserPlus size={24} />
-              </div>
-              <h2 className="text-xl font-bold">Create Farm Member</h2>
-            </div>
-
+          <SettingsAccordionSection
+            id="create-member"
+            title="Create Farm Member"
+            description="Add users and assign role or admin privileges"
+            icon={FiUserPlus}
+            openSection={openSection}
+            onToggle={toggleSection}
+          >
             {memberStatus.message && (
               <div className={`mb-4 p-3 rounded-lg border ${statusClass(memberStatus.type)}`}>
                 {memberStatus.message}
@@ -594,24 +753,177 @@ function Settings() {
 
                 <button
                   type="submit"
-                  className={`btn btn-primary w-full ${memberLoading ? "opacity-70 cursor-not-allowed" : ""}`}
+                  className={`btn btn-primary w-full ${
+                    memberLoading ? "opacity-70 cursor-not-allowed" : ""
+                  }`}
                   disabled={memberLoading}
                 >
                   {memberLoading ? "Creating..." : "Create Member"}
                 </button>
               </div>
             </form>
-          </div>
+          </SettingsAccordionSection>
         )}
 
-        <div className="bg-white rounded-xl shadow-md p-6">
-          <div className="flex items-center mb-6">
-            <div className="p-2 bg-accent-100 text-accent-600 rounded-lg mr-4">
-              <FiLock size={24} />
-            </div>
-            <h2 className="text-xl font-bold">Change Password</h2>
-          </div>
+        {isAdmin && (
+          <SettingsAccordionSection
+            id="farm-members"
+            title="Farm Members"
+            description="View member details with pagination"
+            icon={FiUsers}
+            openSection={openSection}
+            onToggle={toggleSection}
+          >
+            {!activeFarm?.id ? (
+              <div className="p-4 rounded-lg border border-amber-200 bg-amber-50 text-amber-700">
+                Select an active farm to view members.
+              </div>
+            ) : (
+              <>
+                {membersViewStatus.message && (
+                  <div
+                    className={`mb-4 p-3 rounded-lg border ${statusClass(
+                      membersViewStatus.type
+                    )}`}
+                  >
+                    {membersViewStatus.message}
+                  </div>
+                )}
 
+                {membersLoading ? (
+                  <div className="flex justify-center py-8">
+                    <p className="text-gray-500">Loading members...</p>
+                  </div>
+                ) : membersList.length === 0 ? (
+                  <div className="flex justify-center py-8">
+                    <p className="text-gray-500">No members added yet</p>
+                  </div>
+                ) : (
+                  <>
+                    <div className="overflow-x-auto">
+                      <table className="w-full">
+                        <thead>
+                          <tr className="border-b border-gray-200 bg-gray-50">
+                            <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">
+                              Name
+                            </th>
+                            <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">
+                              Email
+                            </th>
+                            <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">
+                              Role
+                            </th>
+                            <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">
+                              Phone
+                            </th>
+                            <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">
+                              Admin
+                            </th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {membersList.map((member) => {
+                            const memberUser = member.user || {};
+                            const firstName = memberUser.firstName ?? memberUser.first_name ?? "";
+                            const lastName = memberUser.lastName ?? memberUser.last_name ?? "";
+                            const fullName =
+                              `${firstName} ${lastName}`.trim() || memberUser.username || "Unknown";
+                            const email = memberUser.email || "";
+                            const phone = memberUser.phone || "-";
+                            const rowIsAdmin = Boolean(
+                              memberUser.isAdmin ?? memberUser.is_admin
+                            );
+                            const roleLabel = member.role
+                              ? member.role.charAt(0).toUpperCase() + member.role.slice(1)
+                              : "Member";
+
+                            return (
+                              <tr
+                                key={member.id}
+                                className="border-b border-gray-200 hover:bg-gray-50"
+                              >
+                                <td className="px-4 py-3 text-sm text-gray-900">{fullName}</td>
+                                <td className="px-4 py-3 text-sm text-gray-600">{email}</td>
+                                <td className="px-4 py-3 text-sm">
+                                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary-100 text-primary-800">
+                                    {roleLabel}
+                                  </span>
+                                </td>
+                                <td className="px-4 py-3 text-sm text-gray-600">{phone}</td>
+                                <td className="px-4 py-3 text-sm">
+                                  {rowIsAdmin ? (
+                                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-accent-100 text-accent-800">
+                                      Admin
+                                    </span>
+                                  ) : (
+                                    <span className="text-gray-500">-</span>
+                                  )}
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+
+                    <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                      <p className="text-sm text-gray-600">
+                        Showing {membersRangeStart}-{membersRangeEnd} of {memberPagination.count} members
+                      </p>
+
+                      <div className="flex flex-wrap items-center gap-2">
+                        <label className="text-sm text-gray-600" htmlFor="members-page-size">
+                          Rows
+                        </label>
+                        <select
+                          id="members-page-size"
+                          value={memberPageSize}
+                          onChange={handleMembersPageSizeChange}
+                          className="border border-gray-300 rounded-md px-2 py-1 text-sm"
+                        >
+                          <option value={10}>10</option>
+                          <option value={20}>20</option>
+                          <option value={50}>50</option>
+                        </select>
+
+                        <button
+                          type="button"
+                          onClick={handleMembersPreviousPage}
+                          disabled={!memberPagination.previous || membersLoading}
+                          className="px-3 py-1.5 rounded-md border border-gray-300 text-sm font-medium text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          Previous
+                        </button>
+
+                        <span className="text-sm text-gray-600">
+                          Page {memberPage} of {memberPagination.totalPages}
+                        </span>
+
+                        <button
+                          type="button"
+                          onClick={handleMembersNextPage}
+                          disabled={!memberPagination.next || membersLoading}
+                          className="px-3 py-1.5 rounded-md border border-gray-300 text-sm font-medium text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          Next
+                        </button>
+                      </div>
+                    </div>
+                  </>
+                )}
+              </>
+            )}
+          </SettingsAccordionSection>
+        )}
+
+        <SettingsAccordionSection
+          id="password"
+          title="Change Password"
+          description="Update your account password"
+          icon={FiLock}
+          openSection={openSection}
+          onToggle={toggleSection}
+        >
           {passwordStatus.message && (
             <div className={`mb-4 p-3 rounded-lg border ${statusClass(passwordStatus.type)}`}>
               {passwordStatus.message}
@@ -663,23 +975,25 @@ function Settings() {
 
               <button
                 type="submit"
-                className={`btn btn-primary w-full ${passwordLoading ? "opacity-70 cursor-not-allowed" : ""}`}
+                className={`btn btn-primary w-full ${
+                  passwordLoading ? "opacity-70 cursor-not-allowed" : ""
+                }`}
                 disabled={passwordLoading}
               >
                 {passwordLoading ? "Updating..." : "Change Password"}
               </button>
             </div>
           </form>
-        </div>
+        </SettingsAccordionSection>
 
-        <div className="bg-white rounded-xl shadow-md p-6">
-          <div className="flex items-center mb-6">
-            <div className="p-2 bg-gray-100 text-gray-600 rounded-lg mr-4">
-              <FiSettings size={24} />
-            </div>
-            <h2 className="text-xl font-bold">Preferences</h2>
-          </div>
-
+        <SettingsAccordionSection
+          id="preferences"
+          title="Preferences"
+          description="Notification and reminder preferences"
+          icon={FiSettings}
+          openSection={openSection}
+          onToggle={toggleSection}
+        >
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <div>
@@ -714,7 +1028,7 @@ function Settings() {
               </label>
             </div>
           </div>
-        </div>
+        </SettingsAccordionSection>
       </div>
     </div>
   );
