@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { FiPlus, FiSearch, FiCalendar, FiGrid } from "react-icons/fi";
+import { FiPlus, FiSearch, FiCalendar, FiEdit2, FiTrash2 } from "react-icons/fi";
 import { useFarmData } from "../../context/FarmDataContext";
 import { Dialog } from "@headlessui/react";
 import { motion } from "framer-motion";
@@ -286,18 +286,22 @@ function CropManagement() {
                       {crop.field} ({crop.area} acres)
                     </div>
                   </div>
-                  <div className="flex">
+                  <div className="flex space-x-2">
                     <button
                       onClick={() => handleEdit(crop)}
-                      className="text-gray-500 hover:text-primary-500 p-2"
+                      className="p-2 text-gray-500 hover:text-primary-500 hover:bg-primary-50 rounded-full"
+                      aria-label="Edit crop"
+                      title="Edit crop"
                     >
-                      Edit
+                      <FiEdit2 size={18} />
                     </button>
                     <button
                       onClick={() => handleDelete(crop.id)}
-                      className="text-gray-500 hover:text-error-500 p-2"
+                      className="p-2 text-gray-500 hover:text-error-500 hover:bg-error-50 rounded-full"
+                      aria-label="Delete crop"
+                      title="Delete crop"
                     >
-                      Delete
+                      <FiTrash2 size={18} />
                     </button>
                   </div>
                 </div>

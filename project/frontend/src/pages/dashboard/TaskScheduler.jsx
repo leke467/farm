@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { FiPlus, FiFilter, FiSearch, FiCalendar } from "react-icons/fi";
+import { FiPlus, FiFilter, FiSearch, FiCalendar, FiTrash2 } from "react-icons/fi";
 import { useFarmData } from "../../context/FarmDataContext";
 import { Dialog } from "@headlessui/react";
 import { motion } from "framer-motion";
@@ -182,9 +182,11 @@ function TaskScheduler() {
                   </div>
                   <button
                     onClick={() => deleteTask(task.id)}
-                    className="text-gray-400 hover:text-error-500"
+                    className="p-2 text-gray-500 hover:text-error-500 hover:bg-error-50 rounded-full"
+                    aria-label="Delete task"
+                    title="Delete task"
                   >
-                    Delete
+                    <FiTrash2 size={18} />
                   </button>
                 </div>
               </motion.div>

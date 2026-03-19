@@ -70,12 +70,16 @@ function AnimalCard({ animal, onEdit, onDelete }) {
             <button 
               onClick={() => onEdit(animal)}
               className="p-2 text-gray-500 hover:text-primary-500 hover:bg-primary-50 rounded-full"
+              aria-label="Edit animal"
+              title="Edit animal"
             >
               <FiEdit2 size={18} />
             </button>
             <button 
               onClick={() => onDelete(animal.id)}
               className="p-2 text-gray-500 hover:text-error-500 hover:bg-error-50 rounded-full"
+              aria-label="Delete animal"
+              title="Delete animal"
             >
               <FiTrash2 size={18} />
             </button>
