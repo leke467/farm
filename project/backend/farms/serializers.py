@@ -1,6 +1,9 @@
 from rest_framework import serializers
+from django.contrib.auth import get_user_model
 from .models import Farm, FarmMember
 from accounts.serializers import UserSerializer
+
+User = get_user_model()
 
 class FarmSerializer(serializers.ModelSerializer):
     owner = UserSerializer(read_only=True)
@@ -22,3 +25,44 @@ class FarmMemberSerializer(serializers.ModelSerializer):
         model = FarmMember
         fields = '__all__'
         read_only_fields = ['joined_at']
+
+
+class FarmMemberCreateSerializer(serializers.Serializer):
+    username = serializers.CharField(max_length=150)
+    email = serializers.EmailField()
+    first_name = serializers.CharField(max_length=30)
+    last_name = serializers.CharField(max_length=30)
+    phone = serializers.CharField(max_length=20, required=False, allow_blank=True)
+    role = serializers.ChoiceField(choices=FarmMember.ROLE_CHOICES, default='worker')
+    password = serializers.CharField(write_only=True, min_length=8)
+    is_admin = serializers.BooleanField(required=False, default=False)
+
+    def validate_username(self, value):
+        if User.objects.filter(username=value).exists():
+            raise serializers.ValidationError('A user with this username already exists')
+        return value
+
+    def validate_email(self, value):
+        if User.objects.filter(email=value).exists():
+            raise serializers.ValidationError('A user with this email already exists')
+        return value
+
+    def create(self, validated_data):
+        farm = self.context['farm']
+        role = validated_data.pop('role', 'worker')
+        raw_password = validated_data.pop('password')
+        is_admin = validated_data.pop('is_admin', False)
+
+        user = User.objects.create_user(
+            password=raw_password,
+            is_admin=is_admin,
+            **validated_data,
+        )
+        user.must_change_password = True
+        user.save(update_fields=['must_change_password'])
+
+        return FarmMember.objects.create(
+            farm=farm,
+            user=user,
+            role=role,
+        )

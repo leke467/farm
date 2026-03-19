@@ -5,7 +5,12 @@ from rest_framework.response import Response
 from rest_framework.authtoken.models import Token
 from django.contrib.auth import login, logout
 from .models import User
-from .serializers import UserSerializer, FarmRegistrationSerializer, LoginSerializer
+from .serializers import (
+    UserSerializer,
+    FarmRegistrationSerializer,
+    LoginSerializer,
+    ChangePasswordSerializer,
+)
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
@@ -58,4 +63,23 @@ def update_profile_view(request):
     if serializer.is_valid():
         serializer.save()
         return Response(serializer.data)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def change_password_view(request):
+    serializer = ChangePasswordSerializer(
+        data=request.data,
+        context={'request': request},
+    )
+    if serializer.is_valid():
+        user = request.user
+        user.set_password(serializer.validated_data['new_password'])
+        user.must_change_password = False
+        user.save(update_fields=['password', 'must_change_password'])
+        return Response({
+            'message': 'Password changed successfully',
+            'user': UserSerializer(user).data,
+        })
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

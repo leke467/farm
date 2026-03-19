@@ -110,6 +110,13 @@ class ApiService {
     });
   }
 
+  async changePassword(passwordData) {
+    return this.request("/auth/change-password/", {
+      method: "POST",
+      body: JSON.stringify(passwordData),
+    });
+  }
+
   // Farm methods
   async getFarms() {
     return this.request("/farms/");
@@ -132,6 +139,17 @@ class ApiService {
   async deleteFarm(id) {
     return this.request(`/farms/${id}/`, {
       method: "DELETE",
+    });
+  }
+
+  async getFarmMembers(farmId) {
+    return this.request(`/farms/${farmId}/members/`);
+  }
+
+  async createFarmMember(farmId, memberData) {
+    return this.request(`/farms/${farmId}/members/`, {
+      method: "POST",
+      body: JSON.stringify(memberData),
     });
   }
 

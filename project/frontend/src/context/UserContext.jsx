@@ -8,6 +8,9 @@ const normalizeUser = (userData) => {
 
   const firstName = userData.firstName ?? userData.first_name ?? '';
   const lastName = userData.lastName ?? userData.last_name ?? '';
+  const isAdmin = userData.isAdmin ?? userData.is_admin ?? false;
+  const mustChangePassword =
+    userData.mustChangePassword ?? userData.must_change_password ?? false;
 
   return {
     ...userData,
@@ -15,6 +18,10 @@ const normalizeUser = (userData) => {
     lastName,
     first_name: userData.first_name ?? firstName,
     last_name: userData.last_name ?? lastName,
+    isAdmin,
+    is_admin: userData.is_admin ?? isAdmin,
+    mustChangePassword,
+    must_change_password: userData.must_change_password ?? mustChangePassword,
   };
 };
 
@@ -39,6 +46,7 @@ export function UserProvider({ children }) {
   const handleLogout = () => {
     setUser(null);
     localStorage.removeItem('farmUser');
+    localStorage.removeItem('authToken');
     setIsAuthenticated(false);
   };
 

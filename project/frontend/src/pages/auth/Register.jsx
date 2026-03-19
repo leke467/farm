@@ -82,7 +82,11 @@ function Register() {
         farm_description: formData.farmDescription,
       });
       if (response.token) {
-        handleLogin({ username: formData.username, token: response.token });
+        handleLogin({
+          username: formData.username,
+          token: response.token,
+          ...response.user,
+        });
         navigate("/dashboard");
       } else if (response._error) {
         // Show all backend errors if present

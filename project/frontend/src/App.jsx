@@ -13,6 +13,7 @@ import DashboardLayout from "./layouts/DashboardLayout";
 // Pages - Auth
 import Login from "./pages/auth/Login";
 import Register from "./pages/auth/Register";
+import ForcePasswordChange from "./pages/auth/ForcePasswordChange";
 
 // Pages - Dashboard
 import Dashboard from "./pages/dashboard/Dashboard";
@@ -31,7 +32,10 @@ import Landing from "./pages/public/Landing";
 import { useUser } from "./context/UserContext";
 
 function App() {
-  const { isAuthenticated, handleLogout } = useUser();
+  const { isAuthenticated, user, handleLogout } = useUser();
+  const mustChangePassword = Boolean(
+    user?.mustChangePassword ?? user?.must_change_password
+  );
 
   return (
     <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
@@ -45,7 +49,10 @@ function App() {
                 path="/login"
                 element={
                   isAuthenticated ? (
-                    <Navigate to="/dashboard" replace />
+                    <Navigate
+                      to={mustChangePassword ? "/force-password-change" : "/dashboard"}
+                      replace
+                    />
                   ) : (
                     <Login />
                   )
@@ -55,9 +62,24 @@ function App() {
                 path="/register"
                 element={
                   isAuthenticated ? (
-                    <Navigate to="/dashboard" replace />
+                    <Navigate
+                      to={mustChangePassword ? "/force-password-change" : "/dashboard"}
+                      replace
+                    />
                   ) : (
                     <Register />
+                  )
+                }
+              />
+              <Route
+                path="/force-password-change"
+                element={
+                  !isAuthenticated ? (
+                    <Navigate to="/login" replace />
+                  ) : mustChangePassword ? (
+                    <ForcePasswordChange />
+                  ) : (
+                    <Navigate to="/dashboard" replace />
                   )
                 }
               />
@@ -66,10 +88,12 @@ function App() {
             {/* Dashboard routes - protected */}
             <Route
               element={
-                isAuthenticated ? (
-                  <DashboardLayout onLogout={handleLogout} />
-                ) : (
+                !isAuthenticated ? (
                   <Navigate to="/login" replace />
+                ) : mustChangePassword ? (
+                  <Navigate to="/force-password-change" replace />
+                ) : (
+                  <DashboardLayout onLogout={handleLogout} />
                 )
               }
             >

@@ -1,13 +1,24 @@
 from rest_framework import serializers
 from django.contrib.auth import authenticate
+from django.contrib.auth.password_validation import validate_password
 from .models import User
 from farms.models import Farm, FarmMember
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['id', 'username', 'email', 'first_name', 'last_name', 'phone', 'is_admin', 'created_at']
-        read_only_fields = ['id', 'created_at']
+        fields = [
+            'id',
+            'username',
+            'email',
+            'first_name',
+            'last_name',
+            'phone',
+            'is_admin',
+            'must_change_password',
+            'created_at',
+        ]
+        read_only_fields = ['id', 'is_admin', 'must_change_password', 'created_at']
 
 class FarmRegistrationSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, min_length=6)
@@ -84,4 +95,29 @@ class LoginSerializer(serializers.Serializer):
         else:
             raise serializers.ValidationError('Must include username and password')
         
+        return attrs
+
+
+class ChangePasswordSerializer(serializers.Serializer):
+    current_password = serializers.CharField(write_only=True, required=False, allow_blank=True)
+    new_password = serializers.CharField(write_only=True, min_length=8)
+    confirm_password = serializers.CharField(write_only=True)
+
+    def validate(self, attrs):
+        user = self.context['request'].user
+        current_password = attrs.get('current_password')
+
+        if user.must_change_password:
+            if current_password and not user.check_password(current_password):
+                raise serializers.ValidationError({'current_password': 'Current password is incorrect'})
+        else:
+            if not current_password:
+                raise serializers.ValidationError({'current_password': 'Current password is required'})
+            if not user.check_password(current_password):
+                raise serializers.ValidationError({'current_password': 'Current password is incorrect'})
+
+        if attrs['new_password'] != attrs['confirm_password']:
+            raise serializers.ValidationError({'confirm_password': "Passwords don't match"})
+
+        validate_password(attrs['new_password'], user)
         return attrs

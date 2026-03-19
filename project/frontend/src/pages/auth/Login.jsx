@@ -49,13 +49,17 @@ function Login() {
         password: formData.password,
       });
       if (response.token) {
+        const mustChangePassword = Boolean(
+          response.user?.must_change_password ?? response.user?.mustChangePassword
+        );
+
         handleLogin({
           username: formData.username,
           token: response.token,
           ...response.user, // include user info if available
         });
         setLoading(false);
-        navigate("/dashboard");
+        navigate(mustChangePassword ? "/force-password-change" : "/dashboard");
       } else {
         setError("Invalid username or password");
         setLoading(false);
