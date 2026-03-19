@@ -213,7 +213,7 @@ class ApiService {
 
   async updateTask(id, taskData) {
     return this.request(`/tasks/${id}/`, {
-      method: "PUT",
+      method: "PATCH",
       body: JSON.stringify(taskData),
     });
   }

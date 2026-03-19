@@ -4,6 +4,11 @@ import { useFarmData } from "../../context/FarmDataContext";
 function AlertsList() {
   const { animals, crops, inventory, tasks } = useFarmData();
 
+  const getHarvestStage = (crop) => {
+    const stages = Array.isArray(crop.growthStages) ? crop.growthStages : [];
+    return stages.find((stage) => (stage.stage || "").toLowerCase() === "harvest");
+  };
+
   // Defensive: ensure all are arrays
   const safeInventory = Array.isArray(inventory) ? inventory : [];
   const safeTasks = Array.isArray(tasks) ? tasks : [];
@@ -39,10 +44,7 @@ function AlertsList() {
     // Upcoming harvests
     ...safeCrops
       .filter((crop) => {
-        const harvestStage =
-          crop.growthStages && Array.isArray(crop.growthStages)
-            ? crop.growthStages.find((stage) => stage.stage === "Harvest")
-            : null;
+        const harvestStage = getHarvestStage(crop);
         return (
           harvestStage &&
           !harvestStage.completed &&
@@ -54,11 +56,8 @@ function AlertsList() {
         id: `crop-${crop.id}`,
         type: "info",
         title: `Upcoming harvest: ${crop.name}`,
-        description: `Harvest expected by ${
-          crop.growthStages.find((stage) => stage.stage === "Harvest")?.date
-        }`,
-        date: crop.growthStages.find((stage) => stage.stage === "Harvest")
-          ?.date,
+        description: `Harvest expected by ${getHarvestStage(crop)?.date || "TBD"}`,
+        date: getHarvestStage(crop)?.date,
       })),
   ];
 

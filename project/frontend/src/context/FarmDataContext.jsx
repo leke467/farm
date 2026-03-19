@@ -12,6 +12,205 @@ import { useUser } from "./UserContext";
 // Create context
 const FarmDataContext = createContext();
 
+const ensureArray = (value) => (Array.isArray(value) ? value : []);
+
+const getResultsArray = (value) => {
+  if (Array.isArray(value)) return value;
+  if (value && Array.isArray(value.results)) return value.results;
+  return [];
+};
+
+const normalizeNumber = (value, fallback = 0) => {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : fallback;
+};
+
+const normalizeOptionalNumber = (value) => {
+  if (value === null || value === undefined || value === "") return null;
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : null;
+};
+
+const toSnakeEnum = (value, fallback = "other") => {
+  if (!value && value !== 0) return fallback;
+  return String(value).trim().toLowerCase().replace(/\s+/g, "_");
+};
+
+const normalizeFarm = (farm) => {
+  if (!farm) return farm;
+  return {
+    ...farm,
+    type: farm.type ?? farm.farm_type ?? "",
+    farm_type: farm.farm_type ?? farm.type ?? "",
+  };
+};
+
+const normalizeAnimal = (animal) => {
+  if (!animal) return animal;
+  return {
+    ...animal,
+    type: animal.type ?? animal.animal_type ?? "",
+    animal_type: animal.animal_type ?? animal.type ?? "",
+    birthDate: animal.birthDate ?? animal.birth_date ?? "",
+    birth_date: animal.birth_date ?? animal.birthDate ?? null,
+    isGroup: animal.isGroup ?? animal.is_group ?? false,
+    is_group: animal.is_group ?? animal.isGroup ?? false,
+    count: normalizeNumber(animal.count, 1),
+    weight: normalizeOptionalNumber(animal.weight),
+    avgWeight: normalizeOptionalNumber(animal.avgWeight ?? animal.avg_weight),
+    avg_weight: normalizeOptionalNumber(animal.avg_weight ?? animal.avgWeight),
+    establishedDate: animal.establishedDate ?? animal.established_date ?? null,
+    established_date: animal.established_date ?? animal.establishedDate ?? null,
+    weightHistory: ensureArray(animal.weightHistory ?? animal.weight_history),
+    weight_history: ensureArray(animal.weight_history ?? animal.weightHistory),
+    medicalHistory: ensureArray(animal.medicalHistory ?? animal.medical_history),
+    medical_history: ensureArray(animal.medical_history ?? animal.medicalHistory),
+    foodConsumption: ensureArray(
+      animal.foodConsumption ?? animal.food_consumption
+    ),
+    food_consumption: ensureArray(
+      animal.food_consumption ?? animal.foodConsumption
+    ),
+    sampleWeights: ensureArray(animal.sampleWeights ?? animal.sample_weights),
+    sample_weights: ensureArray(animal.sample_weights ?? animal.sampleWeights),
+    waterQuality: ensureArray(animal.waterQuality ?? animal.water_quality),
+    water_quality: ensureArray(animal.water_quality ?? animal.waterQuality),
+    status: (animal.status ?? "healthy").toLowerCase(),
+  };
+};
+
+const normalizeCrop = (crop) => {
+  if (!crop) return crop;
+  const growthStages = ensureArray(crop.growthStages ?? crop.growth_stages).map(
+    (stage) => ({
+      ...stage,
+      stage: (stage.stage ?? "").toLowerCase(),
+    })
+  );
+
+  return {
+    ...crop,
+    area: normalizeNumber(crop.area, 0),
+    plantedDate: crop.plantedDate ?? crop.planted_date ?? "",
+    planted_date: crop.planted_date ?? crop.plantedDate ?? null,
+    expectedHarvestDate:
+      crop.expectedHarvestDate ?? crop.expected_harvest_date ?? "",
+    expected_harvest_date:
+      crop.expected_harvest_date ?? crop.expectedHarvestDate ?? null,
+    growthStages,
+    growth_stages: growthStages,
+    status: (crop.status ?? "planning").toLowerCase(),
+    stage: (crop.stage ?? "planning").toLowerCase(),
+  };
+};
+
+const normalizeTask = (task) => {
+  if (!task) return task;
+
+  const assignedSource = task.assignedTo ?? task.assigned_to ?? null;
+  const assignedTo =
+    typeof assignedSource === "string"
+      ? assignedSource
+      : assignedSource?.username ||
+        [assignedSource?.first_name, assignedSource?.last_name]
+          .filter(Boolean)
+          .join(" ") ||
+        "";
+
+  return {
+    ...task,
+    dueDate: task.dueDate ?? task.due_date ?? "",
+    due_date: task.due_date ?? task.dueDate ?? null,
+    assignedTo,
+    status: (task.status ?? "pending").toLowerCase(),
+    priority: (task.priority ?? "medium").toLowerCase(),
+    category: toSnakeEnum(task.category, "other"),
+  };
+};
+
+const normalizeInventoryItem = (item) => {
+  if (!item) return item;
+  return {
+    ...item,
+    quantity: normalizeNumber(item.quantity, 0),
+    minQuantity: normalizeNumber(item.minQuantity ?? item.min_quantity, 0),
+    min_quantity: normalizeNumber(item.min_quantity ?? item.minQuantity, 0),
+    purchaseDate: item.purchaseDate ?? item.purchase_date ?? null,
+    purchase_date: item.purchase_date ?? item.purchaseDate ?? null,
+    expiryDate: item.expiryDate ?? item.expiry_date ?? null,
+    expiry_date: item.expiry_date ?? item.expiryDate ?? null,
+    costPerUnit: normalizeOptionalNumber(item.costPerUnit ?? item.cost_per_unit),
+    cost_per_unit: normalizeOptionalNumber(item.cost_per_unit ?? item.costPerUnit),
+  };
+};
+
+const normalizeExpense = (expense) => {
+  if (!expense) return expense;
+  const paymentMethod = toSnakeEnum(
+    expense.paymentMethod ?? expense.payment_method,
+    "cash"
+  );
+  return {
+    ...expense,
+    amount: normalizeNumber(expense.amount, 0),
+    category: toSnakeEnum(expense.category, "other"),
+    paymentMethod,
+    payment_method: paymentMethod,
+  };
+};
+
+const toTaskPayload = (task) => {
+  const payload = {
+    ...task,
+  };
+
+  if (payload.dueDate !== undefined) {
+    payload.due_date = payload.dueDate;
+    delete payload.dueDate;
+  }
+  if (payload.assignedTo !== undefined) {
+    payload.assigned_to = payload.assignedTo;
+    delete payload.assignedTo;
+  }
+  if (payload.recurrencePattern !== undefined) {
+    payload.recurrence_pattern = payload.recurrencePattern;
+    delete payload.recurrencePattern;
+  }
+  if (payload.category !== undefined) {
+    payload.category = toSnakeEnum(payload.category, "other");
+  }
+  if (payload.priority !== undefined) {
+    payload.priority = String(payload.priority).toLowerCase();
+  }
+  if (payload.status !== undefined) {
+    payload.status = String(payload.status).toLowerCase();
+  }
+
+  return payload;
+};
+
+const toExpensePayload = (expense) => {
+  const payload = {
+    ...expense,
+  };
+
+  if (payload.paymentMethod !== undefined) {
+    payload.payment_method = toSnakeEnum(payload.paymentMethod, "cash");
+    delete payload.paymentMethod;
+  } else if (payload.payment_method !== undefined) {
+    payload.payment_method = toSnakeEnum(payload.payment_method, "cash");
+  }
+
+  if (payload.category !== undefined) {
+    payload.category = toSnakeEnum(payload.category, "other");
+  }
+  if (payload.amount !== undefined) {
+    payload.amount = normalizeNumber(payload.amount, 0);
+  }
+
+  return payload;
+};
+
 // Context provider
 export function FarmDataProvider({ children }) {
   const { user } = useUser();
@@ -52,30 +251,22 @@ export function FarmDataProvider({ children }) {
       setError(null);
       try {
         if (user && user.isDemo) {
-          setAnimals(initialAnimals);
-          setCrops(initialCrops);
-          setTasks(initialTasks);
-          setInventory(initialInventory);
-          setExpenses(initialExpenses);
+          setAnimals(initialAnimals.map(normalizeAnimal));
+          setCrops(initialCrops.map(normalizeCrop));
+          setTasks(initialTasks.map(normalizeTask));
+          setInventory(initialInventory.map(normalizeInventoryItem));
+          setExpenses(initialExpenses.map(normalizeExpense));
           setFarms([{ name: "Demo Farm", id: "demo" }]);
           setActiveFarm({ name: "Demo Farm", id: "demo" });
         } else {
           // Fetch farms for the user
           const userFarms = await apiService.getFarms();
-          console.log("User Farms is", userFarms)
-          
-          let farmObj = null;
-          if (
-            userFarms &&
-            Array.isArray(userFarms.results) &&
-            userFarms.results.length > 0
-          ) {
-            farmObj = userFarms.results[0];
-            console.log("Farm Obj ", farmObj)
-          }
+
+          const farmList = getResultsArray(userFarms).map(normalizeFarm);
+          const farmObj = farmList[0] || null;
           
           if (!cancelled) {
-            setFarms((userFarms && userFarms.results) || []);
+            setFarms(farmList);
             if (farmObj) {
               setActiveFarm(farmObj);
               setFarmSettings({
@@ -126,20 +317,11 @@ export function FarmDataProvider({ children }) {
         ]);
         
         if (!cancelled) {
-          // Handle both array and paginated responses
-          setAnimals(Array.isArray(a) ? a : (a?.results || []));
-          setCrops(Array.isArray(c) ? c : (c?.results || []));
-          setTasks(Array.isArray(t) ? t : (t?.results || []));
-          setInventory(Array.isArray(i) ? i : (i?.results || []));
-          setExpenses(Array.isArray(e) ? e : (e?.results || []));
-          
-          console.log("Fetched farm data:", { 
-            animals: Array.isArray(a) ? a : a?.results, 
-            crops: Array.isArray(c) ? c : c?.results, 
-            tasks: Array.isArray(t) ? t : t?.results, 
-            inventory: Array.isArray(i) ? i : i?.results, 
-            expenses: Array.isArray(e) ? e : e?.results 
-          });
+          setAnimals(getResultsArray(a).map(normalizeAnimal));
+          setCrops(getResultsArray(c).map(normalizeCrop));
+          setTasks(getResultsArray(t).map(normalizeTask));
+          setInventory(getResultsArray(i).map(normalizeInventoryItem));
+          setExpenses(getResultsArray(e).map(normalizeExpense));
         }
       } catch (err) {
         if (!cancelled) {
@@ -164,14 +346,17 @@ export function FarmDataProvider({ children }) {
   const addAnimal = async (animal) => {
     try {
       if (user && user.isDemo) {
-        setAnimals([...animals, { ...animal, id: Date.now().toString() }]);
+        setAnimals((prev) => [
+          ...prev,
+          normalizeAnimal({ ...animal, id: Date.now().toString() }),
+        ]);
         return { success: true };
       } else {
         const res = await apiService.createAnimal({ ...animal, farm: activeFarm?.id });
-        console.log("Animal created:", res);
         if (res && !res._error) {
-          setAnimals([...animals, res]);
-          return { success: true, data: res };
+          const normalizedAnimal = normalizeAnimal(res);
+          setAnimals((prev) => [...prev, normalizedAnimal]);
+          return { success: true, data: normalizedAnimal };
         } else {
           setError("Failed to add animal");
           return { success: false, error: "Failed to add animal" };
@@ -186,18 +371,20 @@ export function FarmDataProvider({ children }) {
   const updateAnimal = async (id, updatedAnimal) => {
     try {
       if (user && user.isDemo) {
-        setAnimals(
-          animals.map((animal) =>
+        setAnimals((prev) =>
+          prev.map((animal) =>
             animal.id === id ? { ...animal, ...updatedAnimal } : animal
           )
         );
         return { success: true };
       } else {
         const res = await apiService.updateAnimal(id, updatedAnimal);
-        console.log("Animal updated:", res);
         if (res && !res._error) {
-          setAnimals(animals.map((animal) => (animal.id === id ? res : animal)));
-          return { success: true, data: res };
+          const normalizedAnimal = normalizeAnimal(res);
+          setAnimals((prev) =>
+            prev.map((animal) => (animal.id === id ? normalizedAnimal : animal))
+          );
+          return { success: true, data: normalizedAnimal };
         }
       }
     } catch (err) {
@@ -209,13 +396,12 @@ export function FarmDataProvider({ children }) {
   const deleteAnimal = async (id) => {
     try {
       if (user && user.isDemo) {
-        setAnimals(animals.filter((animal) => animal.id !== id));
+        setAnimals((prev) => prev.filter((animal) => animal.id !== id));
         return { success: true };
       } else {
         const res = await apiService.deleteAnimal(id);
-        console.log("Animal deleted:", res);
         if (!res._error) {
-          setAnimals(animals.filter((animal) => animal.id !== id));
+          setAnimals((prev) => prev.filter((animal) => animal.id !== id));
           return { success: true };
         }
       }
@@ -231,14 +417,17 @@ export function FarmDataProvider({ children }) {
   const addCrop = async (crop) => {
     try {
       if (user && user.isDemo) {
-        setCrops([...crops, { ...crop, id: Date.now().toString() }]);
+        setCrops((prev) => [
+          ...prev,
+          normalizeCrop({ ...crop, id: Date.now().toString() }),
+        ]);
         return { success: true };
       } else {
         const res = await apiService.createCrop({ ...crop, farm: activeFarm?.id });
-        console.log("Crop created:", res);
         if (res && !res._error) {
-          setCrops([...crops, res]);
-          return { success: true, data: res };
+          const normalizedCrop = normalizeCrop(res);
+          setCrops((prev) => [...prev, normalizedCrop]);
+          return { success: true, data: normalizedCrop };
         }
       }
     } catch (err) {
@@ -250,18 +439,20 @@ export function FarmDataProvider({ children }) {
   const updateCrop = async (id, updatedCrop) => {
     try {
       if (user && user.isDemo) {
-        setCrops(
-          crops.map((crop) =>
+        setCrops((prev) =>
+          prev.map((crop) =>
             crop.id === id ? { ...crop, ...updatedCrop } : crop
           )
         );
         return { success: true };
       } else {
         const res = await apiService.updateCrop(id, updatedCrop);
-        console.log("Crop updated:", res);
         if (res && !res._error) {
-          setCrops(crops.map((crop) => (crop.id === id ? res : crop)));
-          return { success: true, data: res };
+          const normalizedCrop = normalizeCrop(res);
+          setCrops((prev) =>
+            prev.map((crop) => (crop.id === id ? normalizedCrop : crop))
+          );
+          return { success: true, data: normalizedCrop };
         }
       }
     } catch (err) {
@@ -273,13 +464,12 @@ export function FarmDataProvider({ children }) {
   const deleteCrop = async (id) => {
     try {
       if (user && user.isDemo) {
-        setCrops(crops.filter((crop) => crop.id !== id));
+        setCrops((prev) => prev.filter((crop) => crop.id !== id));
         return { success: true };
       } else {
         const res = await apiService.deleteCrop(id);
-        console.log("Crop deleted:", res);
         if (!res._error) {
-          setCrops(crops.filter((crop) => crop.id !== id));
+          setCrops((prev) => prev.filter((crop) => crop.id !== id));
           return { success: true };
         }
       }
@@ -294,17 +484,20 @@ export function FarmDataProvider({ children }) {
   const addTask = async (task) => {
     try {
       if (user && user.isDemo) {
-        setTasks([
-          ...tasks,
-          { ...task, id: Date.now().toString(), status: "pending" },
+        setTasks((prev) => [
+          ...prev,
+          normalizeTask({ ...task, id: Date.now().toString(), status: "pending" }),
         ]);
         return { success: true };
       } else {
-        const res = await apiService.createTask({ ...task, farm: activeFarm?.id });
-        console.log("Task created:", res);
+        const res = await apiService.createTask({
+          ...toTaskPayload(task),
+          farm: activeFarm?.id,
+        });
         if (res && !res._error) {
-          setTasks([...tasks, res]);
-          return { success: true, data: res };
+          const normalizedTask = normalizeTask(res);
+          setTasks((prev) => [...prev, normalizedTask]);
+          return { success: true, data: normalizedTask };
         }
       }
     } catch (err) {
@@ -316,18 +509,20 @@ export function FarmDataProvider({ children }) {
   const updateTask = async (id, updatedTask) => {
     try {
       if (user && user.isDemo) {
-        setTasks(
-          tasks.map((task) =>
+        setTasks((prev) =>
+          prev.map((task) =>
             task.id === id ? { ...task, ...updatedTask } : task
           )
         );
         return { success: true };
       } else {
-        const res = await apiService.updateTask(id, updatedTask);
-        console.log("Task updated:", res);
+        const res = await apiService.updateTask(id, toTaskPayload(updatedTask));
         if (res && !res._error) {
-          setTasks(tasks.map((task) => (task.id === id ? res : task)));
-          return { success: true, data: res };
+          const normalizedTask = normalizeTask(res);
+          setTasks((prev) =>
+            prev.map((task) => (task.id === id ? normalizedTask : task))
+          );
+          return { success: true, data: normalizedTask };
         }
       }
     } catch (err) {
@@ -339,13 +534,12 @@ export function FarmDataProvider({ children }) {
   const deleteTask = async (id) => {
     try {
       if (user && user.isDemo) {
-        setTasks(tasks.filter((task) => task.id !== id));
+        setTasks((prev) => prev.filter((task) => task.id !== id));
         return { success: true };
       } else {
         const res = await apiService.deleteTask(id);
-        console.log("Task deleted:", res);
         if (!res._error) {
-          setTasks(tasks.filter((task) => task.id !== id));
+          setTasks((prev) => prev.filter((task) => task.id !== id));
           return { success: true };
         }
       }
@@ -360,14 +554,17 @@ export function FarmDataProvider({ children }) {
   const addInventoryItem = async (item) => {
     try {
       if (user && user.isDemo) {
-        setInventory([...inventory, { ...item, id: Date.now().toString() }]);
+        setInventory((prev) => [
+          ...prev,
+          normalizeInventoryItem({ ...item, id: Date.now().toString() }),
+        ]);
         return { success: true };
       } else {
         const res = await apiService.createInventoryItem({ ...item, farm: activeFarm?.id });
-        console.log("Inventory item created:", res);
         if (res && !res._error) {
-          setInventory([...inventory, res]);
-          return { success: true, data: res };
+          const normalizedItem = normalizeInventoryItem(res);
+          setInventory((prev) => [...prev, normalizedItem]);
+          return { success: true, data: normalizedItem };
         }
       }
     } catch (err) {
@@ -379,18 +576,20 @@ export function FarmDataProvider({ children }) {
   const updateInventoryItem = async (id, updatedItem) => {
     try {
       if (user && user.isDemo) {
-        setInventory(
-          inventory.map((item) =>
+        setInventory((prev) =>
+          prev.map((item) =>
             item.id === id ? { ...item, ...updatedItem } : item
           )
         );
         return { success: true };
       } else {
         const res = await apiService.updateInventoryItem(id, updatedItem);
-        console.log("Inventory item updated:", res);
         if (res && !res._error) {
-          setInventory(inventory.map((item) => (item.id === id ? res : item)));
-          return { success: true, data: res };
+          const normalizedItem = normalizeInventoryItem(res);
+          setInventory((prev) =>
+            prev.map((item) => (item.id === id ? normalizedItem : item))
+          );
+          return { success: true, data: normalizedItem };
         }
       }
     } catch (err) {
@@ -402,13 +601,12 @@ export function FarmDataProvider({ children }) {
   const deleteInventoryItem = async (id) => {
     try {
       if (user && user.isDemo) {
-        setInventory(inventory.filter((item) => item.id !== id));
+        setInventory((prev) => prev.filter((item) => item.id !== id));
         return { success: true };
       } else {
         const res = await apiService.deleteInventoryItem(id);
-        console.log("Inventory item deleted:", res);
         if (!res._error) {
-          setInventory(inventory.filter((item) => item.id !== id));
+          setInventory((prev) => prev.filter((item) => item.id !== id));
           return { success: true };
         }
       }
@@ -423,21 +621,24 @@ export function FarmDataProvider({ children }) {
   const addExpense = async (expense) => {
     try {
       if (user && user.isDemo) {
-        setExpenses([
-          ...expenses,
-          {
+        setExpenses((prev) => [
+          ...prev,
+          normalizeExpense({
             ...expense,
             id: Date.now().toString(),
             date: new Date().toISOString(),
-          },
+          }),
         ]);
         return { success: true };
       } else {
-        const res = await apiService.createExpense({ ...expense, farm: activeFarm?.id });
-        console.log("Expense created:", res);
+        const res = await apiService.createExpense({
+          ...toExpensePayload(expense),
+          farm: activeFarm?.id,
+        });
         if (res && !res._error) {
-          setExpenses([...expenses, res]);
-          return { success: true, data: res };
+          const normalizedExpense = normalizeExpense(res);
+          setExpenses((prev) => [...prev, normalizedExpense]);
+          return { success: true, data: normalizedExpense };
         }
       }
     } catch (err) {
@@ -449,20 +650,25 @@ export function FarmDataProvider({ children }) {
   const updateExpense = async (id, updatedExpense) => {
     try {
       if (user && user.isDemo) {
-        setExpenses(
-          expenses.map((expense) =>
+        setExpenses((prev) =>
+          prev.map((expense) =>
             expense.id === id ? { ...expense, ...updatedExpense } : expense
           )
         );
         return { success: true };
       } else {
-        const res = await apiService.updateExpense(id, updatedExpense);
-        console.log("Expense updated:", res);
+        const res = await apiService.updateExpense(
+          id,
+          toExpensePayload(updatedExpense)
+        );
         if (res && !res._error) {
-          setExpenses(
-            expenses.map((expense) => (expense.id === id ? res : expense))
+          const normalizedExpense = normalizeExpense(res);
+          setExpenses((prev) =>
+            prev.map((expense) =>
+              expense.id === id ? normalizedExpense : expense
+            )
           );
-          return { success: true, data: res };
+          return { success: true, data: normalizedExpense };
         }
       }
     } catch (err) {
@@ -474,13 +680,12 @@ export function FarmDataProvider({ children }) {
   const deleteExpense = async (id) => {
     try {
       if (user && user.isDemo) {
-        setExpenses(expenses.filter((expense) => expense.id !== id));
+        setExpenses((prev) => prev.filter((expense) => expense.id !== id));
         return { success: true };
       } else {
         const res = await apiService.deleteExpense(id);
-        console.log("Expense deleted:", res);
         if (!res._error) {
-          setExpenses(expenses.filter((expense) => expense.id !== id));
+          setExpenses((prev) => prev.filter((expense) => expense.id !== id));
           return { success: true };
         }
       }

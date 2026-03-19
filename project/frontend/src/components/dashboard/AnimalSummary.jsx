@@ -7,12 +7,23 @@ function AnimalSummary() {
   // Defensive: ensure animals is an array
   const safeAnimals = Array.isArray(animals) ? animals : [];
 
+  const toLabel = (value) => {
+    if (!value) return "Unknown";
+    const normalized = String(value).toLowerCase();
+    return normalized.charAt(0).toUpperCase() + normalized.slice(1);
+  };
+
   // Calculate total animals by type
   const animalCounts = safeAnimals.reduce((acc, animal) => {
-    const type = animal.type;
+    const type = (animal.type || "other").toLowerCase();
     acc[type] = (acc[type] || 0) + (animal.isGroup ? animal.count : 1);
     return acc;
   }, {});
+
+  const healthyCount = safeAnimals.filter(
+    (animal) => (animal.status || "").toLowerCase() === "healthy"
+  ).length;
+  const attentionCount = safeAnimals.length - healthyCount;
 
   // Prepare data for pie chart (in a real app, you'd use a charting library)
   const totalAnimals = Object.values(animalCounts).reduce(
@@ -45,16 +56,16 @@ function AnimalSummary() {
                   <div className="flex items-center">
                     <div
                       className={`w-3 h-3 rounded-full mr-2 ${
-                        type === "Cow"
+                        type === "cow"
                           ? "bg-primary-500"
-                          : type === "Goat"
+                          : type === "goat"
                           ? "bg-green-500"
-                          : type === "Chicken"
+                          : type === "chicken"
                           ? "bg-yellow-500"
                           : "bg-gray-300"
                       }`}
                     />
-                    <span>{type}</span>
+                    <span>{toLabel(type)}</span>
                   </div>
                   <span className="font-semibold">{count}</span>
                 </div>
@@ -72,8 +83,7 @@ function AnimalSummary() {
                 <div>
                   <p className="text-success-700 font-medium">Healthy</p>
                   <p className="text-sm text-success-600">
-                    {animals.filter((a) => a.status === "Healthy").length}{" "}
-                    animals
+                    {healthyCount} animals
                   </p>
                 </div>
               </div>
@@ -85,8 +95,7 @@ function AnimalSummary() {
                 <div>
                   <p className="text-warning-700 font-medium">Attention</p>
                   <p className="text-sm text-warning-600">
-                    {animals.filter((a) => a.status !== "Healthy").length}{" "}
-                    animals
+                    {attentionCount} animals
                   </p>
                 </div>
               </div>

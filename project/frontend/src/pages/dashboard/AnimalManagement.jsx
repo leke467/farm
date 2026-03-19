@@ -91,12 +91,8 @@ function AnimalManagement() {
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    // TODO: Replace with actual farm ID from context or selection
-    const farmId = 1;
-
     // Map frontend fields to backend fields
     const animalData = {
-      farm: farmId,
       name: formData.name,
       animal_type: formData.type,
       breed: formData.breed,
@@ -157,9 +153,9 @@ function AnimalManagement() {
       const term = searchTerm.toLowerCase();
       filteredAnimals = filteredAnimals.filter(
         (animal) =>
-          animal.name.toLowerCase().includes(term) ||
-          animal.type.toLowerCase().includes(term) ||
-          animal.breed.toLowerCase().includes(term)
+          (animal.name || "").toLowerCase().includes(term) ||
+          (animal.type || "").toLowerCase().includes(term) ||
+          (animal.breed || "").toLowerCase().includes(term)
       );
     }
 
@@ -171,7 +167,11 @@ function AnimalManagement() {
   // Get unique animal types for filter
   const animalTypes = [
     "all",
-    ...new Set(safeAnimals.map((animal) => animal.type)),
+    ...new Set(
+      safeAnimals
+        .map((animal) => animal.type)
+        .filter((type) => typeof type === "string" && type.trim().length > 0)
+    ),
   ];
 
   return (

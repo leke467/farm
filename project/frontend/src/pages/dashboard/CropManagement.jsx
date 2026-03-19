@@ -39,14 +39,22 @@ function CropManagement() {
 
   // Format date for display
   const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString();
+    if (!dateString) return "N/A";
+    const parsed = new Date(dateString);
+    if (Number.isNaN(parsed.getTime())) return "N/A";
+    return parsed.toLocaleDateString();
   };
 
   // Calculate days until harvest
   const daysUntilHarvest = (plantedDate, harvestDate) => {
+    if (!plantedDate || !harvestDate) return "N/A";
     const planted = new Date(plantedDate);
     const harvest = new Date(harvestDate);
     const today = new Date();
+
+    if (Number.isNaN(planted.getTime()) || Number.isNaN(harvest.getTime())) {
+      return "N/A";
+    }
 
     if (today > harvest) {
       return "Overdue";
@@ -59,9 +67,14 @@ function CropManagement() {
 
   // Calculate progress percentage
   const calculateProgress = (plantedDate, harvestDate) => {
+    if (!plantedDate || !harvestDate) return 0;
     const planted = new Date(plantedDate);
     const harvest = new Date(harvestDate);
     const today = new Date();
+
+    if (Number.isNaN(planted.getTime()) || Number.isNaN(harvest.getTime())) {
+      return 0;
+    }
 
     if (today < planted) return 0;
     if (today > harvest) return 100;
@@ -78,16 +91,13 @@ function CropManagement() {
   // Filter crops based on search
   const filteredCrops = safeCrops.filter(
     (crop) =>
-      crop.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      crop.field.toLowerCase().includes(searchTerm.toLowerCase())
+      (crop.name || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (crop.field || "").toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   // Handle form submit
   const handleSubmit = (e) => {
     e.preventDefault();
-
-    // TODO: Replace with actual farm ID from context or selection
-    const farmId = 1;
 
     // Create growth stages if adding new crop
     let cropData = { ...formData };
@@ -132,7 +142,6 @@ function CropManagement() {
 
     // Map frontend fields to backend fields
     const backendCropData = {
-      farm: farmId,
       name: cropData.name,
       field: cropData.field,
       area: parseFloat(cropData.area),
@@ -171,14 +180,14 @@ function CropManagement() {
   const handleEdit = (crop) => {
     setCurrentCrop(crop);
     setFormData({
-      name: crop.name,
-      field: crop.field,
-      area: crop.area.toString(),
-      plantedDate: crop.plantedDate,
-      expectedHarvestDate: crop.expectedHarvestDate,
-      status: crop.status,
-      stage: crop.stage,
-      notes: crop.notes,
+      name: crop.name || "",
+      field: crop.field || "",
+      area: crop.area !== undefined && crop.area !== null ? String(crop.area) : "",
+      plantedDate: crop.plantedDate || "",
+      expectedHarvestDate: crop.expectedHarvestDate || "",
+      status: crop.status || "planning",
+      stage: crop.stage || "planning",
+      notes: crop.notes || "",
     });
     setIsEditModalOpen(true);
   };
@@ -192,7 +201,7 @@ function CropManagement() {
 
   // Status badge color
   const getStatusColor = (status) => {
-    switch (status.toLowerCase()) {
+    switch ((status || "").toLowerCase()) {
       case "planning":
         return "bg-gray-100 text-gray-800";
       case "growing":
@@ -353,7 +362,10 @@ function CropManagement() {
                   <div className="relative">
                     <div className="absolute top-3 left-3 h-full w-0.5 bg-gray-200 -z-10"></div>
                     <div className="space-y-4">
-                      {crop.growthStages.map((stage, index) => (
+                      {(Array.isArray(crop.growthStages)
+                        ? crop.growthStages
+                        : []
+                      ).map((stage, index) => (
                         <div key={index} className="flex">
                           <div
                             className={`h-6 w-6 rounded-full flex-shrink-0 flex items-center justify-center ${
