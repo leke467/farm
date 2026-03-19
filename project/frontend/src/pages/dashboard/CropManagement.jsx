@@ -99,6 +99,12 @@ function CropManagement() {
   const handleSubmit = (e) => {
     e.preventDefault();
 
+    const parsedArea = Number.parseFloat(formData.area);
+    if (!Number.isFinite(parsedArea) || parsedArea <= 0) {
+      window.alert("Please enter a valid area greater than 0.");
+      return;
+    }
+
     // Create growth stages if adding new crop
     let cropData = { ...formData };
 
@@ -144,7 +150,7 @@ function CropManagement() {
     const backendCropData = {
       name: cropData.name,
       field: cropData.field,
-      area: parseFloat(cropData.area),
+      area: parsedArea,
       planted_date: cropData.plantedDate,
       expected_harvest_date: cropData.expectedHarvestDate,
       status: cropData.status,

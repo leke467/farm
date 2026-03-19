@@ -91,6 +91,12 @@ function AnimalManagement() {
   const handleSubmit = (e) => {
     e.preventDefault();
 
+    const parsedWeight =
+      formData.weight === "" ? null : Number.parseFloat(formData.weight);
+    const safeWeight = Number.isFinite(parsedWeight) ? parsedWeight : null;
+    const parsedCount = Number.parseInt(formData.count, 10);
+    const safeCount = Number.isInteger(parsedCount) && parsedCount > 0 ? parsedCount : 1;
+
     // Map frontend fields to backend fields
     const animalData = {
       name: formData.name,
@@ -98,12 +104,12 @@ function AnimalManagement() {
       breed: formData.breed,
       birth_date: formData.birthDate,
       gender: formData.gender,
-      weight: formData.isGroup ? null : parseFloat(formData.weight),
+      weight: formData.isGroup ? null : safeWeight,
       status: formData.status,
       notes: formData.notes,
       is_group: formData.isGroup,
-      count: formData.isGroup ? parseInt(formData.count) : 1,
-      avg_weight: formData.isGroup ? parseFloat(formData.weight) : null,
+      count: formData.isGroup ? safeCount : 1,
+      avg_weight: formData.isGroup ? safeWeight : null,
       established_date: formData.isGroup ? formData.birthDate : null,
     };
 

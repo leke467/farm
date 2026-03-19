@@ -150,7 +150,7 @@ class ApiService {
 
   async updateAnimal(id, animalData) {
     return this.request(`/animals/${id}/`, {
-      method: "PUT",
+      method: "PATCH",
       body: JSON.stringify(animalData),
     });
   }
@@ -187,7 +187,7 @@ class ApiService {
 
   async updateCrop(id, cropData) {
     return this.request(`/crops/${id}/`, {
-      method: "PUT",
+      method: "PATCH",
       body: JSON.stringify(cropData),
     });
   }

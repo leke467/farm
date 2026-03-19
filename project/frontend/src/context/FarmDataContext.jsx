@@ -378,13 +378,22 @@ export function FarmDataProvider({ children }) {
         );
         return { success: true };
       } else {
-        const res = await apiService.updateAnimal(id, updatedAnimal);
+        const animalUpdatePayload = {
+          ...updatedAnimal,
+          farm: updatedAnimal?.farm ?? activeFarm?.id,
+        };
+        const res = await apiService.updateAnimal(id, animalUpdatePayload);
         if (res && !res._error) {
           const normalizedAnimal = normalizeAnimal(res);
           setAnimals((prev) =>
             prev.map((animal) => (animal.id === id ? normalizedAnimal : animal))
           );
           return { success: true, data: normalizedAnimal };
+        } else {
+          const errorMessage =
+            res?.detail || res?.error || "Failed to update animal";
+          setError(`Failed to update animal: ${errorMessage}`);
+          return { success: false, error: errorMessage };
         }
       }
     } catch (err) {
@@ -446,13 +455,22 @@ export function FarmDataProvider({ children }) {
         );
         return { success: true };
       } else {
-        const res = await apiService.updateCrop(id, updatedCrop);
+        const cropUpdatePayload = {
+          ...updatedCrop,
+          farm: updatedCrop?.farm ?? activeFarm?.id,
+        };
+        const res = await apiService.updateCrop(id, cropUpdatePayload);
         if (res && !res._error) {
           const normalizedCrop = normalizeCrop(res);
           setCrops((prev) =>
             prev.map((crop) => (crop.id === id ? normalizedCrop : crop))
           );
           return { success: true, data: normalizedCrop };
+        } else {
+          const errorMessage =
+            res?.detail || res?.error || "Failed to update crop";
+          setError(`Failed to update crop: ${errorMessage}`);
+          return { success: false, error: errorMessage };
         }
       }
     } catch (err) {
