@@ -3,19 +3,35 @@ import { createContext, useContext, useState } from 'react';
 // Create context
 const UserContext = createContext();
 
+const normalizeUser = (userData) => {
+  if (!userData) return null;
+
+  const firstName = userData.firstName ?? userData.first_name ?? '';
+  const lastName = userData.lastName ?? userData.last_name ?? '';
+
+  return {
+    ...userData,
+    firstName,
+    lastName,
+    first_name: userData.first_name ?? firstName,
+    last_name: userData.last_name ?? lastName,
+  };
+};
+
 // Context provider
 export function UserProvider({ children }) {
   const [user, setUser] = useState(() => {
     const storedUser = localStorage.getItem('farmUser');
-    return storedUser ? JSON.parse(storedUser) : null;
+    return storedUser ? normalizeUser(JSON.parse(storedUser)) : null;
   });
   
   const [isAuthenticated, setIsAuthenticated] = useState(!!user);
 
   // Login handler
   const handleLogin = (userData) => {
-    setUser(userData);
-    localStorage.setItem('farmUser', JSON.stringify(userData));
+    const normalizedUser = normalizeUser(userData);
+    setUser(normalizedUser);
+    localStorage.setItem('farmUser', JSON.stringify(normalizedUser));
     setIsAuthenticated(true);
   };
 
@@ -28,7 +44,7 @@ export function UserProvider({ children }) {
 
   // Update user profile
   const updateUserProfile = (updatedData) => {
-    const updatedUser = { ...user, ...updatedData };
+    const updatedUser = normalizeUser({ ...user, ...updatedData });
     setUser(updatedUser);
     localStorage.setItem('farmUser', JSON.stringify(updatedUser));
     return updatedUser;

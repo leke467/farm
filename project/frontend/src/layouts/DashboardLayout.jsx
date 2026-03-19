@@ -25,6 +25,15 @@ function DashboardLayout() {
   const { user, handleLogout } = useUser();
   const { farmSettings, activeFarm } = useFarmData();
 
+  const firstName = user?.firstName || user?.first_name || "";
+  const lastName = user?.lastName || user?.last_name || "";
+  const username = user?.username || "";
+  const displayName =
+    [firstName, lastName].filter(Boolean).join(" ") || username || "User";
+  const initials = `${
+    firstName?.[0] || username?.[0] || "U"
+  }${lastName?.[0] || ""}`.toUpperCase();
+
   const menuItems = [
     { path: "/dashboard", name: "Dashboard", icon: <FiHome size={20} /> },
     { path: "/animals", name: "Animals", icon: <FiUsers size={20} /> },
@@ -82,13 +91,10 @@ function DashboardLayout() {
           <div className="px-4 py-4 border-b">
             <div className="flex items-center">
               <div className="h-10 w-10 rounded-full bg-primary-100 flex items-center justify-center text-primary-600 font-semibold">
-                {user?.firstName?.[0]}
-                {user?.lastName?.[0] || "U"}
+                {initials}
               </div>
               <div className="ml-3">
-                <p className="font-medium">
-                  {user?.firstName} {user?.lastName || "User"}
-                </p>
+                <p className="font-medium">{displayName}</p>
                 <p className="text-sm text-gray-500">
                   {activeFarm?.name || farmSettings?.name || "Farm Name"}
                 </p>
