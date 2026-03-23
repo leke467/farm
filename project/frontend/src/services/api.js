@@ -154,6 +154,36 @@ class ApiService {
     });
   }
 
+  async getFarmPermissionsCatalog(farmId) {
+    return this.request(`/farms/${farmId}/permissions/catalog/`);
+  }
+
+  async getRoleMenuPermissions(farmId, role) {
+    return this.request(`/farms/${farmId}/permissions/roles/${role}/`);
+  }
+
+  async updateRoleMenuPermissions(farmId, role, payload) {
+    return this.request(`/farms/${farmId}/permissions/roles/${role}/`, {
+      method: "PUT",
+      body: JSON.stringify(payload),
+    });
+  }
+
+  async getUserMenuPermissions(farmId, userId) {
+    return this.request(`/farms/${farmId}/permissions/users/${userId}/`);
+  }
+
+  async updateUserMenuPermissions(farmId, userId, payload) {
+    return this.request(`/farms/${farmId}/permissions/users/${userId}/`, {
+      method: "PUT",
+      body: JSON.stringify(payload),
+    });
+  }
+
+  async getMyFarmPermissions(farmId) {
+    return this.request(`/farms/${farmId}/permissions/me/`);
+  }
+
   // Animal methods
   async getAnimals(params = {}) {
     const queryString = new URLSearchParams(params).toString();

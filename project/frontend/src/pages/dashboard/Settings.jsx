@@ -20,6 +20,15 @@ const createEmptyMemberPagination = () => ({
   totalPages: 1,
 });
 
+const ACTION_LABELS = {
+  can_view: "View",
+  can_create: "Create",
+  can_edit: "Edit",
+  can_delete: "Delete",
+};
+
+const ACTION_KEYS = ["can_view", "can_create", "can_edit", "can_delete"];
+
 const getErrorMessage = (response, fallback) => {
   if (!response) return fallback;
 
@@ -144,6 +153,19 @@ function Settings() {
   const [memberPageSize, setMemberPageSize] = useState(10);
   const [memberPagination, setMemberPagination] = useState(createEmptyMemberPagination());
 
+  const [permissionsCatalog, setPermissionsCatalog] = useState({
+    menus: [],
+    roles: [],
+    members: [],
+  });
+  const [selectedRole, setSelectedRole] = useState("worker");
+  const [rolePermissions, setRolePermissions] = useState([]);
+  const [selectedMemberId, setSelectedMemberId] = useState("");
+  const [userPermissions, setUserPermissions] = useState([]);
+  const [permissionLoading, setPermissionLoading] = useState(false);
+  const [rolePermissionStatus, setRolePermissionStatus] = useState({ type: "", message: "" });
+  const [userPermissionStatus, setUserPermissionStatus] = useState({ type: "", message: "" });
+
   const statusClass = (type) =>
     type === "success"
       ? "bg-success-50 border-success-200 text-success-700"
@@ -198,6 +220,123 @@ function Settings() {
     setMembersLoading(false);
   };
 
+  const fetchPermissionsCatalog = async (farmId) => {
+    setPermissionLoading(true);
+    const response = await apiService.getFarmPermissionsCatalog(farmId);
+    if (!response?._error) {
+      const nextCatalog = {
+        menus: Array.isArray(response.menus) ? response.menus : [],
+        roles: Array.isArray(response.roles) ? response.roles : [],
+        members: Array.isArray(response.members) ? response.members : [],
+      };
+      setPermissionsCatalog(nextCatalog);
+
+      if (!selectedMemberId && nextCatalog.members.length > 0) {
+        setSelectedMemberId(String(nextCatalog.members[0].id));
+      }
+
+      if (
+        nextCatalog.roles.length > 0 &&
+        !nextCatalog.roles.some((roleOption) => roleOption.key === selectedRole)
+      ) {
+        setSelectedRole(nextCatalog.roles[0].key);
+      }
+      setPermissionLoading(false);
+      return;
+    }
+
+    setRolePermissionStatus({
+      type: "error",
+      message: getErrorMessage(response, "Failed to load permission catalog"),
+    });
+    setPermissionLoading(false);
+  };
+
+  const fetchRolePermissions = async (farmId, role) => {
+    const response = await apiService.getRoleMenuPermissions(farmId, role);
+    if (!response?._error && Array.isArray(response.permissions)) {
+      setRolePermissions(response.permissions);
+      return;
+    }
+
+    setRolePermissions([]);
+    setRolePermissionStatus({
+      type: "error",
+      message: getErrorMessage(response, "Failed to load role permissions"),
+    });
+  };
+
+  const fetchUserPermissions = async (farmId, userId) => {
+    if (!userId) {
+      setUserPermissions([]);
+      return;
+    }
+
+    const response = await apiService.getUserMenuPermissions(farmId, Number(userId));
+    if (!response?._error && Array.isArray(response.permissions)) {
+      setUserPermissions(response.permissions);
+      return;
+    }
+
+    setUserPermissions([]);
+    setUserPermissionStatus({
+      type: "error",
+      message: getErrorMessage(response, "Failed to load user permissions"),
+    });
+  };
+
+  const toggleRolePermission = (menuKey, actionKey) => {
+    setRolePermissions((prev) =>
+      prev.map((item) =>
+        item.menu_key === menuKey
+          ? {
+              ...item,
+              [actionKey]: !item[actionKey],
+            }
+          : item
+      )
+    );
+  };
+
+  const toggleUserOverridePermission = (menuKey, actionKey) => {
+    setUserPermissions((prev) =>
+      prev.map((item) => {
+        if (item.menu_key !== menuKey) return item;
+
+        const currentOverride = item.user_override?.[actionKey];
+        const effective = item.effective_permissions?.[actionKey];
+
+        let nextOverride;
+        if (currentOverride === null || currentOverride === undefined) {
+          nextOverride = !effective;
+        } else if (currentOverride === true) {
+          nextOverride = false;
+        } else {
+          nextOverride = null;
+        }
+
+        const nextUserOverride = {
+          ...item.user_override,
+          [actionKey]: nextOverride,
+        };
+
+        const nextEffective = {
+          ...item.effective_permissions,
+          [actionKey]:
+            nextOverride === null || nextOverride === undefined
+              ? item.role_permissions?.[actionKey]
+              : nextOverride,
+        };
+
+        return {
+          ...item,
+          user_override: nextUserOverride,
+          effective_permissions: nextEffective,
+        };
+      })
+    );
+  };
+
   useEffect(() => {
     setProfileData({
       firstName: user?.firstName ?? user?.first_name ?? "",
@@ -238,6 +377,27 @@ function Settings() {
 
     fetchFarmMembers(activeFarm.id, memberPage, memberPageSize);
   }, [activeFarm?.id, isAdmin, memberPage, memberPageSize]);
+
+  useEffect(() => {
+    if (!isAdmin || !activeFarm?.id) {
+      setPermissionsCatalog({ menus: [], roles: [], members: [] });
+      setRolePermissions([]);
+      setUserPermissions([]);
+      return;
+    }
+
+    fetchPermissionsCatalog(activeFarm.id);
+  }, [activeFarm?.id, isAdmin]);
+
+  useEffect(() => {
+    if (!isAdmin || !activeFarm?.id || !selectedRole) return;
+    fetchRolePermissions(activeFarm.id, selectedRole);
+  }, [activeFarm?.id, isAdmin, selectedRole]);
+
+  useEffect(() => {
+    if (!isAdmin || !activeFarm?.id || !selectedMemberId) return;
+    fetchUserPermissions(activeFarm.id, selectedMemberId);
+  }, [activeFarm?.id, isAdmin, selectedMemberId]);
 
   const handleProfileUpdate = async (e) => {
     e.preventDefault();
@@ -434,6 +594,58 @@ function Settings() {
   const membersRangeStart =
     memberPagination.count === 0 ? 0 : (memberPage - 1) * memberPageSize + 1;
   const membersRangeEnd = Math.min(memberPage * memberPageSize, memberPagination.count);
+
+  const handleSaveRolePermissions = async () => {
+    if (!activeFarm?.id || !selectedRole) return;
+    setRolePermissionStatus({ type: "", message: "" });
+
+    const response = await apiService.updateRoleMenuPermissions(activeFarm.id, selectedRole, {
+      permissions: rolePermissions.map((item) => ({
+        menu_key: item.menu_key,
+        can_view: Boolean(item.can_view),
+        can_create: Boolean(item.can_create),
+        can_edit: Boolean(item.can_edit),
+        can_delete: Boolean(item.can_delete),
+      })),
+    });
+
+    if (response?._error) {
+      setRolePermissionStatus({
+        type: "error",
+        message: getErrorMessage(response, "Failed to save role permissions"),
+      });
+      return;
+    }
+
+    setRolePermissions(Array.isArray(response.permissions) ? response.permissions : rolePermissions);
+    setRolePermissionStatus({ type: "success", message: "Role permissions updated successfully" });
+  };
+
+  const handleSaveUserPermissions = async () => {
+    if (!activeFarm?.id || !selectedMemberId) return;
+    setUserPermissionStatus({ type: "", message: "" });
+
+    const response = await apiService.updateUserMenuPermissions(activeFarm.id, Number(selectedMemberId), {
+      permissions: userPermissions.map((item) => ({
+        menu_key: item.menu_key,
+        can_view: item.user_override?.can_view ?? null,
+        can_create: item.user_override?.can_create ?? null,
+        can_edit: item.user_override?.can_edit ?? null,
+        can_delete: item.user_override?.can_delete ?? null,
+      })),
+    });
+
+    if (response?._error) {
+      setUserPermissionStatus({
+        type: "error",
+        message: getErrorMessage(response, "Failed to save user overrides"),
+      });
+      return;
+    }
+
+    setUserPermissions(Array.isArray(response.permissions) ? response.permissions : userPermissions);
+    setUserPermissionStatus({ type: "success", message: "User overrides updated successfully" });
+  };
 
   return (
     <div>
@@ -911,6 +1123,191 @@ function Settings() {
                     </div>
                   </>
                 )}
+              </>
+            )}
+          </SettingsAccordionSection>
+        )}
+
+        {isAdmin && (
+          <SettingsAccordionSection
+            id="role-permissions"
+            title="Role Menu Permissions"
+            description="Configure menu actions for each role"
+            icon={FiSettings}
+            openSection={openSection}
+            onToggle={toggleSection}
+          >
+            {!activeFarm?.id ? (
+              <div className="p-4 rounded-lg border border-amber-200 bg-amber-50 text-amber-700">
+                Select an active farm to manage role permissions.
+              </div>
+            ) : (
+              <>
+                {rolePermissionStatus.message && (
+                  <div className={`mb-4 p-3 rounded-lg border ${statusClass(rolePermissionStatus.type)}`}>
+                    {rolePermissionStatus.message}
+                  </div>
+                )}
+
+                <div className="mb-4">
+                  <label className="label">Role</label>
+                  <select
+                    className="input"
+                    value={selectedRole}
+                    onChange={(e) => setSelectedRole(e.target.value)}
+                  >
+                    {permissionsCatalog.roles.map((roleOption) => (
+                      <option key={roleOption.key} value={roleOption.key}>
+                        {roleOption.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {permissionLoading ? (
+                  <p className="text-gray-500">Loading permissions...</p>
+                ) : (
+                  <>
+                    <div className="overflow-x-auto">
+                      <table className="w-full">
+                        <thead>
+                          <tr className="border-b border-gray-200 bg-gray-50">
+                            <th className="px-3 py-2 text-left text-sm font-semibold text-gray-700">Menu</th>
+                            {ACTION_KEYS.map((actionKey) => (
+                              <th key={actionKey} className="px-3 py-2 text-center text-sm font-semibold text-gray-700">
+                                {ACTION_LABELS[actionKey]}
+                              </th>
+                            ))}
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {rolePermissions.map((row) => (
+                            <tr key={row.menu_key} className="border-b border-gray-100">
+                              <td className="px-3 py-2 text-sm text-gray-800">{row.menu_label}</td>
+                              {ACTION_KEYS.map((actionKey) => (
+                                <td key={actionKey} className="px-3 py-2 text-center">
+                                  <input
+                                    type="checkbox"
+                                    checked={Boolean(row[actionKey])}
+                                    onChange={() => toggleRolePermission(row.menu_key, actionKey)}
+                                    className="h-4 w-4"
+                                  />
+                                </td>
+                              ))}
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+
+                    <button
+                      type="button"
+                      className="btn btn-primary mt-4"
+                      onClick={handleSaveRolePermissions}
+                    >
+                      Save Role Permissions
+                    </button>
+                  </>
+                )}
+              </>
+            )}
+          </SettingsAccordionSection>
+        )}
+
+        {isAdmin && (
+          <SettingsAccordionSection
+            id="user-permissions"
+            title="Individual Permission Overrides"
+            description="Set exceptions for specific users"
+            icon={FiSettings}
+            openSection={openSection}
+            onToggle={toggleSection}
+          >
+            {!activeFarm?.id ? (
+              <div className="p-4 rounded-lg border border-amber-200 bg-amber-50 text-amber-700">
+                Select an active farm to manage user exceptions.
+              </div>
+            ) : (
+              <>
+                {userPermissionStatus.message && (
+                  <div className={`mb-4 p-3 rounded-lg border ${statusClass(userPermissionStatus.type)}`}>
+                    {userPermissionStatus.message}
+                  </div>
+                )}
+
+                <div className="mb-4">
+                  <label className="label">Member</label>
+                  <select
+                    className="input"
+                    value={selectedMemberId}
+                    onChange={(e) => setSelectedMemberId(e.target.value)}
+                  >
+                    {permissionsCatalog.members.map((member) => {
+                      const fullName = [member.first_name, member.last_name].filter(Boolean).join(" ");
+                      const displayName = fullName || member.username;
+                      return (
+                        <option key={member.id} value={member.id}>
+                          {displayName} ({member.role})
+                        </option>
+                      );
+                    })}
+                  </select>
+                </div>
+
+                <p className="text-xs text-gray-500 mb-3">
+                  Toggle behavior cycles: inherit role - force allow - force deny.
+                </p>
+
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="border-b border-gray-200 bg-gray-50">
+                        <th className="px-3 py-2 text-left text-sm font-semibold text-gray-700">Menu</th>
+                        {ACTION_KEYS.map((actionKey) => (
+                          <th key={actionKey} className="px-3 py-2 text-center text-sm font-semibold text-gray-700">
+                            {ACTION_LABELS[actionKey]}
+                          </th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {userPermissions.map((row) => (
+                        <tr key={row.menu_key} className="border-b border-gray-100">
+                          <td className="px-3 py-2 text-sm text-gray-800">{row.menu_label}</td>
+                          {ACTION_KEYS.map((actionKey) => {
+                            const override = row.user_override?.[actionKey];
+                            const effective = row.effective_permissions?.[actionKey];
+                            const stateText =
+                              override === null || override === undefined
+                                ? `Inherit (${effective ? "Allow" : "Deny"})`
+                                : override
+                                  ? "Allow"
+                                  : "Deny";
+                            return (
+                              <td key={actionKey} className="px-3 py-2 text-center">
+                                <button
+                                  type="button"
+                                  onClick={() => toggleUserOverridePermission(row.menu_key, actionKey)}
+                                  className="px-2 py-1 rounded border border-gray-300 text-xs"
+                                >
+                                  {stateText}
+                                </button>
+                              </td>
+                            );
+                          })}
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                <button
+                  type="button"
+                  className="btn btn-primary mt-4"
+                  onClick={handleSaveUserPermissions}
+                >
+                  Save User Overrides
+                </button>
               </>
             )}
           </SettingsAccordionSection>

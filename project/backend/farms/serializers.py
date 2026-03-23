@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
-from .models import Farm, FarmMember
+from .models import Farm, FarmMember, RoleMenuPermission, UserMenuPermission, MENU_CHOICES
 from accounts.serializers import UserSerializer
 
 User = get_user_model()
@@ -66,3 +66,33 @@ class FarmMemberCreateSerializer(serializers.Serializer):
             user=user,
             role=role,
         )
+
+
+class RoleMenuPermissionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = RoleMenuPermission
+        fields = ['menu_key', 'can_view', 'can_create', 'can_edit', 'can_delete']
+
+
+class UserMenuPermissionSerializer(serializers.ModelSerializer):
+    user = UserSerializer(read_only=True)
+
+    class Meta:
+        model = UserMenuPermission
+        fields = ['id', 'user', 'menu_key', 'can_view', 'can_create', 'can_edit', 'can_delete', 'updated_at']
+
+
+class MenuPermissionItemSerializer(serializers.Serializer):
+    menu_key = serializers.ChoiceField(choices=[key for key, _ in MENU_CHOICES])
+    can_view = serializers.BooleanField(required=False, allow_null=True)
+    can_create = serializers.BooleanField(required=False, allow_null=True)
+    can_edit = serializers.BooleanField(required=False, allow_null=True)
+    can_delete = serializers.BooleanField(required=False, allow_null=True)
+
+
+class RolePermissionBulkUpdateSerializer(serializers.Serializer):
+    permissions = MenuPermissionItemSerializer(many=True)
+
+
+class UserPermissionBulkUpdateSerializer(serializers.Serializer):
+    permissions = MenuPermissionItemSerializer(many=True)

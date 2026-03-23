@@ -51,3 +51,49 @@ class FarmMember(models.Model):
     
     def __str__(self):
         return f"{self.user.get_full_name()} - {self.farm.name} ({self.role})"
+
+
+MENU_CHOICES = [
+    ('dashboard', 'Dashboard'),
+    ('animals', 'Animals'),
+    ('crops', 'Crops'),
+    ('tasks', 'Tasks'),
+    ('inventory', 'Inventory'),
+    ('expenses', 'Expenses'),
+    ('reports', 'Reports'),
+    ('settings', 'Settings'),
+]
+
+
+class RoleMenuPermission(models.Model):
+    farm = models.ForeignKey(Farm, on_delete=models.CASCADE, related_name='role_menu_permissions')
+    role = models.CharField(max_length=20, choices=FarmMember.ROLE_CHOICES)
+    menu_key = models.CharField(max_length=30, choices=MENU_CHOICES)
+    can_view = models.BooleanField(default=True)
+    can_create = models.BooleanField(default=False)
+    can_edit = models.BooleanField(default=False)
+    can_delete = models.BooleanField(default=False)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = ['farm', 'role', 'menu_key']
+
+    def __str__(self):
+        return f"{self.farm.name} - {self.role} - {self.menu_key}"
+
+
+class UserMenuPermission(models.Model):
+    farm = models.ForeignKey(Farm, on_delete=models.CASCADE, related_name='user_menu_permissions')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='menu_permission_overrides')
+    menu_key = models.CharField(max_length=30, choices=MENU_CHOICES)
+    can_view = models.BooleanField(null=True, blank=True)
+    can_create = models.BooleanField(null=True, blank=True)
+    can_edit = models.BooleanField(null=True, blank=True)
+    can_delete = models.BooleanField(null=True, blank=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = ['farm', 'user', 'menu_key']
+
+    def __str__(self):
+        return f"{self.farm.name} - {self.user.username} - {self.menu_key}"

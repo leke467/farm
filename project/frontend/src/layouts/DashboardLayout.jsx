@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Outlet, Link, useLocation, useNavigate } from "react-router-dom";
 import { useUser } from "../context/UserContext";
 import { useFarmData } from "../context/FarmDataContext";
+import apiService from "../services/api";
 import {
   FiHome,
   FiUsers,
@@ -20,6 +21,7 @@ import { motion } from "framer-motion";
 
 function DashboardLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [permissionMap, setPermissionMap] = useState({});
   const location = useLocation();
   const navigate = useNavigate();
   const { user, handleLogout } = useUser();
@@ -35,15 +37,43 @@ function DashboardLayout() {
   }${lastName?.[0] || ""}`.toUpperCase();
 
   const menuItems = [
-    { path: "/dashboard", name: "Dashboard", icon: <FiHome size={20} /> },
-    { path: "/animals", name: "Animals", icon: <FiUsers size={20} /> },
-    { path: "/crops", name: "Crops", icon: <FiGrid size={20} /> },
-    { path: "/tasks", name: "Tasks", icon: <FiCalendar size={20} /> },
-    { path: "/inventory", name: "Inventory", icon: <FiPackage size={20} /> },
-    { path: "/expenses", name: "Expenses", icon: <FiDollarSign size={20} /> },
-    { path: "/reports", name: "Reports", icon: <FiBarChart2 size={20} /> },
-    { path: "/settings", name: "Settings", icon: <FiSettings size={20} /> },
+    { key: "dashboard", path: "/dashboard", name: "Dashboard", icon: <FiHome size={20} /> },
+    { key: "animals", path: "/animals", name: "Animals", icon: <FiUsers size={20} /> },
+    { key: "crops", path: "/crops", name: "Crops", icon: <FiGrid size={20} /> },
+    { key: "tasks", path: "/tasks", name: "Tasks", icon: <FiCalendar size={20} /> },
+    { key: "inventory", path: "/inventory", name: "Inventory", icon: <FiPackage size={20} /> },
+    { key: "expenses", path: "/expenses", name: "Expenses", icon: <FiDollarSign size={20} /> },
+    { key: "reports", path: "/reports", name: "Reports", icon: <FiBarChart2 size={20} /> },
+    { key: "settings", path: "/settings", name: "Settings", icon: <FiSettings size={20} /> },
   ];
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function fetchPermissions() {
+      if (!activeFarm?.id || !localStorage.getItem("authToken")) {
+        setPermissionMap({});
+        return;
+      }
+
+      const response = await apiService.getMyFarmPermissions(activeFarm.id);
+      if (!cancelled && !response?._error && response?.permission_map) {
+        setPermissionMap(response.permission_map);
+      }
+    }
+
+    fetchPermissions();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [activeFarm?.id, user?.id]);
+
+  const visibleMenuItems = menuItems.filter((item) => {
+    const permission = permissionMap?.[item.key];
+    if (!permission) return true;
+    return Boolean(permission.can_view);
+  });
 
   const onLogout = () => {
     handleLogout();
@@ -105,7 +135,7 @@ function DashboardLayout() {
           {/* Navigation */}
           <nav className="mt-5 px-4 flex-1 overflow-y-auto">
             <div className="space-y-1">
-              {menuItems.map((item) => (
+              {visibleMenuItems.map((item) => (
                 <Link
                   key={item.path}
                   to={item.path}
