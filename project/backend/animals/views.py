@@ -1,8 +1,10 @@
 from rest_framework import generics, permissions
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import SearchFilter, OrderingFilter
+from django.db.models import Q
 from .models import Animal, WeightRecord, MedicalRecord, FeedRecord
 from .serializers import AnimalSerializer, WeightRecordSerializer, MedicalRecordSerializer, FeedRecordSerializer
+from farms.models import Farm
 
 class AnimalListCreateView(generics.ListCreateAPIView):
     serializer_class = AnimalSerializer
@@ -14,20 +16,24 @@ class AnimalListCreateView(generics.ListCreateAPIView):
     ordering = ['-created_at']
     
     def get_queryset(self):
-        farms = self.request.user.owned_farms.all()
-        if not farms.exists():
+        user_farms = Farm.objects.filter(
+            Q(owner=self.request.user) | Q(members__user=self.request.user)
+        ).distinct()
+        if not user_farms.exists():
             return Animal.objects.none()
-        return Animal.objects.filter(farm__in=farms)
+        return Animal.objects.filter(farm__in=user_farms)
 
 class AnimalDetailView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = AnimalSerializer
     permission_classes = [permissions.IsAuthenticated]
     
     def get_queryset(self):
-        farms = self.request.user.owned_farms.all()
-        if not farms.exists():
+        user_farms = Farm.objects.filter(
+            Q(owner=self.request.user) | Q(members__user=self.request.user)
+        ).distinct()
+        if not user_farms.exists():
             return Animal.objects.none()
-        return Animal.objects.filter(farm__in=farms)
+        return Animal.objects.filter(farm__in=user_farms)
 
 class WeightRecordListCreateView(generics.ListCreateAPIView):
     serializer_class = WeightRecordSerializer
@@ -37,7 +43,9 @@ class WeightRecordListCreateView(generics.ListCreateAPIView):
         animal_id = self.kwargs.get('animal_id')
         return WeightRecord.objects.filter(
             animal_id=animal_id,
-            animal__farm__owner=self.request.user
+            animal__farm__in=Farm.objects.filter(
+                Q(owner=self.request.user) | Q(members__user=self.request.user)
+            )
         )
 
 class MedicalRecordListCreateView(generics.ListCreateAPIView):
@@ -48,7 +56,9 @@ class MedicalRecordListCreateView(generics.ListCreateAPIView):
         animal_id = self.kwargs.get('animal_id')
         return MedicalRecord.objects.filter(
             animal_id=animal_id,
-            animal__farm__owner=self.request.user
+            animal__farm__in=Farm.objects.filter(
+                Q(owner=self.request.user) | Q(members__user=self.request.user)
+            )
         )
 
 class FeedRecordListCreateView(generics.ListCreateAPIView):
@@ -59,5 +69,7 @@ class FeedRecordListCreateView(generics.ListCreateAPIView):
         animal_id = self.kwargs.get('animal_id')
         return FeedRecord.objects.filter(
             animal_id=animal_id,
-            animal__farm__owner=self.request.user
+            animal__farm__in=Farm.objects.filter(
+                Q(owner=self.request.user) | Q(members__user=self.request.user)
+            )
         )

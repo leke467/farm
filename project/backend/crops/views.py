@@ -1,8 +1,10 @@
 from rest_framework import generics, permissions
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import SearchFilter, OrderingFilter
+from django.db.models import Q
 from .models import Crop, GrowthStage, CropActivity, Harvest
 from .serializers import CropSerializer, GrowthStageSerializer, CropActivitySerializer, HarvestSerializer
+from farms.models import Farm
 
 class CropListCreateView(generics.ListCreateAPIView):
     serializer_class = CropSerializer
@@ -14,20 +16,24 @@ class CropListCreateView(generics.ListCreateAPIView):
     ordering = ['-created_at']
     
     def get_queryset(self):
-        farms = self.request.user.owned_farms.all()
-        if not farms.exists():
+        user_farms = Farm.objects.filter(
+            Q(owner=self.request.user) | Q(members__user=self.request.user)
+        ).distinct()
+        if not user_farms.exists():
             return Crop.objects.none()
-        return Crop.objects.filter(farm__in=farms)
+        return Crop.objects.filter(farm__in=user_farms)
 
 class CropDetailView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = CropSerializer
     permission_classes = [permissions.IsAuthenticated]
     
     def get_queryset(self):
-        farms = self.request.user.owned_farms.all()
-        if not farms.exists():
+        user_farms = Farm.objects.filter(
+            Q(owner=self.request.user) | Q(members__user=self.request.user)
+        ).distinct()
+        if not user_farms.exists():
             return Crop.objects.none()
-        return Crop.objects.filter(farm__in=farms)
+        return Crop.objects.filter(farm__in=user_farms)
 
 class GrowthStageListCreateView(generics.ListCreateAPIView):
     serializer_class = GrowthStageSerializer
@@ -37,7 +43,9 @@ class GrowthStageListCreateView(generics.ListCreateAPIView):
         crop_id = self.kwargs.get('crop_id')
         return GrowthStage.objects.filter(
             crop_id=crop_id,
-            crop__farm__owner=self.request.user
+            crop__farm__in=Farm.objects.filter(
+                Q(owner=self.request.user) | Q(members__user=self.request.user)
+            )
         )
 
 class CropActivityListCreateView(generics.ListCreateAPIView):
@@ -48,7 +56,9 @@ class CropActivityListCreateView(generics.ListCreateAPIView):
         crop_id = self.kwargs.get('crop_id')
         return CropActivity.objects.filter(
             crop_id=crop_id,
-            crop__farm__owner=self.request.user
+            crop__farm__in=Farm.objects.filter(
+                Q(owner=self.request.user) | Q(members__user=self.request.user)
+            )
         )
 
 class HarvestListCreateView(generics.ListCreateAPIView):
@@ -59,5 +69,7 @@ class HarvestListCreateView(generics.ListCreateAPIView):
         crop_id = self.kwargs.get('crop_id')
         return Harvest.objects.filter(
             crop_id=crop_id,
-            crop__farm__owner=self.request.user
+            crop__farm__in=Farm.objects.filter(
+                Q(owner=self.request.user) | Q(members__user=self.request.user)
+            )
         )
