@@ -6,6 +6,9 @@ import { UserProvider } from "./context/UserContext";
 import { FarmDataProvider } from "./context/FarmDataContext";
 import { ApiProvider } from "./context/ApiContext";
 
+console.log("🚀 main.jsx loading...");
+console.log("Root element:", document.getElementById("root"));
+
 const root = createRoot(document.getElementById("root"));
 
 root.render(
@@ -19,3 +22,5 @@ root.render(
     </ApiProvider>
   </StrictMode>
 );
+
+console.log("✓ App rendered successfully");

@@ -1,4 +1,6 @@
 import { useState, useEffect } from "react";
+import { useForm, Controller } from "react-hook-form";
+import { yupResolver } from "@hookform/resolvers/yup";
 import {
   FiPlus,
   FiFilter,
@@ -9,6 +11,15 @@ import {
 import { useFarmData } from "../../context/FarmDataContext";
 import AnimalCard from "../../components/animals/AnimalCard";
 import { Dialog } from "@headlessui/react";
+import {
+  FormField,
+  SelectField,
+  NumberField,
+  FormError,
+  FormSuccess,
+  SubmitButton,
+} from "../../components/forms/FormComponents";
+import { animalSchema } from "../../components/forms/validationSchemas";
 
 function AnimalManagement() {
   const {
@@ -26,110 +37,137 @@ function AnimalManagement() {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [currentAnimal, setCurrentAnimal] = useState(null);
+  const [isGroupForm, setIsGroupForm] = useState(false);
+  const [apiError, setApiError] = useState("");
+  const [apiSuccess, setApiSuccess] = useState("");
 
-  // New animal form state
-  const [formData, setFormData] = useState({
-    name: "",
-    type: "cow",
-    breed: "",
-    birthDate: "",
-    gender: "female",
-    weight: "",
-    status: "healthy",
-    notes: "",
-    isGroup: false,
-    count: 1,
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+    reset,
+    control,
+    watch,
+    setValue,
+  } = useForm({
+    resolver: yupResolver(animalSchema),
+    defaultValues: {
+      name: "",
+      animal_type: "cow",
+      breed: "",
+      birth_date: "",
+      gender: "female",
+      weight: "",
+      status: "healthy",
+      notes: "",
+    },
   });
+
+  const isGroup = watch("is_group");
 
   // Reset form when modal closes
   useEffect(() => {
     if (!isAddModalOpen && !isEditModalOpen) {
-      setFormData({
+      reset({
         name: "",
-        type: "cow",
+        animal_type: "cow",
         breed: "",
-        birthDate: "",
+        birth_date: "",
         gender: "female",
         weight: "",
         status: "healthy",
         notes: "",
-        isGroup: false,
-        count: 1,
+        is_group: false,
+        count: 2,
       });
+      setApiError("");
+      setApiSuccess("");
     }
-  }, [isAddModalOpen, isEditModalOpen]);
+  }, [isAddModalOpen, isEditModalOpen, reset]);
 
   // Fill form when editing
   useEffect(() => {
     if (currentAnimal && isEditModalOpen) {
-      setFormData({
-        ...currentAnimal,
-        birthDate: formatDateForInput(
-          currentAnimal.birthDate || currentAnimal.establishedDate || ""
-        ),
-      });
+      const formatDate = (dateString) => {
+        if (!dateString) return "";
+        const date = new Date(dateString);
+        return date.toISOString().split("T")[0];
+      };
+
+      setValue("name", currentAnimal.name || "");
+      setValue("animal_type", currentAnimal.animal_type || "cow");
+      setValue("breed", currentAnimal.breed || "");
+      setValue(
+        "birth_date",
+        formatDate(
+          currentAnimal.birth_date ||
+            currentAnimal.established_date ||
+            ""
+        )
+      );
+      setValue("gender", currentAnimal.gender || "female");
+      setValue("weight", currentAnimal.weight || currentAnimal.avg_weight || "");
+      setValue("status", currentAnimal.status || "healthy");
+      setValue("notes", currentAnimal.notes || "");
+      setValue("is_group", currentAnimal.is_group || false);
+      setValue("count", currentAnimal.count || 2);
     }
-  }, [currentAnimal, isEditModalOpen]);
-
-  // Format date for input field
-  const formatDateForInput = (dateString) => {
-    if (!dateString) return "";
-    const date = new Date(dateString);
-    return date.toISOString().split("T")[0];
-  };
-
-  // Handle form input change
-  const handleChange = (e) => {
-    const { name, value, type, checked } = e.target;
-    setFormData({
-      ...formData,
-      [name]: type === "checkbox" ? checked : value,
-    });
-  };
+  }, [currentAnimal, isEditModalOpen, setValue]);
 
   // Handle form submit
-  const handleSubmit = (e) => {
-    e.preventDefault();
+  const onSubmit = async (data) => {
+    setApiError("");
+    setApiSuccess("");
 
-    const parsedWeight =
-      formData.weight === "" ? null : Number.parseFloat(formData.weight);
-    const safeWeight = Number.isFinite(parsedWeight) ? parsedWeight : null;
-    const parsedCount = Number.parseInt(formData.count, 10);
-    const safeCount = Number.isInteger(parsedCount) && parsedCount > 0 ? parsedCount : 1;
+    try {
+      const animalData = {
+        name: data.name,
+        animal_type: data.animal_type,
+        breed: data.breed,
+        birth_date: data.birth_date,
+        gender: data.gender,
+        weight:
+          data.is_group || !data.weight ? null : parseFloat(data.weight),
+        status: data.status,
+        notes: data.notes,
+        is_group: data.is_group,
+        count: data.is_group ? parseInt(data.count, 10) : 1,
+        avg_weight: data.is_group ? parseFloat(data.weight) : null,
+        established_date: data.is_group ? data.birth_date : null,
+      };
 
-    // Map frontend fields to backend fields
-    const animalData = {
-      name: formData.name,
-      animal_type: formData.type,
-      breed: formData.breed,
-      birth_date: formData.birthDate,
-      gender: formData.gender,
-      weight: formData.isGroup ? null : safeWeight,
-      status: formData.status,
-      notes: formData.notes,
-      is_group: formData.isGroup,
-      count: formData.isGroup ? safeCount : 1,
-      avg_weight: formData.isGroup ? safeWeight : null,
-      established_date: formData.isGroup ? formData.birthDate : null,
-    };
-
-    if (isEditModalOpen && currentAnimal) {
-      updateAnimal(currentAnimal.id, animalData);
-      setIsEditModalOpen(false);
-      setCurrentAnimal(null);
-    } else {
-      if (formData.isGroup) {
-        addAnimalGroup(animalData);
+      if (isEditModalOpen && currentAnimal) {
+        updateAnimal(currentAnimal.id, animalData);
+        setApiSuccess(
+          `Animal "${data.name}" updated successfully!`
+        );
+        setIsEditModalOpen(false);
+        setCurrentAnimal(null);
       } else {
-        addAnimal(animalData);
+        if (data.is_group) {
+          addAnimalGroup(animalData);
+        } else {
+          addAnimal(animalData);
+        }
+        setApiSuccess(
+          `${data.is_group ? "Group" : "Animal"} "${data.name}" added successfully!`
+        );
+        setIsAddModalOpen(false);
       }
-      setIsAddModalOpen(false);
+
+      reset();
+    } catch (error) {
+      setApiError(
+        error.message ||
+          "An error occurred while saving the animal. Please try again."
+      );
     }
   };
 
   // Handle edit button click
   const handleEdit = (animal) => {
     setCurrentAnimal(animal);
+    setIsGroupForm(animal.is_group);
     setIsEditModalOpen(true);
   };
 
@@ -150,7 +188,7 @@ function AnimalManagement() {
     // Apply type filter
     if (currentFilter !== "all") {
       filteredAnimals = filteredAnimals.filter(
-        (animal) => animal.type === currentFilter
+        (animal) => animal.animal_type === currentFilter
       );
     }
 
@@ -160,7 +198,7 @@ function AnimalManagement() {
       filteredAnimals = filteredAnimals.filter(
         (animal) =>
           (animal.name || "").toLowerCase().includes(term) ||
-          (animal.type || "").toLowerCase().includes(term) ||
+          (animal.animal_type || "").toLowerCase().includes(term) ||
           (animal.breed || "").toLowerCase().includes(term)
       );
     }
@@ -175,9 +213,36 @@ function AnimalManagement() {
     "all",
     ...new Set(
       safeAnimals
-        .map((animal) => animal.type)
+        .map((animal) => animal.animal_type)
         .filter((type) => typeof type === "string" && type.trim().length > 0)
     ),
+  ];
+
+  const animalTypeOptions = [
+    { value: "cow", label: "Cow" },
+    { value: "goat", label: "Goat" },
+    { value: "sheep", label: "Sheep" },
+    { value: "pig", label: "Pig" },
+    { value: "chicken", label: "Chicken" },
+    { value: "duck", label: "Duck" },
+    { value: "turkey", label: "Turkey" },
+    { value: "fish", label: "Fish" },
+    { value: "horse", label: "Horse" },
+    { value: "other", label: "Other" },
+  ];
+
+  const genderOptions = [
+    { value: "female", label: "Female" },
+    { value: "male", label: "Male" },
+  ];
+
+  const statusOptions = [
+    { value: "healthy", label: "Healthy" },
+    { value: "sick", label: "Sick" },
+    { value: "injured", label: "Injured" },
+    { value: "pregnant", label: "Pregnant" },
+    { value: "nursing", label: "Nursing" },
+    { value: "quarantined", label: "Quarantined" },
   ];
 
   return (
@@ -295,19 +360,29 @@ function AnimalManagement() {
               >
                 {isEditModalOpen
                   ? "Edit Animal"
-                  : `Add ${formData.isGroup ? "Group" : "Animal"}`}
+                  : `Add ${isGroupForm ? "Group" : "Animal"}`}
               </Dialog.Title>
 
-              <form onSubmit={handleSubmit}>
+              {apiError && (
+                <FormError message={apiError} onDismiss={() => setApiError("")} />
+              )}
+
+              {apiSuccess && (
+                <FormSuccess message={apiSuccess} onDismiss={() => setApiSuccess("")} />
+              )}
+
+              <form onSubmit={handleSubmit(onSubmit)}>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                   {/* Group/Individual toggle */}
                   <div className="md:col-span-2">
                     <label className="flex items-center space-x-3 cursor-pointer">
                       <input
                         type="checkbox"
-                        name="isGroup"
-                        checked={formData.isGroup}
-                        onChange={handleChange}
+                        {...register("is_group")}
+                        onChange={(e) => {
+                          register("is_group").onChange(e);
+                          setIsGroupForm(e.target.checked);
+                        }}
                         className="h-5 w-5 text-primary-600 rounded"
                       />
                       <span className="font-medium">
@@ -317,156 +392,96 @@ function AnimalManagement() {
                   </div>
 
                   {/* Name field */}
-                  <div>
-                    <label className="label">Name</label>
-                    <input
-                      type="text"
-                      name="name"
-                      value={formData.name}
-                      onChange={handleChange}
-                      className="input"
-                      placeholder={
-                        formData.isGroup
-                          ? "Group name (e.g., Flock A)"
-                          : "Animal name"
-                      }
-                      required
-                    />
-                  </div>
+                  <FormField
+                    label="Name"
+                    type="text"
+                    register={register}
+                    name="name"
+                    errors={errors}
+                    placeholder={
+                      isGroupForm ? "Group name (e.g., Flock A)" : "Animal name"
+                    }
+                    required
+                  />
 
                   {/* Type field */}
-                  <div>
-                    <label className="label">Type</label>
-                    <select
-                      name="type"
-                      value={formData.type}
-                      onChange={handleChange}
-                      className="input"
-                      required
-                    >
-                      <option value="cow">Cow</option>
-                      <option value="goat">Goat</option>
-                      <option value="sheep">Sheep</option>
-                      <option value="pig">Pig</option>
-                      <option value="chicken">Chicken</option>
-                      <option value="duck">Duck</option>
-                      <option value="turkey">Turkey</option>
-                      <option value="fish">Fish</option>
-                      <option value="horse">Horse</option>
-                      <option value="other">Other</option>
-                    </select>
-                  </div>
+                  <SelectField
+                    label="Type"
+                    register={register}
+                    name="animal_type"
+                    errors={errors}
+                    options={animalTypeOptions}
+                    required
+                  />
 
                   {/* Breed field */}
-                  <div>
-                    <label className="label">Breed</label>
-                    <input
-                      type="text"
-                      name="breed"
-                      value={formData.breed}
-                      onChange={handleChange}
-                      className="input"
-                      placeholder="Breed"
-                    />
-                  </div>
+                  <FormField
+                    label="Breed"
+                    type="text"
+                    register={register}
+                    name="breed"
+                    errors={errors}
+                    placeholder="Breed"
+                  />
 
-                  {/* Date field (birth or established) */}
-                  <div>
-                    <label className="label">
-                      {formData.isGroup ? "Established Date" : "Birth Date"}
-                    </label>
-                    <input
-                      type="date"
-                      name="birthDate"
-                      value={formData.birthDate}
-                      onChange={handleChange}
-                      className="input"
-                      required
-                    />
-                  </div>
+                  {/* Date field */}
+                  <FormField
+                    label={isGroupForm ? "Established Date" : "Birth Date"}
+                    type="date"
+                    register={register}
+                    name="birth_date"
+                    errors={errors}
+                    max={new Date().toISOString().split("T")[0]}
+                    required
+                  />
 
                   {/* Status field */}
-                  <div>
-                    <label className="label">Status</label>
-                    <select
-                      name="status"
-                      value={formData.status}
-                      onChange={handleChange}
-                      className="input"
-                      required
-                    >
-                      <option value="healthy">Healthy</option>
-                      <option value="sick">Sick</option>
-                      <option value="injured">Injured</option>
-                      <option value="pregnant">Pregnant</option>
-                      <option value="nursing">Nursing</option>
-                      <option value="quarantined">Quarantined</option>
-                    </select>
-                  </div>
+                  <SelectField
+                    label="Status"
+                    register={register}
+                    name="status"
+                    errors={errors}
+                    options={statusOptions}
+                    required
+                  />
 
-                  {formData.isGroup ? (
+                  {isGroupForm ? (
                     // Group-specific fields
                     <>
-                      <div>
-                        <label className="label">Count</label>
-                        <input
-                          type="number"
-                          name="count"
-                          value={formData.count}
-                          onChange={handleChange}
-                          className="input"
-                          min="1"
-                          required
-                        />
-                      </div>
-                      <div>
-                        <label className="label">
-                          Average Weight (
-                          {formData.type === "fish" ? "lb" : "kg"})
-                        </label>
-                        <input
-                          type="number"
-                          name="weight"
-                          value={formData.weight}
-                          onChange={handleChange}
-                          className="input"
-                          min="0"
-                          step="0.1"
-                          required
-                        />
-                      </div>
+                      <NumberField
+                        label="Count"
+                        register={register}
+                        name="count"
+                        errors={errors}
+                        min="2"
+                        required
+                      />
+                      <NumberField
+                        label={`Average Weight (kg)`}
+                        register={register}
+                        name="weight"
+                        errors={errors}
+                        min="0"
+                      />
                     </>
                   ) : (
                     // Individual animal fields
                     <>
-                      <div>
-                        <label className="label">Gender</label>
-                        <select
-                          name="gender"
-                          value={formData.gender}
-                          onChange={handleChange}
-                          className="input"
-                          required
-                        >
-                          <option value="female">Female</option>
-                          <option value="male">Male</option>
-                        </select>
-                      </div>
-                      <div>
-                        <label className="label">
-                          Weight ({formData.type === "fish" ? "lb" : "kg"})
-                        </label>
-                        <input
-                          type="number"
-                          name="weight"
-                          value={formData.weight}
-                          onChange={handleChange}
-                          className="input"
-                          min="0"
-                          step="0.1"
-                          required
-                        />
-                      </div>
+                      <SelectField
+                        label="Gender"
+                        register={register}
+                        name="gender"
+                        errors={errors}
+                        options={genderOptions}
+                        required
+                      />
+                      <NumberField
+                        label={`Weight (kg)`}
+                        register={register}
+                        name="weight"
+                        errors={errors}
+                        min="0"
+                      />
                     </>
                   )}
 
@@ -474,12 +489,15 @@ function AnimalManagement() {
                   <div className="md:col-span-2">
                     <label className="label">Notes</label>
                     <textarea
-                      name="notes"
-                      value={formData.notes}
-                      onChange={handleChange}
+                      {...register("notes")}
                       className="input h-24"
                       placeholder="Additional notes, health information, etc."
                     ></textarea>
+                    {errors.notes && (
+                      <span className="text-error-500 text-sm">
+                        {errors.notes.message}
+                      </span>
+                    )}
                   </div>
                 </div>
 
@@ -496,9 +514,10 @@ function AnimalManagement() {
                   >
                     Cancel
                   </button>
-                  <button type="submit" className="btn btn-primary">
-                    {isEditModalOpen ? "Update" : "Add"}
-                  </button>
+                  <SubmitButton
+                    label={isEditModalOpen ? "Update" : "Add"}
+                    loading={isSubmitting}
+                  />
                 </div>
               </form>
             </div>

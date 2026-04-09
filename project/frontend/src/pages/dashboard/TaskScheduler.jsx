@@ -1,50 +1,137 @@
 import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { yupResolver } from "@hookform/resolvers/yup";
 import { FiPlus, FiFilter, FiSearch, FiCalendar, FiTrash2 } from "react-icons/fi";
 import { useFarmData } from "../../context/FarmDataContext";
 import { Dialog } from "@headlessui/react";
 import { motion } from "framer-motion";
+import {
+  FormField,
+  SelectField,
+  FormError,
+  FormSuccess,
+  SubmitButton,
+} from "../../components/forms/FormComponents";
+import { taskSchema } from "../../components/forms/validationSchemas";
 
 function TaskScheduler() {
   const { tasks, addTask, updateTask, deleteTask } = useFarmData();
   const [filter, setFilter] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [currentTask, setCurrentTask] = useState(null);
+  const [apiError, setApiError] = useState("");
+  const [apiSuccess, setApiSuccess] = useState("");
 
-  // New task form state
-  const [formData, setFormData] = useState({
-    title: "",
-    description: "",
-    dueDate: "",
-    priority: "medium",
-    assignedTo: "",
-    category: "Daily Care",
-    status: "pending",
-  });
-
-  // Handle form input change
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData({
-      ...formData,
-      [name]: value,
-    });
-  };
-
-  // Handle form submit
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    addTask(formData);
-    setIsAddModalOpen(false);
-    setFormData({
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+    reset,
+    setValue,
+  } = useForm({
+    resolver: yupResolver(taskSchema),
+    defaultValues: {
       title: "",
       description: "",
-      dueDate: "",
+      due_date: "",
       priority: "medium",
-      assignedTo: "",
+      assigned_to: "",
       category: "Daily Care",
       status: "pending",
-    });
+    },
+  });
+
+  const onSubmit = async (data) => {
+    setApiError("");
+    setApiSuccess("");
+    try {
+      const taskData = {
+        title: data.title,
+        description: data.description,
+        due_date: data.due_date,
+        priority: data.priority,
+        assigned_to: data.assigned_to || null,
+        category: data.category,
+        status: data.status,
+      };
+
+      if (isEditModalOpen && currentTask) {
+        updateTask(currentTask.id, taskData);
+        setApiSuccess(`Task "${data.title}" updated successfully!`);
+        setIsEditModalOpen(false);
+        setCurrentTask(null);
+      } else {
+        addTask(taskData);
+        setApiSuccess(`Task "${data.title}" created successfully!`);
+        setIsAddModalOpen(false);
+      }
+      reset();
+    } catch (error) {
+      setApiError(
+        error.message || "An error occurred. Please try again."
+      );
+    }
   };
+
+  const handleEdit = (task) => {
+    setCurrentTask(task);
+    setValue("title", task.title || "");
+    setValue("description", task.description || "");
+    setValue("due_date", task.due_date || "");
+    setValue("priority", task.priority || "medium");
+    setValue("assigned_to", task.assigned_to || "");
+    setValue("category", task.category || "Daily Care");
+    setValue("status", task.status || "pending");
+    setIsEditModalOpen(true);
+  };
+
+  const handleDelete = (id) => {
+    if (window.confirm("Are you sure you want to delete this task?")) {
+      deleteTask(id);
+    }
+  };
+
+  const resetForm = () => {
+    reset();
+    setApiError("");
+    setApiSuccess("");
+  };
+
+  // Close handlers
+  const closeAddModal = () => {
+    setIsAddModalOpen(false);
+    resetForm();
+  };
+
+  const closeEditModal = () => {
+    setIsEditModalOpen(false);
+    setCurrentTask(null);
+    resetForm();
+  };
+
+  const priorityOptions = [
+    { value: "low", label: "Low" },
+    { value: "medium", label: "Medium" },
+    { value: "high", label: "High" },
+  ];
+
+  const statusOptions = [
+    { value: "pending", label: "Pending" },
+    { value: "in_progress", label: "In Progress" },
+    { value: "completed", label: "Completed" },
+    { value: "cancelled", label: "Cancelled" },
+  ];
+
+  const categoryOptions = [
+    { value: "Daily Care", label: "Daily Care" },
+    { value: "Feeding", label: "Feeding" },
+    { value: "Health", label: "Health" },
+    { value: "Maintenance", label: "Maintenance" },
+    { value: "Harvest", label: "Harvest" },
+    { value: "Other", label: "Other" },
+  ];
 
   // Defensive: ensure tasks is an array
   const safeTasks = Array.isArray(tasks) ? tasks : [];
@@ -218,10 +305,12 @@ function TaskScheduler() {
         )}
       </div>
 
-      {/* Add Task Modal */}
+      {/* Add/Edit Task Modal */}
       <Dialog
-        open={isAddModalOpen}
-        onClose={() => setIsAddModalOpen(false)}
+        open={isAddModalOpen || isEditModalOpen}
+        onClose={() =>
+          isAddModalOpen ? closeAddModal() : closeEditModal()
+        }
         className="fixed inset-0 z-50 overflow-y-auto"
       >
         <div className="min-h-screen px-4 text-center">
@@ -239,100 +328,99 @@ function TaskScheduler() {
               as="h3"
               className="text-lg font-medium leading-6 text-gray-900 mb-4"
             >
-              Add New Task
+              {isEditModalOpen ? "Edit Task" : "Add New Task"}
             </Dialog.Title>
 
-            <form onSubmit={handleSubmit}>
+            {apiError && (
+              <FormError message={apiError} onDismiss={() => setApiError("")} />
+            )}
+
+            {apiSuccess && (
+              <FormSuccess message={apiSuccess} onDismiss={() => setApiSuccess("")} />
+            )}
+
+            <form onSubmit={handleSubmit(onSubmit)}>
               <div className="space-y-4">
-                <div>
-                  <label className="label">Title</label>
-                  <input
-                    type="text"
-                    name="title"
-                    value={formData.title}
-                    onChange={handleChange}
-                    className="input"
-                    required
-                  />
-                </div>
+                <FormField
+                  label="Title"
+                  type="text"
+                  register={register}
+                  name="title"
+                  errors={errors}
+                  required
+                />
 
                 <div>
                   <label className="label">Description</label>
                   <textarea
-                    name="description"
-                    value={formData.description}
-                    onChange={handleChange}
+                    {...register("description")}
                     className="input h-24"
-                    required
+                    placeholder="Task description"
                   />
+                  {errors.description && (
+                    <span className="text-error-500 text-sm">
+                      {errors.description.message}
+                    </span>
+                  )}
                 </div>
 
-                <div>
-                  <label className="label">Due Date</label>
-                  <input
-                    type="datetime-local"
-                    name="dueDate"
-                    value={formData.dueDate}
-                    onChange={handleChange}
-                    className="input"
-                    required
-                  />
-                </div>
+                <FormField
+                  label="Due Date"
+                  type="date"
+                  register={register}
+                  name="due_date"
+                  errors={errors}
+                  required
+                />
 
-                <div>
-                  <label className="label">Priority</label>
-                  <select
-                    name="priority"
-                    value={formData.priority}
-                    onChange={handleChange}
-                    className="input"
-                  >
-                    <option value="low">Low</option>
-                    <option value="medium">Medium</option>
-                    <option value="high">High</option>
-                  </select>
-                </div>
+                <SelectField
+                  label="Priority"
+                  register={register}
+                  name="priority"
+                  errors={errors}
+                  options={priorityOptions}
+                />
 
-                <div>
-                  <label className="label">Assigned To</label>
-                  <input
-                    type="text"
-                    name="assignedTo"
-                    value={formData.assignedTo}
-                    onChange={handleChange}
-                    className="input"
-                    placeholder="Enter name"
-                  />
-                </div>
+                <FormField
+                  label="Assigned To"
+                  type="text"
+                  register={register}
+                  name="assigned_to"
+                  errors={errors}
+                  placeholder="Enter name or ID"
+                />
 
-                <div>
-                  <label className="label">Category</label>
-                  <select
-                    name="category"
-                    value={formData.category}
-                    onChange={handleChange}
-                    className="input"
-                  >
-                    <option value="Daily Care">Daily Care</option>
-                    <option value="Maintenance">Maintenance</option>
-                    <option value="Health">Health</option>
-                    <option value="Crop Care">Crop Care</option>
-                    <option value="Administrative">Administrative</option>
-                  </select>
-                </div>
+                <SelectField
+                  label="Category"
+                  register={register}
+                  name="category"
+                  errors={errors}
+                  options={categoryOptions}
+                />
+
+                <SelectField
+                  label="Status"
+                  register={register}
+                  name="status"
+                  errors={errors}
+                  options={statusOptions}
+                />
               </div>
 
               <div className="mt-6 flex justify-end space-x-3">
                 <button
                   type="button"
                   className="btn btn-outline"
-                  onClick={() => setIsAddModalOpen(false)}
+                  onClick={() =>
+                    isAddModalOpen ? closeAddModal() : closeEditModal()
+                  }
                 >
                   Cancel
                 </button>
-                <button type="submit" className="btn btn-primary">
-                  Add Task
-                </button>
+                <SubmitButton
+                  label={isEditModalOpen ? "Update" : "Add"}
+                  loading={isSubmitting}
+                />
               </div>
             </form>
           </div>

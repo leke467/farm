@@ -1,8 +1,19 @@
 import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { yupResolver } from "@hookform/resolvers/yup";
 import { FiPlus, FiSearch, FiCalendar, FiEdit2, FiTrash2 } from "react-icons/fi";
 import { useFarmData } from "../../context/FarmDataContext";
 import { Dialog } from "@headlessui/react";
 import { motion } from "framer-motion";
+import {
+  FormField,
+  SelectField,
+  NumberField,
+  FormError,
+  FormSuccess,
+  SubmitButton,
+} from "../../components/forms/FormComponents";
+import { cropSchema } from "../../components/forms/validationSchemas";
 
 function CropManagement() {
   const { crops, addCrop, updateCrop, deleteCrop } = useFarmData();
@@ -11,31 +22,28 @@ function CropManagement() {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [currentCrop, setCurrentCrop] = useState(null);
+  const [apiError, setApiError] = useState("");
+  const [apiSuccess, setApiSuccess] = useState("");
 
-  // New crop form state
-  const [formData, setFormData] = useState({
-    name: "",
-    field: "",
-    area: "",
-    plantedDate: "",
-    expectedHarvestDate: "",
-    status: "planning",
-    stage: "planning",
-    notes: "",
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+    reset,
+    setValue,
+  } = useForm({
+    resolver: yupResolver(cropSchema),
+    defaultValues: {
+      name: "",
+      field: "",
+      area: "",
+      planted_date: "",
+      expected_harvest_date: "",
+      status: "planning",
+      stage: "planning",
+      notes: "",
+    },
   });
-
-  // Handle form input change
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    let newValue = value;
-    if (["status", "stage"].includes(name)) {
-      newValue = value.toLowerCase();
-    }
-    setFormData({
-      ...formData,
-      [name]: newValue,
-    });
-  };
 
   // Format date for display
   const formatDate = (dateString) => {
@@ -96,105 +104,98 @@ function CropManagement() {
   );
 
   // Handle form submit
-  const handleSubmit = (e) => {
-    e.preventDefault();
+  const onSubmit = async (data) => {
+    setApiError("");
+    setApiSuccess("");
 
-    const parsedArea = Number.parseFloat(formData.area);
-    if (!Number.isFinite(parsedArea) || parsedArea <= 0) {
-      window.alert("Please enter a valid area greater than 0.");
-      return;
+    try {
+      // Create growth stages if adding new crop
+      const growthStages = !isEditModalOpen
+        ? [
+            {
+              stage: "planting",
+              date: data.planted_date,
+              completed: true,
+              notes: "Initial planting",
+            },
+            {
+              stage: "emergence",
+              date: new Date(
+                new Date(data.planted_date).getTime() + 14 * 24 * 60 * 60 * 1000
+              )
+                .toISOString()
+                .split("T")[0],
+              completed: false,
+              notes: "",
+            },
+            {
+              stage: "maturation",
+              date: new Date(
+                new Date(data.planted_date).getTime() + 30 * 24 * 60 * 60 * 1000
+              )
+                .toISOString()
+                .split("T")[0],
+              completed: false,
+              notes: "",
+            },
+            {
+              stage: "harvest",
+              date: data.expected_harvest_date,
+              completed: false,
+              notes: "",
+            },
+          ]
+        : undefined;
+
+      const cropData = {
+        name: data.name,
+        field: data.field,
+        area: parseFloat(data.area),
+        planted_date: data.planted_date,
+        expected_harvest_date: data.expected_harvest_date,
+        status: data.status,
+        stage: data.stage,
+        notes: data.notes,
+        ...(growthStages && { growth_stages: growthStages }),
+      };
+
+      if (isEditModalOpen && currentCrop) {
+        updateCrop(currentCrop.id, cropData);
+        setApiSuccess(`Crop "${data.name}" updated successfully!`);
+        setIsEditModalOpen(false);
+        setCurrentCrop(null);
+      } else {
+        addCrop(cropData);
+        setApiSuccess(`Crop "${data.name}" added successfully!`);
+        setIsAddModalOpen(false);
+      }
+
+      reset();
+    } catch (error) {
+      setApiError(
+        error.message ||
+          "An error occurred while saving the crop. Please try again."
+      );
     }
-
-    // Create growth stages if adding new crop
-    let cropData = { ...formData };
-
-    if (!isEditModalOpen) {
-      // Generate simple growth stages
-      cropData.growthStages = [
-        {
-          stage: "planting",
-          date: formData.plantedDate,
-          completed: true,
-          notes: "Initial planting",
-        },
-        {
-          stage: "emergence",
-          date: new Date(
-            new Date(formData.plantedDate).getTime() + 14 * 24 * 60 * 60 * 1000
-          )
-            .toISOString()
-            .split("T")[0],
-          completed: false,
-          notes: "",
-        },
-        {
-          stage: "maturation",
-          date: new Date(
-            new Date(formData.plantedDate).getTime() + 30 * 24 * 60 * 60 * 1000
-          )
-            .toISOString()
-            .split("T")[0],
-          completed: false,
-          notes: "",
-        },
-        {
-          stage: "harvest",
-          date: formData.expectedHarvestDate,
-          completed: false,
-          notes: "",
-        },
-      ];
-    }
-
-    // Map frontend fields to backend fields
-    const backendCropData = {
-      name: cropData.name,
-      field: cropData.field,
-      area: parsedArea,
-      planted_date: cropData.plantedDate,
-      expected_harvest_date: cropData.expectedHarvestDate,
-      status: cropData.status,
-      stage: cropData.stage,
-      notes: cropData.notes,
-      growth_stages: cropData.growthStages,
-    };
-
-    if (isEditModalOpen && currentCrop) {
-      updateCrop(currentCrop.id, backendCropData);
-      setIsEditModalOpen(false);
-    } else {
-      addCrop(backendCropData);
-      setIsAddModalOpen(false);
-    }
-
-    // Reset form
-    setFormData({
-      name: "",
-      field: "",
-      area: "",
-      plantedDate: "",
-      expectedHarvestDate: "",
-      status: "planning",
-      stage: "planning",
-      notes: "",
-    });
-
-    setCurrentCrop(null);
   };
 
   // Handle edit button click
   const handleEdit = (crop) => {
+    const formatDateForInput = (dateString) => {
+      if (!dateString) return "";
+      const date = new Date(dateString);
+      return date.toISOString().split("T")[0];
+    };
+
     setCurrentCrop(crop);
-    setFormData({
-      name: crop.name || "",
-      field: crop.field || "",
-      area: crop.area !== undefined && crop.area !== null ? String(crop.area) : "",
-      plantedDate: crop.plantedDate || "",
-      expectedHarvestDate: crop.expectedHarvestDate || "",
-      status: crop.status || "planning",
-      stage: crop.stage || "planning",
-      notes: crop.notes || "",
-    });
+    setValue("name", crop.name || "");
+    setValue("field", crop.field || "");
+    setValue("area", crop.area ? String(crop.area) : "");
+    setValue("planted_date", formatDateForInput(crop.planted_date || ""));
+    setValue("expected_harvest_date", formatDateForInput(crop.expected_harvest_date || ""));
+    setValue("status", crop.status || "planning");
+    setValue("stage", crop.stage || "planning");
+    setValue("notes", crop.notes || "");
     setIsEditModalOpen(true);
   };
 
@@ -222,6 +223,22 @@ function CropManagement() {
         return "bg-gray-100 text-gray-800";
     }
   };
+
+  const statusOptions = [
+    { value: "planning", label: "Planning" },
+    { value: "growing", label: "Growing" },
+    { value: "harvesting", label: "Harvesting" },
+    { value: "completed", label: "Completed" },
+    { value: "failed", label: "Failed" },
+  ];
+
+  const stageOptions = [
+    { value: "planning", label: "Planning" },
+    { value: "planting", label: "Planting" },
+    { value: "emergence", label: "Emergence" },
+    { value: "maturation", label: "Maturation" },
+    { value: "harvest", label: "Harvest" },
+  ];
 
   return (
     <div>
@@ -447,137 +464,103 @@ function CropManagement() {
                 {isEditModalOpen ? "Edit Crop" : "Add Crop"}
               </Dialog.Title>
 
-              <form onSubmit={handleSubmit}>
+              {apiError && (
+                <FormError message={apiError} onDismiss={() => setApiError("")} />
+              )}
+
+              {apiSuccess && (
+                <FormSuccess message={apiSuccess} onDismiss={() => setApiSuccess("")} />
+              )}
+
+              <form onSubmit={handleSubmit(onSubmit)}>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                   {/* Crop name */}
-                  <div>
-                    <label className="label">Crop Name</label>
-                    <input
-                      type="text"
-                      name="name"
-                      value={formData.name}
-                      onChange={handleChange}
-                      className="input"
-                      placeholder="e.g., Corn, Tomatoes"
-                      required
-                    />
-                  </div>
+                  <FormField
+                    label="Crop Name"
+                    type="text"
+                    register={register}
+                    name="name"
+                    errors={errors}
+                    placeholder="e.g., Corn, Tomatoes"
+                    required
+                  />
 
                   {/* Field location */}
-                  <div>
-                    <label className="label">Field/Location</label>
-                    <input
-                      type="text"
-                      name="field"
-                      value={formData.field}
-                      onChange={handleChange}
-                      className="input"
-                      placeholder="e.g., Field A, Greenhouse 2"
-                      required
-                    />
-                  </div>
+                  <FormField
+                    label="Field/Location"
+                    type="text"
+                    register={register}
+                    name="field"
+                    errors={errors}
+                    placeholder="e.g., Field A"
+                    required
+                  />
 
                   {/* Area */}
-                  <div>
-                    <label className="label">Area (acres)</label>
-                    <input
-                      type="number"
-                      name="area"
-                      value={formData.area}
-                      onChange={handleChange}
-                      className="input"
-                      placeholder="e.g., 5.5"
-                      min="0.01"
-                      step="0.01"
-                      required
-                    />
-                  </div>
+                  <NumberField
+                    label="Area (acres)"
+                    register={register}
+                    name="area"
+                    errors={errors}
+                    placeholder="e.g., 5.5"
+                    min="0.01"
+                    required
+                  />
 
                   {/* Status */}
-                  <div>
-                    <label className="label">Status</label>
-                    <select
-                      name="status"
-                      value={formData.status}
-                      onChange={handleChange}
-                      className="input"
-                      required
-                    >
-                      <option value="planning">Planning</option>
-                      <option value="growing">Growing</option>
-                      <option value="harvesting">Harvesting</option>
-                      <option value="completed">Completed</option>
-                      <option value="failed">Failed</option>
-                    </select>
-                  </div>
+                  <SelectField
+                    label="Status"
+                    register={register}
+                    name="status"
+                    errors={errors}
+                    options={statusOptions}
+                    required
+                  />
 
                   {/* Planted date */}
-                  <div>
-                    <label className="label">Planted Date</label>
-                    <div className="relative">
-                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <FiCalendar className="text-gray-400" />
-                      </div>
-                      <input
-                        type="date"
-                        name="plantedDate"
-                        value={formData.plantedDate}
-                        onChange={handleChange}
-                        className="pl-10 input"
-                        required
-                      />
-                    </div>
-                  </div>
+                  <FormField
+                    label="Planted Date"
+                    type="date"
+                    register={register}
+                    name="planted_date"
+                    errors={errors}
+                    max={new Date().toISOString().split("T")[0]}
+                    required
+                  />
 
                   {/* Expected harvest date */}
-                  <div>
-                    <label className="label">Expected Harvest Date</label>
-                    <div className="relative">
-                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <FiCalendar className="text-gray-400" />
-                      </div>
-                      <input
-                        type="date"
-                        name="expectedHarvestDate"
-                        value={formData.expectedHarvestDate}
-                        onChange={handleChange}
-                        className="pl-10 input"
-                        required
-                      />
-                    </div>
-                  </div>
+                  <FormField
+                    label="Expected Harvest Date"
+                    type="date"
+                    register={register}
+                    name="expected_harvest_date"
+                    errors={errors}
+                    required
+                  />
 
                   {/* Current stage */}
-                  <div>
-                    <label className="label">Current Growth Stage</label>
-                    <select
-                      name="stage"
-                      value={formData.stage}
-                      onChange={handleChange}
-                      className="input"
-                      required
-                    >
-                      <option value="planning">Planning</option>
-                      <option value="planting">Planting</option>
-                      <option value="emergence">Emergence</option>
-                      <option value="vegetative">Vegetative</option>
-                      <option value="flowering">Flowering</option>
-                      <option value="fruiting">Fruiting</option>
-                      <option value="maturation">Maturation</option>
-                      <option value="harvest">Harvest</option>
-                    </select>
-                  </div>
+                  <SelectField
+                    label="Current Growth Stage"
+                    register={register}
+                    name="stage"
+                    errors={errors}
+                    options={stageOptions}
+                    required
+                  />
 
                   {/* Notes field - spans full width */}
                   <div className="md:col-span-2">
                     <label className="label">Notes</label>
                     <textarea
-                      name="notes"
-                      value={formData.notes}
-                      onChange={handleChange}
+                      {...register("notes")}
                       className="input h-24"
                       placeholder="Additional notes, planting details, etc."
                     ></textarea>
+                    {errors.notes && (
+                      <span className="text-error-500 text-sm">
+                        {errors.notes.message}
+                      </span>
+                    )}
                   </div>
                 </div>
 
@@ -594,9 +577,10 @@ function CropManagement() {
                   >
                     Cancel
                   </button>
-                  <button type="submit" className="btn btn-primary">
-                    {isEditModalOpen ? "Update" : "Add"}
-                  </button>
+                  <SubmitButton
+                    label={isEditModalOpen ? "Update" : "Add"}
+                    loading={isSubmitting}
+                  />
                 </div>
               </form>
             </div>

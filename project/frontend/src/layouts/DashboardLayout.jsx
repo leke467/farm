@@ -16,11 +16,13 @@ import {
   FiDollarSign,
   FiGrid,
   FiMapPin,
+  FiAlertCircle,
 } from "react-icons/fi";
 import { motion } from "framer-motion";
 
 function DashboardLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [expandedInventory, setExpandedInventory] = useState(false);
   const [permissionMap, setPermissionMap] = useState({});
   const location = useLocation();
   const navigate = useNavigate();
@@ -41,9 +43,20 @@ function DashboardLayout() {
     { key: "animals", path: "/animals", name: "Animals", icon: <FiUsers size={20} /> },
     { key: "crops", path: "/crops", name: "Crops", icon: <FiGrid size={20} /> },
     { key: "tasks", path: "/tasks", name: "Tasks", icon: <FiCalendar size={20} /> },
-    { key: "inventory", path: "/inventory", name: "Inventory", icon: <FiPackage size={20} /> },
+    { 
+      key: "inventory", 
+      path: "/inventory", 
+      name: "Inventory", 
+      icon: <FiPackage size={20} />,
+      subItems: [
+        { key: "inventory-overview", path: "/inventory", name: "Overview" },
+        { key: "inventory-audits", path: "/inventory/audits", name: "Audits" },
+        { key: "inventory-costs", path: "/inventory/costs", name: "Cost Analysis" },
+      ]
+    },
     { key: "expenses", path: "/expenses", name: "Expenses", icon: <FiDollarSign size={20} /> },
     { key: "reports", path: "/reports", name: "Reports", icon: <FiBarChart2 size={20} /> },
+    { key: "health", path: "/health", name: "Health Alerts", icon: <FiAlertCircle size={20} /> },
     { key: "settings", path: "/settings", name: "Settings", icon: <FiSettings size={20} /> },
   ];
 
@@ -136,18 +149,55 @@ function DashboardLayout() {
           <nav className="mt-5 px-4 flex-1 overflow-y-auto">
             <div className="space-y-1">
               {visibleMenuItems.map((item) => (
-                <Link
-                  key={item.path}
-                  to={item.path}
-                  className={`flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors ${
-                    location.pathname === item.path
-                      ? "bg-primary-50 text-primary-600"
-                      : "text-gray-700 hover:bg-gray-100"
-                  }`}
-                >
-                  <span className="mr-3">{item.icon}</span>
-                  {item.name}
-                </Link>
+                <div key={item.path}>
+                  {item.subItems ? (
+                    <>
+                      <button
+                        onClick={() => setExpandedInventory(!expandedInventory)}
+                        className={`w-full flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors ${
+                          location.pathname.startsWith(item.path)
+                            ? "bg-primary-50 text-primary-600"
+                            : "text-gray-700 hover:bg-gray-100"
+                        }`}
+                      >
+                        <span className="mr-3">{item.icon}</span>
+                        {item.name}
+                        <span className="ml-auto">
+                          {expandedInventory ? "▼" : "▶"}
+                        </span>
+                      </button>
+                      {expandedInventory && (
+                        <div className="pl-8 space-y-1">
+                          {item.subItems.map((subItem) => (
+                            <Link
+                              key={subItem.path}
+                              to={subItem.path}
+                              className={`flex items-center px-4 py-2 text-xs font-medium rounded-lg transition-colors ${
+                                location.pathname === subItem.path
+                                  ? "bg-primary-100 text-primary-600"
+                                  : "text-gray-600 hover:bg-gray-100"
+                              }`}
+                            >
+                              {subItem.name}
+                            </Link>
+                          ))}
+                        </div>
+                      )}
+                    </>
+                  ) : (
+                    <Link
+                      to={item.path}
+                      className={`flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors ${
+                        location.pathname === item.path
+                          ? "bg-primary-50 text-primary-600"
+                          : "text-gray-700 hover:bg-gray-100"
+                      }`}
+                    >
+                      <span className="mr-3">{item.icon}</span>
+                      {item.name}
+                    </Link>
+                  )}
+                </div>
               ))}
             </div>
           </nav>

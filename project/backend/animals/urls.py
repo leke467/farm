@@ -7,4 +7,10 @@ urlpatterns = [
     path('<int:animal_id>/weights/', views.WeightRecordListCreateView.as_view(), name='weight-records'),
     path('<int:animal_id>/medical/', views.MedicalRecordListCreateView.as_view(), name='medical-records'),
     path('<int:animal_id>/feed/', views.FeedRecordListCreateView.as_view(), name='feed-records'),
+    path('vaccinations/', views.VaccinationListCreateView.as_view(), name='vaccination-list-create'),
+    path('vaccinations/<int:pk>/', views.VaccinationDetailView.as_view(), name='vaccination-detail'),
+    path('breeding/', views.BreedingCalendarListCreateView.as_view(), name='breeding-list-create'),
+    path('breeding/<int:pk>/', views.BreedingCalendarDetailView.as_view(), name='breeding-detail'),
+    path('health-alerts/', views.HealthAlertListCreateView.as_view(), name='health-alert-list-create'),
+    path('health-alerts/<int:pk>/', views.HealthAlertDetailView.as_view(), name='health-alert-detail'),
 ]

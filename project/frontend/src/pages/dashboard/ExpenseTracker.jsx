@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { yupResolver } from "@hookform/resolvers/yup";
 import {
   FiPlus,
   FiFilter,
@@ -9,51 +11,128 @@ import {
 import { useFarmData } from "../../context/FarmDataContext";
 import { Dialog } from "@headlessui/react";
 import { motion } from "framer-motion";
+import {
+  FormField,
+  SelectField,
+  NumberField,
+  FormError,
+  FormSuccess,
+  SubmitButton,
+} from "../../components/forms/FormComponents";
+import { expenseSchema } from "../../components/forms/validationSchemas";
 
 function ExpenseTracker() {
   const { expenses, addExpense, updateExpense, deleteExpense } = useFarmData();
   const [filter, setFilter] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [currentExpense, setCurrentExpense] = useState(null);
+  const [apiError, setApiError] = useState("");
+  const [apiSuccess, setApiSuccess] = useState("");
 
-  // New expense form state
-  const [formData, setFormData] = useState({
-    date: "",
-    category: "Feed",
-    description: "",
-    amount: "",
-    vendor: "",
-    paymentMethod: "Credit Card",
-    notes: "",
-  });
-
-  // Handle form input change
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData({
-      ...formData,
-      [name]: value,
-    });
-  };
-
-  // Handle form submit
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    addExpense({
-      ...formData,
-      amount: parseFloat(formData.amount),
-    });
-    setIsAddModalOpen(false);
-    setFormData({
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+    reset,
+    setValue,
+  } = useForm({
+    resolver: yupResolver(expenseSchema),
+    defaultValues: {
       date: "",
       category: "Feed",
       description: "",
       amount: "",
       vendor: "",
-      paymentMethod: "Credit Card",
+      payment_method: "Credit Card",
       notes: "",
-    });
+    },
+  });
+
+  const onSubmit = async (data) => {
+    setApiError("");
+    setApiSuccess("");
+    try {
+      const expenseData = {
+        date: data.date,
+        category: data.category,
+        description: data.description,
+        amount: parseFloat(data.amount),
+        vendor: data.vendor,
+        payment_method: data.payment_method,
+        notes: data.notes,
+      };
+
+      if (isEditModalOpen && currentExpense) {
+        updateExpense(currentExpense.id, expenseData);
+        setApiSuccess(`Expense updated successfully!`);
+        setIsEditModalOpen(false);
+        setCurrentExpense(null);
+      } else {
+        addExpense(expenseData);
+        setApiSuccess(`Expense "${data.description}" added successfully!`);
+        setIsAddModalOpen(false);
+      }
+      reset();
+    } catch (error) {
+      setApiError(
+        error.message || "An error occurred. Please try again."
+      );
+    }
   };
+
+  const handleEdit = (expense) => {
+    setCurrentExpense(expense);
+    setValue("date", expense.date || "");
+    setValue("category", expense.category || "Feed");
+    setValue("description", expense.description || "");
+    setValue("amount", expense.amount ? String(expense.amount) : "");
+    setValue("vendor", expense.vendor || "");
+    setValue("payment_method", expense.payment_method || "Credit Card");
+    setValue("notes", expense.notes || "");
+    setIsEditModalOpen(true);
+  };
+
+  const handleDelete = (id) => {
+    if (window.confirm("Are you sure you want to delete this expense?")) {
+      deleteExpense(id);
+    }
+  };
+
+  const closeAddModal = () => {
+    setIsAddModalOpen(false);
+    reset();
+    setApiError("");
+    setApiSuccess("");
+  };
+
+  const closeEditModal = () => {
+    setIsEditModalOpen(false);
+    setCurrentExpense(null);
+    reset();
+    setApiError("");
+    setApiSuccess("");
+  };
+
+  const categoryOptions = [
+    { value: "Feed", label: "Feed" },
+    { value: "Medicine", label: "Medicine" },
+    { value: "Equipment", label: "Equipment" },
+    { value: "Labor", label: "Labor" },
+    { value: "Utilities", label: "Utilities" },
+    { value: "Seeds/Plants", label: "Seeds/Plants" },
+    { value: "Maintenance", label: "Maintenance" },
+    { value: "Other", label: "Other" },
+  ];
+
+  const paymentOptions = [
+    { value: "Cash", label: "Cash" },
+    { value: "Credit Card", label: "Credit Card" },
+    { value: "Debit Card", label: "Debit Card" },
+    { value: "Check", label: "Check" },
+    { value: "Bank Transfer", label: "Bank Transfer" },
+  ];
 
   // Defensive: ensure expenses is an array
   const safeExpenses = Array.isArray(expenses) ? expenses : [];
@@ -277,10 +356,12 @@ function ExpenseTracker() {
         </div>
       </div>
 
-      {/* Add Expense Modal */}
+      {/* Add/Edit Expense Modal */}
       <Dialog
-        open={isAddModalOpen}
-        onClose={() => setIsAddModalOpen(false)}
+        open={isAddModalOpen || isEditModalOpen}
+        onClose={() =>
+          isAddModalOpen ? closeAddModal() : closeEditModal()
+        }
         className="fixed inset-0 z-50 overflow-y-auto"
       >
         <div className="min-h-screen px-4 text-center">
@@ -298,105 +379,89 @@ function ExpenseTracker() {
               as="h3"
               className="text-lg font-medium leading-6 text-gray-900 mb-4"
             >
-              Add New Expense
+              {isEditModalOpen ? "Edit Expense" : "Add New Expense"}
             </Dialog.Title>
 
-            <form onSubmit={handleSubmit}>
+            {apiError && (
+              <FormError message={apiError} onDismiss={() => setApiError("")} />
+            )}
+
+            {apiSuccess && (
+              <FormSuccess message={apiSuccess} onDismiss={() => setApiSuccess("")} />
+            )}
+
+            <form onSubmit={handleSubmit(onSubmit)}>
               <div className="space-y-4">
-                <div>
-                  <label className="label">Date</label>
-                  <input
-                    type="date"
-                    name="date"
-                    value={formData.date}
-                    onChange={handleChange}
-                    className="input"
-                    required
-                  />
-                </div>
+                <FormField
+                  label="Date"
+                  type="date"
+                  register={register}
+                  name="date"
+                  errors={errors}
+                  max={new Date().toISOString().split("T")[0]}
+                  required
+                />
 
-                <div>
-                  <label className="label">Category</label>
-                  <select
-                    name="category"
-                    value={formData.category}
-                    onChange={handleChange}
-                    className="input"
-                    required
-                  >
-                    <option value="Feed">Feed</option>
-                    <option value="Labor">Labor</option>
-                    <option value="Equipment">Equipment</option>
-                    <option value="Utilities">Utilities</option>
-                    <option value="Seeds">Seeds</option>
-                    <option value="Veterinary">Veterinary</option>
-                    <option value="Fuel">Fuel</option>
-                    <option value="Other">Other</option>
-                  </select>
-                </div>
+                <SelectField
+                  label="Category"
+                  register={register}
+                  name="category"
+                  errors={errors}
+                  options={categoryOptions}
+                  required
+                />
 
-                <div>
-                  <label className="label">Description</label>
-                  <input
-                    type="text"
-                    name="description"
-                    value={formData.description}
-                    onChange={handleChange}
-                    className="input"
-                    required
-                  />
-                </div>
+                <FormField
+                  label="Description"
+                  type="text"
+                  register={register}
+                  name="description"
+                  errors={errors}
+                  placeholder="What was this expense for?"
+                  required
+                />
 
-                <div>
-                  <label className="label">Amount ($)</label>
-                  <input
-                    type="number"
-                    name="amount"
-                    value={formData.amount}
-                    onChange={handleChange}
-                    className="input"
-                    min="0"
-                    step="0.01"
-                    required
-                  />
-                </div>
+                <NumberField
+                  label="Amount"
+                  register={register}
+                  name="amount"
+                  errors={errors}
+                  min="0"
+                  placeholder="0.00"
+                  required
+                />
 
-                <div>
-                  <label className="label">Vendor</label>
-                  <input
-                    type="text"
-                    name="vendor"
-                    value={formData.vendor}
-                    onChange={handleChange}
-                    className="input"
-                    required
-                  />
-                </div>
+                <FormField
+                  label="Vendor"
+                  type="text"
+                  register={register}
+                  name="vendor"
+                  errors={errors}
+                  placeholder="Where did you buy from?"
+                  required
+                />
 
-                <div>
-                  <label className="label">Payment Method</label>
-                  <select
-                    name="paymentMethod"
-                    value={formData.paymentMethod}
-                    onChange={handleChange}
-                    className="input"
-                    required
-                  >
-                    <option value="Credit Card">Credit Card</option>
-                    <option value="Cash">Cash</option>
-                    <option value="Bank Transfer">Bank Transfer</option>
-                    <option value="Check">Check</option>
-                  </select>
-                </div>
+                <SelectField
+                  label="Payment Method"
+                  register={register}
+                  name="payment_method"
+                  errors={errors}
+                  options={paymentOptions}
+                  required
+                />
 
                 <div>
                   <label className="label">Notes</label>
                   <textarea
-                    name="notes"
-                    value={formData.notes}
-                    onChange={handleChange}
+                    {...register("notes")}
                     className="input h-24"
+                    placeholder="Additional notes"
                   />
+                  {errors.notes && (
+                    <span className="text-error-500 text-sm">
+                      {errors.notes.message}
+                    </span>
+                  )}
                 </div>
               </div>
 
@@ -404,13 +469,16 @@ function ExpenseTracker() {
                 <button
                   type="button"
                   className="btn btn-outline"
-                  onClick={() => setIsAddModalOpen(false)}
+                  onClick={() =>
+                    isAddModalOpen ? closeAddModal() : closeEditModal()
+                  }
                 >
                   Cancel
                 </button>
-                <button type="submit" className="btn btn-primary">
-                  Add Expense
-                </button>
+                <SubmitButton
+                  label={isEditModalOpen ? "Update" : "Add"}
+                  loading={isSubmitting}
+                />
               </div>
             </form>
           </div>

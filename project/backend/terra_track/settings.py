@@ -165,6 +165,7 @@ REST_FRAMEWORK = {
         'rest_framework.filters.SearchFilter',
         'rest_framework.filters.OrderingFilter',
     ],
+    'EXCEPTION_HANDLER': 'terra_track.exceptions.custom_exception_handler',
 }
 
 # CORS settings
