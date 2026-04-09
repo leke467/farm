@@ -11,6 +11,12 @@ urlpatterns = [
     path('vaccinations/<int:pk>/', views.VaccinationDetailView.as_view(), name='vaccination-detail'),
     path('breeding/', views.BreedingCalendarListCreateView.as_view(), name='breeding-list-create'),
     path('breeding/<int:pk>/', views.BreedingCalendarDetailView.as_view(), name='breeding-detail'),
+    path('breeding-records/', views.BreedingRecordListCreateView.as_view(), name='breeding-record-list-create'),
+    path('breeding-records/<int:pk>/', views.BreedingRecordDetailView.as_view(), name='breeding-record-detail'),
+    path('production-records/', views.ProductionRecordListCreateView.as_view(), name='production-record-list-create'),
+    path('production-records/<int:pk>/', views.ProductionRecordDetailView.as_view(), name='production-record-detail'),
+    path('production-metrics/', views.AnimalProductionMetricsListView.as_view(), name='animal-production-metrics-list'),
+    path('production-metrics/<int:pk>/', views.AnimalProductionMetricsDetailView.as_view(), name='animal-production-metrics-detail'),
     path('health-alerts/', views.HealthAlertListCreateView.as_view(), name='health-alert-list-create'),
     path('health-alerts/<int:pk>/', views.HealthAlertDetailView.as_view(), name='health-alert-detail'),
 ]

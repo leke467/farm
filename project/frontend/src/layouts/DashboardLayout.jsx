@@ -17,17 +17,25 @@ import {
   FiGrid,
   FiMapPin,
   FiAlertCircle,
+  FiTrendingUp,
 } from "react-icons/fi";
 import { motion } from "framer-motion";
 
 function DashboardLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [expandedInventory, setExpandedInventory] = useState(false);
+  const [expandedItems, setExpandedItems] = useState({});
   const [permissionMap, setPermissionMap] = useState({});
   const location = useLocation();
   const navigate = useNavigate();
   const { user, handleLogout } = useUser();
   const { farmSettings, activeFarm } = useFarmData();
+
+  const toggleExpandItem = (key) => {
+    setExpandedItems((prev) => ({
+      ...prev,
+      [key]: !prev[key],
+    }));
+  };
 
   const firstName = user?.firstName || user?.first_name || "";
   const lastName = user?.lastName || user?.last_name || "";
@@ -57,6 +65,18 @@ function DashboardLayout() {
     { key: "expenses", path: "/expenses", name: "Expenses", icon: <FiDollarSign size={20} /> },
     { key: "reports", path: "/reports", name: "Reports", icon: <FiBarChart2 size={20} /> },
     { key: "health", path: "/health", name: "Health Alerts", icon: <FiAlertCircle size={20} /> },
+    {
+      key: "analytics",
+      path: "/analytics",
+      name: "Analytics",
+      icon: <FiTrendingUp size={20} />,
+      subItems: [
+        { key: "analytics-forecasting", path: "/analytics/forecasting", name: "Demand Forecasting" },
+        { key: "analytics-animals", path: "/analytics/animals", name: "Animal Productivity" },
+        { key: "analytics-financial", path: "/analytics/financial", name: "Financial Overview" },
+        { key: "analytics-crops", path: "/analytics/crops", name: "Crop Analytics" },
+      ]
+    },
     { key: "settings", path: "/settings", name: "Settings", icon: <FiSettings size={20} /> },
   ];
 
@@ -153,7 +173,7 @@ function DashboardLayout() {
                   {item.subItems ? (
                     <>
                       <button
-                        onClick={() => setExpandedInventory(!expandedInventory)}
+                        onClick={() => toggleExpandItem(item.key)}
                         className={`w-full flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors ${
                           location.pathname.startsWith(item.path)
                             ? "bg-primary-50 text-primary-600"
@@ -163,10 +183,10 @@ function DashboardLayout() {
                         <span className="mr-3">{item.icon}</span>
                         {item.name}
                         <span className="ml-auto">
-                          {expandedInventory ? "▼" : "▶"}
+                          {expandedItems[item.key] ? "▼" : "▶"}
                         </span>
                       </button>
-                      {expandedInventory && (
+                      {expandedItems[item.key] && (
                         <div className="pl-8 space-y-1">
                           {item.subItems.map((subItem) => (
                             <Link

@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from .models import (Animal, WeightRecord, MedicalRecord, FeedRecord, SampleWeight, 
-                     WaterQuality, Vaccination, BreedingCalendar, HealthAlert)
+                     WaterQuality, Vaccination, BreedingCalendar, HealthAlert,
+                     BreedingRecord, ProductionRecord, AnimalProductionMetrics)
 from terra_track.validators import AnimalValidator, NumberValidator
 
 class WeightRecordSerializer(serializers.ModelSerializer):
@@ -177,3 +178,60 @@ class AnimalSerializer(serializers.ModelSerializer):
             })
         
         return data
+
+
+class BreedingRecordSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = BreedingRecord
+        fields = '__all__'
+        read_only_fields = ['created_at', 'updated_at']
+
+    def validate(self, data):
+        if data.get('healthy_offspring', 0) + data.get('stillborn', 0) > data.get('number_of_offspring', 0):
+            raise serializers.ValidationError(
+                "Healthy offspring plus stillborn cannot exceed total number of offspring"
+            )
+        if data.get('delivery_date') and data.get('delivery_date') < data.get('breeding').breeding_date:
+            raise serializers.ValidationError({
+                'delivery_date': 'Delivery date cannot be before breeding date.'
+            })
+        return data
+
+
+class ProductionRecordSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ProductionRecord
+        fields = '__all__'
+        read_only_fields = ['created_at']
+
+    def validate_quantity(self, value):
+        if value is not None and float(value) <= 0:
+            raise serializers.ValidationError('Quantity must be greater than 0')
+        return value
+
+    def validate_market_price_per_unit(self, value):
+        if value is not None and float(value) < 0:
+            raise serializers.ValidationError('Market price must be non-negative')
+        return value
+
+    def validate(self, data):
+        if data.get('market_price_per_unit') is not None and data.get('quantity') is not None:
+            data['total_market_value'] = float(data.get('quantity')) * float(data.get('market_price_per_unit'))
+        return data
+
+
+class AnimalProductionMetricsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = AnimalProductionMetrics
+        fields = '__all__'
+        read_only_fields = ['last_updated']
+
+    def validate_feed_conversion_ratio(self, value):
+        if value is not None and float(value) < 0:
+            raise serializers.ValidationError('Feed conversion ratio must be non-negative')
+        return value
+
+    def validate_production_efficiency(self, value):
+        if value is not None and float(value) < 0:
+            raise serializers.ValidationError('Production efficiency must be non-negative')
+        return value

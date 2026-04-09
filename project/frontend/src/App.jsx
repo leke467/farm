@@ -28,6 +28,12 @@ import Reports from "./pages/dashboard/Reports";
 import HealthAlerts from "./pages/dashboard/HealthAlerts";
 import Settings from "./pages/dashboard/Settings";
 
+// Phase 2 Dashboards
+import DemandForecastingDashboard from "./pages/dashboard/DemandForecastingDashboard";
+import AnimalProductivityDashboard from "./pages/dashboard/AnimalProductivityDashboard";
+import FinancialOverviewDashboard from "./pages/dashboard/FinancialOverviewDashboard";
+import CropAnalyticsDashboard from "./pages/dashboard/CropAnalyticsDashboard";
+
 // Pages - Public
 import Landing from "./pages/public/Landing";
 
@@ -112,6 +118,12 @@ function App() {
               <Route path="/reports" element={<Reports />} />
               <Route path="/health" element={<HealthAlerts />} />
               <Route path="/settings" element={<Settings />} />
+
+              {/* Phase 2 Analytics Dashboards */}
+              <Route path="/analytics/forecasting" element={<DemandForecastingDashboard />} />
+              <Route path="/analytics/animals" element={<AnimalProductivityDashboard />} />
+              <Route path="/analytics/financial" element={<FinancialOverviewDashboard />} />
+              <Route path="/analytics/crops" element={<CropAnalyticsDashboard />} />
             </Route>
 
             {/* Catch all route */}

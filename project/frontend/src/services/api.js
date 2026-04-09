@@ -352,6 +352,279 @@ class ApiService {
       body: JSON.stringify(reportData),
     });
   }
+
+  // Phase 2 Inventory - Forecasting & Supplier Management
+  async getDemandForecasts(params = {}) {
+    const queryString = new URLSearchParams(params).toString();
+    return this.request(`/inventory/forecasts/${queryString ? `?${queryString}` : ""}`);
+  }
+
+  async createDemandForecast(forecastData) {
+    return this.request("/inventory/forecasts/", {
+      method: "POST",
+      body: JSON.stringify(forecastData),
+    });
+  }
+
+  async updateDemandForecast(id, forecastData) {
+    return this.request(`/inventory/forecasts/${id}/`, {
+      method: "PUT",
+      body: JSON.stringify(forecastData),
+    });
+  }
+
+  async deleteDemandForecast(id) {
+    return this.request(`/inventory/forecasts/${id}/`, {
+      method: "DELETE",
+    });
+  }
+
+  async getForecastOptimization(params = {}) {
+    const queryString = new URLSearchParams(params).toString();
+    return this.request(`/inventory/forecasts/optimization/${queryString ? `?${queryString}` : ""}`);
+  }
+
+  async getSuppliers(params = {}) {
+    const queryString = new URLSearchParams(params).toString();
+    return this.request(`/inventory/suppliers/${queryString ? `?${queryString}` : ""}`);
+  }
+
+  async createSupplier(supplierData) {
+    return this.request("/inventory/suppliers/", {
+      method: "POST",
+      body: JSON.stringify(supplierData),
+    });
+  }
+
+  async updateSupplier(id, supplierData) {
+    return this.request(`/inventory/suppliers/${id}/`, {
+      method: "PUT",
+      body: JSON.stringify(supplierData),
+    });
+  }
+
+  async deleteSupplier(id) {
+    return this.request(`/inventory/suppliers/${id}/`, {
+      method: "DELETE",
+    });
+  }
+
+  async getSupplierComparison(params = {}) {
+    const queryString = new URLSearchParams(params).toString();
+    return this.request(`/inventory/suppliers/comparison/${queryString ? `?${queryString}` : ""}`);
+  }
+
+  // Phase 2 Animals - Breeding & Production Records
+  async getBreedingRecords(params = {}) {
+    const queryString = new URLSearchParams(params).toString();
+    return this.request(`/animals/breeding-records/${queryString ? `?${queryString}` : ""}`);
+  }
+
+  async createBreedingRecord(breedingData) {
+    return this.request("/animals/breeding-records/", {
+      method: "POST",
+      body: JSON.stringify(breedingData),
+    });
+  }
+
+  async updateBreedingRecord(id, breedingData) {
+    return this.request(`/animals/breeding-records/${id}/`, {
+      method: "PUT",
+      body: JSON.stringify(breedingData),
+    });
+  }
+
+  async deleteBreedingRecord(id) {
+    return this.request(`/animals/breeding-records/${id}/`, {
+      method: "DELETE",
+    });
+  }
+
+  async getProductionRecords(params = {}) {
+    const queryString = new URLSearchParams(params).toString();
+    return this.request(`/animals/production-records/${queryString ? `?${queryString}` : ""}`);
+  }
+
+  async createProductionRecord(productionData) {
+    return this.request("/animals/production-records/", {
+      method: "POST",
+      body: JSON.stringify(productionData),
+    });
+  }
+
+  async updateProductionRecord(id, productionData) {
+    return this.request(`/animals/production-records/${id}/`, {
+      method: "PUT",
+      body: JSON.stringify(productionData),
+    });
+  }
+
+  async deleteProductionRecord(id) {
+    return this.request(`/animals/production-records/${id}/`, {
+      method: "DELETE",
+    });
+  }
+
+  async getAnimalProductionMetrics(params = {}) {
+    const queryString = new URLSearchParams(params).toString();
+    return this.request(`/animals/production-metrics/${queryString ? `?${queryString}` : ""}`);
+  }
+
+  async getAnimalProductionMetricDetail(id) {
+    return this.request(`/animals/production-metrics/${id}/`);
+  }
+
+  // Phase 2 Expenses - Financial Analytics
+  async getRevenues(params = {}) {
+    const queryString = new URLSearchParams(params).toString();
+    return this.request(`/expenses/revenues/${queryString ? `?${queryString}` : ""}`);
+  }
+
+  async createRevenue(revenueData) {
+    return this.request("/expenses/revenues/", {
+      method: "POST",
+      body: JSON.stringify(revenueData),
+    });
+  }
+
+  async updateRevenue(id, revenueData) {
+    return this.request(`/expenses/revenues/${id}/`, {
+      method: "PUT",
+      body: JSON.stringify(revenueData),
+    });
+  }
+
+  async deleteRevenue(id) {
+    return this.request(`/expenses/revenues/${id}/`, {
+      method: "DELETE",
+    });
+  }
+
+  async getFinancialAnalysis(params = {}) {
+    const queryString = new URLSearchParams(params).toString();
+    return this.request(`/expenses/financial-analysis/${queryString ? `?${queryString}` : ""}`);
+  }
+
+  async createFinancialAnalysis(analysisData) {
+    return this.request("/expenses/financial-analysis/", {
+      method: "POST",
+      body: JSON.stringify(analysisData),
+    });
+  }
+
+  async updateFinancialAnalysis(id, analysisData) {
+    return this.request(`/expenses/financial-analysis/${id}/`, {
+      method: "PUT",
+      body: JSON.stringify(analysisData),
+    });
+  }
+
+  async deleteFinancialAnalysis(id) {
+    return this.request(`/expenses/financial-analysis/${id}/`, {
+      method: "DELETE",
+    });
+  }
+
+  async getDebtManagement(params = {}) {
+    const queryString = new URLSearchParams(params).toString();
+    return this.request(`/expenses/debts/${queryString ? `?${queryString}` : ""}`);
+  }
+
+  async createDebt(debtData) {
+    return this.request("/expenses/debts/", {
+      method: "POST",
+      body: JSON.stringify(debtData),
+    });
+  }
+
+  async updateDebt(id, debtData) {
+    return this.request(`/expenses/debts/${id}/`, {
+      method: "PUT",
+      body: JSON.stringify(debtData),
+    });
+  }
+
+  async deleteDebt(id) {
+    return this.request(`/expenses/debts/${id}/`, {
+      method: "DELETE",
+    });
+  }
+
+  // Phase 2 Crops - Yield & Environmental Intelligence
+  async getCropYieldAnalysis(params = {}) {
+    const queryString = new URLSearchParams(params).toString();
+    return this.request(`/crops/yield-analysis/${queryString ? `?${queryString}` : ""}`);
+  }
+
+  async createCropYieldAnalysis(yieldData) {
+    return this.request("/crops/yield-analysis/", {
+      method: "POST",
+      body: JSON.stringify(yieldData),
+    });
+  }
+
+  async updateCropYieldAnalysis(id, yieldData) {
+    return this.request(`/crops/yield-analysis/${id}/`, {
+      method: "PUT",
+      body: JSON.stringify(yieldData),
+    });
+  }
+
+  async deleteCropYieldAnalysis(id) {
+    return this.request(`/crops/yield-analysis/${id}/`, {
+      method: "DELETE",
+    });
+  }
+
+  async getFertilizerRecommendations(params = {}) {
+    const queryString = new URLSearchParams(params).toString();
+    return this.request(`/crops/fertilizer-recommendations/${queryString ? `?${queryString}` : ""}`);
+  }
+
+  async createFertilizerRecommendation(recommendationData) {
+    return this.request("/crops/fertilizer-recommendations/", {
+      method: "POST",
+      body: JSON.stringify(recommendationData),
+    });
+  }
+
+  async updateFertilizerRecommendation(id, recommendationData) {
+    return this.request(`/crops/fertilizer-recommendations/${id}/`, {
+      method: "PUT",
+      body: JSON.stringify(recommendationData),
+    });
+  }
+
+  async deleteFertilizerRecommendation(id) {
+    return this.request(`/crops/fertilizer-recommendations/${id}/`, {
+      method: "DELETE",
+    });
+  }
+
+  async getWeatherImpactRecords(params = {}) {
+    const queryString = new URLSearchParams(params).toString();
+    return this.request(`/crops/weather-impacts/${queryString ? `?${queryString}` : ""}`);
+  }
+
+  async createWeatherImpactRecord(weatherData) {
+    return this.request("/crops/weather-impacts/", {
+      method: "POST",
+      body: JSON.stringify(weatherData),
+    });
+  }
+
+  async updateWeatherImpactRecord(id, weatherData) {
+    return this.request(`/crops/weather-impacts/${id}/`, {
+      method: "PUT",
+      body: JSON.stringify(weatherData),
+    });
+  }
+
+  async deleteWeatherImpactRecord(id) {
+    return this.request(`/crops/weather-impacts/${id}/`, {
+      method: "DELETE",
+    });
+  }
 }
 
 // Create and export a singleton instance

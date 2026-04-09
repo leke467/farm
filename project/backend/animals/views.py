@@ -3,10 +3,12 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import SearchFilter, OrderingFilter
 from django.db.models import Q
 from .models import (Animal, WeightRecord, MedicalRecord, FeedRecord, 
-                     Vaccination, BreedingCalendar, HealthAlert)
+                     Vaccination, BreedingCalendar, HealthAlert, BreedingRecord,
+                     ProductionRecord, AnimalProductionMetrics)
 from .serializers import (AnimalSerializer, WeightRecordSerializer, MedicalRecordSerializer, 
                           FeedRecordSerializer, VaccinationSerializer, BreedingCalendarSerializer,
-                          HealthAlertSerializer)
+                          HealthAlertSerializer, BreedingRecordSerializer,
+                          ProductionRecordSerializer, AnimalProductionMetricsSerializer)
 from farms.models import Farm
 
 class AnimalListCreateView(generics.ListCreateAPIView):
@@ -142,6 +144,86 @@ class HealthAlertListCreateView(generics.ListCreateAPIView):
     
     def get_queryset(self):
         return HealthAlert.objects.filter(
+            animal__farm__in=Farm.objects.filter(
+                Q(owner=self.request.user) | Q(members__user=self.request.user)
+            )
+        )
+
+class BreedingRecordListCreateView(generics.ListCreateAPIView):
+    serializer_class = BreedingRecordSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filterset_fields = ['status']
+    search_fields = ['breeding__animal__name', 'sire_animal__name', 'dam_animal__name']
+    ordering_fields = ['delivery_date', 'created_at']
+    ordering = ['-created_at']
+
+    def get_queryset(self):
+        return BreedingRecord.objects.filter(
+            breeding__animal__farm__in=Farm.objects.filter(
+                Q(owner=self.request.user) | Q(members__user=self.request.user)
+            )
+        )
+
+class BreedingRecordDetailView(generics.RetrieveUpdateDestroyAPIView):
+    serializer_class = BreedingRecordSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        return BreedingRecord.objects.filter(
+            breeding__animal__farm__in=Farm.objects.filter(
+                Q(owner=self.request.user) | Q(members__user=self.request.user)
+            )
+        )
+
+class ProductionRecordListCreateView(generics.ListCreateAPIView):
+    serializer_class = ProductionRecordSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filterset_fields = ['production_type', 'quality_grade']
+    search_fields = ['animal__name', 'notes']
+    ordering_fields = ['recorded_date', 'quantity', 'total_market_value']
+    ordering = ['-recorded_date']
+
+    def get_queryset(self):
+        return ProductionRecord.objects.filter(
+            animal__farm__in=Farm.objects.filter(
+                Q(owner=self.request.user) | Q(members__user=self.request.user)
+            )
+        )
+
+class ProductionRecordDetailView(generics.RetrieveUpdateDestroyAPIView):
+    serializer_class = ProductionRecordSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        return ProductionRecord.objects.filter(
+            animal__farm__in=Farm.objects.filter(
+                Q(owner=self.request.user) | Q(members__user=self.request.user)
+            )
+        )
+
+class AnimalProductionMetricsListView(generics.ListAPIView):
+    serializer_class = AnimalProductionMetricsSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    search_fields = ['animal__name']
+    ordering_fields = ['annual_revenue', 'annual_profit', 'production_efficiency']
+    ordering = ['-annual_revenue']
+
+    def get_queryset(self):
+        return AnimalProductionMetrics.objects.filter(
+            animal__farm__in=Farm.objects.filter(
+                Q(owner=self.request.user) | Q(members__user=self.request.user)
+            )
+        )
+
+class AnimalProductionMetricsDetailView(generics.RetrieveAPIView):
+    serializer_class = AnimalProductionMetricsSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        return AnimalProductionMetrics.objects.filter(
             animal__farm__in=Farm.objects.filter(
                 Q(owner=self.request.user) | Q(members__user=self.request.user)
             )
