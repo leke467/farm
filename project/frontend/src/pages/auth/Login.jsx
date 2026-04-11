@@ -72,19 +72,19 @@ function Login() {
 
   return (
     <div>
-      <h2 className="text-2xl font-bold text-gray-900 mb-6">
+      <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-6">
         Sign in to your account
       </h2>
 
       {error && (
-        <div className="mb-4 p-3 bg-error-50 text-error-600 rounded-lg border border-error-200">
+        <div className="mb-4 p-3 sm:p-4 bg-error-50 text-error-600 rounded-lg border border-error-200 text-sm sm:text-base">
           {error}
         </div>
       )}
 
-      <form className="space-y-6" onSubmit={handleSubmit}>
+      <form className="space-y-5 sm:space-y-6" onSubmit={handleSubmit}>
         <div>
-          <label htmlFor="username" className="label">
+          <label htmlFor="username" className="label text-sm sm:text-base">
             Username
           </label>
           <input
@@ -94,13 +94,13 @@ function Login() {
             required
             value={formData.username}
             onChange={handleChange}
-            className="input"
+            className="input text-base"
             placeholder="Username"
           />
         </div>
 
         <div>
-          <label htmlFor="password" className="label">
+          <label htmlFor="password" className="label text-sm sm:text-base">
             Password
           </label>
           <input
@@ -110,13 +110,13 @@ function Login() {
             required
             value={formData.password}
             onChange={handleChange}
-            className="input"
+            className="input text-base"
             placeholder="Password"
           />
         </div>
 
         <div className="flex items-center justify-between">
-          <div className="flex items-center">
+          <div className="flex items-center gap-2">
             <input
               id="remember-me"
               name="remember-me"
@@ -125,7 +125,7 @@ function Login() {
             />
             <label
               htmlFor="remember-me"
-              className="ml-2 block text-sm text-gray-700"
+              className="block text-xs sm:text-sm text-gray-700"
             >
               Remember me
             </label>
@@ -136,7 +136,7 @@ function Login() {
           <button
             type="submit"
             disabled={loading}
-            className={`w-full btn btn-primary ${
+            className={`w-full btn btn-primary text-base sm:text-lg py-2.5 sm:py-3 ${
               loading ? "opacity-70 cursor-not-allowed" : ""
             }`}
           >
@@ -144,42 +144,40 @@ function Login() {
           </button>
         </div>
 
-        <div className="text-center mt-4">
-          <p className="text-sm text-gray-600">
+        <div className="text-center mt-4 sm:mt-6">
+          <p className="text-xs sm:text-sm text-gray-600">
             Don't have an account?
           </p>
-          <div className="mt-2 flex flex-col sm:flex-row gap-2 justify-center items-center">
+          <div className="mt-3 flex flex-col sm:flex-row gap-2 sm:gap-1 justify-center items-center">
             <Link
               to="/register"
-              className="font-medium text-primary-500 hover:text-primary-600"
+              className="font-medium text-primary-500 hover:text-primary-600 text-sm sm:text-base"
             >
               Create a farm
             </Link>
-            <span className="text-sm text-gray-500">or</span>
-            <span className="text-sm text-gray-600">contact your farm admin</span>
+            <span className="hidden sm:inline text-xs sm:text-sm text-gray-500">or</span>
+            <span className="text-xs sm:text-sm text-gray-600">contact your farm admin</span>
           </div>
         </div>
       </form>
 
-      <div className="mt-6">
+      <div className="mt-6 sm:mt-8">
         <div className="relative">
           <div className="absolute inset-0 flex items-center">
             <div className="w-full border-t border-gray-300"></div>
           </div>
-          <div className="relative flex justify-center text-sm">
+          <div className="relative flex justify-center text-xs sm:text-sm">
             <span className="px-2 bg-white text-gray-500">Demo accounts</span>
           </div>
         </div>
 
-        <div className="mt-6 grid grid-cols-1 gap-3">
-          <div className="text-sm text-gray-600 text-center">
-            <p>
-              Username: <span className="font-mono">demo</span> | Password:{" "}
-              <span className="font-mono">demo123</span>
+        <div className="mt-6 space-y-3 sm:space-y-4">
+          <div className="text-xs sm:text-sm text-gray-600 text-center break-words">
+            <p className="mb-2 sm:mb-3">
+              Username: <span className="font-mono bg-gray-100 px-1.5 py-0.5 rounded text-xs">demo</span> | Password: <span className="font-mono bg-gray-100 px-1.5 py-0.5 rounded text-xs">demo123</span>
             </p>
             <p>
-              Username: <span className="font-mono">admin</span> | Password:{" "}
-              <span className="font-mono">admin123</span>
+              Username: <span className="font-mono bg-gray-100 px-1.5 py-0.5 rounded text-xs">admin</span> | Password: <span className="font-mono bg-gray-100 px-1.5 py-0.5 rounded text-xs">admin123</span>
             </p>
           </div>
         </div>

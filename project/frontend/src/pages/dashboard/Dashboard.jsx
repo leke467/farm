@@ -47,14 +47,14 @@ function Dashboard() {
   ).length;
 
   return (
-    <div>
-      <div className="mb-8">
-        <h1 className="text-3xl font-display font-bold">Dashboard</h1>
-        <p className="text-gray-600">Farm overview and key metrics</p>
+    <div className="p-3 sm:p-6 lg:p-8">
+      <div className="mb-6 sm:mb-8">
+        <h1 className="text-2xl sm:text-3xl lg:text-4xl font-display font-bold">Dashboard</h1>
+        <p className="text-sm sm:text-base text-gray-600 mt-1">Farm overview and key metrics</p>
       </div>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-6 sm:mb-8">
         <SummaryCard
           title="Total Animals"
           value={totalAnimals}
@@ -86,9 +86,9 @@ function Dashboard() {
       </div>
 
       {/* Main Dashboard Content */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
         {/* Left Column */}
-        <div className="lg:col-span-2 space-y-8">
+        <div className="lg:col-span-2 space-y-6 sm:space-y-8">
           {/* Weather Widget */}
           <WeatherWidget />
 
@@ -97,7 +97,7 @@ function Dashboard() {
         </div>
 
         {/* Right Column */}
-        <div className="space-y-8">
+        <div className="space-y-6 sm:space-y-8">
           {/* Animal Summary */}
           <AnimalSummary />
 

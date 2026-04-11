@@ -625,6 +625,46 @@ class ApiService {
       method: "DELETE",
     });
   }
+
+  // Generic GET request
+  async get(endpoint, options = {}) {
+    return this.request(endpoint, {
+      ...options,
+      method: "GET",
+    });
+  }
+
+  // Generic POST request
+  async post(endpoint, data = null, options = {}) {
+    const config = {
+      ...options,
+      method: "POST",
+    };
+    if (data) {
+      config.body = JSON.stringify(data);
+    }
+    return this.request(endpoint, config);
+  }
+
+  // Generic PUT request
+  async put(endpoint, data = null, options = {}) {
+    const config = {
+      ...options,
+      method: "PUT",
+    };
+    if (data) {
+      config.body = JSON.stringify(data);
+    }
+    return this.request(endpoint, config);
+  }
+
+  // Generic DELETE request
+  async delete(endpoint, options = {}) {
+    return this.request(endpoint, {
+      ...options,
+      method: "DELETE",
+    });
+  }
 }
 
 // Create and export a singleton instance

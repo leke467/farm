@@ -129,15 +129,15 @@ const ProductionRecordForm = ({ animalId, onClose, onSuccess, animals = [] }) =>
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg shadow-lg max-w-md w-full max-h-96 overflow-y-auto">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-3 sm:p-4">
+      <div className="bg-white rounded-lg shadow-lg max-w-md sm:max-w-lg w-full max-h-[90vh] overflow-y-auto">
         {/* Header */}
-        <div className="sticky top-0 bg-white px-6 py-4 border-b border-slate-200 flex justify-between items-center">
-          <h2 className="text-lg font-bold text-slate-800">Record Production</h2>
+        <div className="sticky top-0 bg-white px-4 sm:px-6 py-3 sm:py-4 border-b border-slate-200 flex justify-between items-center">
+          <h2 className="text-base sm:text-lg font-bold text-slate-800 truncate">Record Production</h2>
           {onClose && (
             <button
               onClick={onClose}
-              className="text-slate-500 hover:text-slate-700"
+              className="text-slate-500 hover:text-slate-700 flex-shrink-0"
             >
               <FiX size={20} />
             </button>
@@ -145,10 +145,10 @@ const ProductionRecordForm = ({ animalId, onClose, onSuccess, animals = [] }) =>
         </div>
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+        <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-4 sm:space-y-5">
           {/* Animal Selection */}
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">
+            <label className="block text-xs sm:text-sm font-medium text-slate-700 mb-2">
               Animal *
             </label>
             <select
@@ -156,7 +156,7 @@ const ProductionRecordForm = ({ animalId, onClose, onSuccess, animals = [] }) =>
               value={formData.animal}
               onChange={handleChange}
               disabled={!!animalId}
-              className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+              className={`w-full px-3 sm:px-4 py-2 sm:py-2.5 text-base border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
                 errors.animal ? "border-red-500" : "border-slate-300"
               }`}
             >
@@ -174,7 +174,7 @@ const ProductionRecordForm = ({ animalId, onClose, onSuccess, animals = [] }) =>
 
           {/* Date */}
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">
+            <label className="block text-xs sm:text-sm font-medium text-slate-700 mb-2">
               Date *
             </label>
             <input
@@ -183,7 +183,7 @@ const ProductionRecordForm = ({ animalId, onClose, onSuccess, animals = [] }) =>
               value={formData.date}
               onChange={handleChange}
               max={new Date().toISOString().split("T")[0]}
-              className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+              className={`w-full px-3 sm:px-4 py-2 sm:py-2.5 text-base border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
                 errors.date ? "border-red-500" : "border-slate-300"
               }`}
             />
@@ -193,16 +193,16 @@ const ProductionRecordForm = ({ animalId, onClose, onSuccess, animals = [] }) =>
           </div>
 
           {/* Production Type & Unit */}
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">
+              <label className="block text-xs sm:text-sm font-medium text-slate-700 mb-2">
                 Type *
               </label>
               <select
                 name="production_type"
                 value={formData.production_type}
                 onChange={handleChange}
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                className="w-full px-3 sm:px-4 py-2 sm:py-2.5 text-base border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
                 {productionTypes.map((type) => (
                   <option key={type.value} value={type.value}>
@@ -213,14 +213,14 @@ const ProductionRecordForm = ({ animalId, onClose, onSuccess, animals = [] }) =>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">
+              <label className="block text-xs sm:text-sm font-medium text-slate-700 mb-2">
                 Unit
               </label>
               <select
                 name="unit"
                 value={formData.unit}
                 onChange={handleChange}
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                className="w-full px-3 sm:px-4 py-2 sm:py-2.5 text-base border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
                 {(units[formData.production_type] || []).map((unit) => (
                   <option key={unit} value={unit}>
@@ -233,7 +233,7 @@ const ProductionRecordForm = ({ animalId, onClose, onSuccess, animals = [] }) =>
 
           {/* Quantity */}
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">
+            <label className="block text-xs sm:text-sm font-medium text-slate-700 mb-2">
               Quantity *
             </label>
             <input
@@ -244,7 +244,7 @@ const ProductionRecordForm = ({ animalId, onClose, onSuccess, animals = [] }) =>
               placeholder="0"
               step="0.01"
               min="0"
-              className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+              className={`w-full px-3 sm:px-4 py-2 sm:py-2.5 text-base border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
                 errors.quantity ? "border-red-500" : "border-slate-300"
               }`}
             />
@@ -255,14 +255,14 @@ const ProductionRecordForm = ({ animalId, onClose, onSuccess, animals = [] }) =>
 
           {/* Quality Grade */}
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">
+            <label className="block text-xs sm:text-sm font-medium text-slate-700 mb-2">
               Quality Grade
             </label>
             <select
               name="quality_grade"
               value={formData.quality_grade}
               onChange={handleChange}
-              className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-3 sm:px-4 py-2 sm:py-2.5 text-base border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
               {qualityGrades.map((grade) => (
                 <option key={grade.value} value={grade.value}>
@@ -274,7 +274,7 @@ const ProductionRecordForm = ({ animalId, onClose, onSuccess, animals = [] }) =>
 
           {/* Market Price */}
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">
+            <label className="block text-xs sm:text-sm font-medium text-slate-700 mb-2">
               Market Price per Unit (₹) *
             </label>
             <input
@@ -285,7 +285,7 @@ const ProductionRecordForm = ({ animalId, onClose, onSuccess, animals = [] }) =>
               placeholder="0"
               step="0.01"
               min="0"
-              className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+              className={`w-full px-3 sm:px-4 py-2 sm:py-2.5 text-base border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
                 errors.market_price_per_unit ? "border-red-500" : "border-slate-300"
               }`}
             />
@@ -296,7 +296,7 @@ const ProductionRecordForm = ({ animalId, onClose, onSuccess, animals = [] }) =>
 
           {/* Notes */}
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">
+            <label className="block text-xs sm:text-sm font-medium text-slate-700 mb-2">
               Notes
             </label>
             <textarea
@@ -305,24 +305,24 @@ const ProductionRecordForm = ({ animalId, onClose, onSuccess, animals = [] }) =>
               onChange={handleChange}
               placeholder="Additional notes..."
               rows="2"
-              className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+              className="w-full px-3 sm:px-4 py-2 sm:py-2.5 text-base border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
           </div>
 
           {/* Error Message */}
           {submitError && (
-            <div className="bg-red-50 border border-red-200 rounded-lg p-3">
-              <p className="text-red-700 text-sm">{submitError}</p>
+            <div className="bg-red-50 border border-red-200 rounded-lg p-3 sm:p-4">
+              <p className="text-red-700 text-xs sm:text-sm">{submitError}</p>
             </div>
           )}
 
           {/* Buttons */}
-          <div className="flex gap-3 pt-4">
+          <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 pt-4 sm:pt-6">
             {onClose && (
               <button
                 type="button"
                 onClick={onClose}
-                className="flex-1 px-4 py-2 text-slate-700 border border-slate-300 rounded-lg hover:bg-slate-50 font-medium"
+                className="px-4 py-2.5 sm:py-3 text-sm sm:text-base text-slate-700 border border-slate-300 rounded-lg hover:bg-slate-50 font-medium order-2 sm:order-1"
               >
                 Cancel
               </button>
@@ -330,10 +330,11 @@ const ProductionRecordForm = ({ animalId, onClose, onSuccess, animals = [] }) =>
             <button
               type="submit"
               disabled={isSubmitting}
-              className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium disabled:opacity-50 flex items-center justify-center gap-2"
+              className="px-4 py-2.5 sm:py-3 text-sm sm:text-base bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium disabled:opacity-50 flex items-center justify-center gap-2 order-1 sm:order-2"
             >
               <FiPlus size={18} />
-              {isSubmitting ? "Saving..." : "Record Production"}
+              <span className="hidden sm:inline">{isSubmitting ? "Saving..." : "Record Production"}</span>
+              <span className="sm:hidden">{isSubmitting ? "Saving..." : "Record"}</span>
             </button>
           </div>
         </form>

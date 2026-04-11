@@ -106,32 +106,32 @@ function Register() {
 
   return (
     <div>
-      <div className="text-center mb-8">
-        <h2 className="text-3xl font-bold text-gray-900 mb-2">
+      <div className="text-center mb-6 sm:mb-8">
+        <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">
           Create your farm account
         </h2>
-        <p className="text-sm text-gray-600">
+        <p className="text-xs sm:text-sm text-gray-600 px-1">
           Register your farm and create an admin account. Additional users can be added later by the farm admin.
         </p>
       </div>
 
       {error && (
-        <div className="mb-6 p-4 bg-error-50 text-error-600 rounded-lg border border-error-200 shadow-sm">
+        <div className="mb-6 p-3 sm:p-4 bg-error-50 text-error-600 rounded-lg border border-error-200 shadow-sm text-sm sm:text-base">
           {error}
         </div>
       )}
 
-      <form className="space-y-8" onSubmit={handleSubmit}>
+      <form className="space-y-6 sm:space-y-8" onSubmit={handleSubmit}>
         {/* Farm Information Section */}
-        <div className="bg-gray-50 rounded-xl p-6 shadow-sm border border-gray-100">
-          <h3 className="text-lg font-semibold text-gray-900 mb-5 flex items-center gap-2">
+        <div className="bg-gray-50 rounded-lg sm:rounded-xl p-4 sm:p-6 shadow-sm border border-gray-100">
+          <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-4 sm:mb-5 flex items-center gap-2">
             <span className="text-primary-500">🏡</span>
             Farm Information
           </h3>
           
-          <div className="space-y-4">
+          <div className="space-y-4 sm:space-y-5">
             <div>
-              <label htmlFor="farmName" className="label">
+              <label htmlFor="farmName" className="label text-sm sm:text-base">
                 Farm Name *
               </label>
               <input
@@ -141,11 +141,11 @@ function Register() {
                 required
                 value={formData.farmName}
                 onChange={handleChange}
-                className="input"
+                className="input text-base"
               />
             </div>
             <div>
-              <label htmlFor="farmLocation" className="label">
+              <label htmlFor="farmLocation" className="label text-sm sm:text-base">
                 Farm Location
               </label>
               <input
@@ -154,11 +154,11 @@ function Register() {
                 type="text"
                 value={formData.farmLocation}
                 onChange={handleChange}
-                className="input"
+                className="input text-base"
               />
             </div>
             <div>
-              <label htmlFor="farmAddress" className="label">
+              <label htmlFor="farmAddress" className="label text-sm sm:text-base">
                 Farm Address
               </label>
               <input
@@ -167,12 +167,12 @@ function Register() {
                 type="text"
                 value={formData.farmAddress}
                 onChange={handleChange}
-                className="input"
+                className="input text-base"
               />
             </div>
-            <div className="grid grid-cols-1 gap-y-4 gap-x-4 sm:grid-cols-2">
+            <div className="grid grid-cols-1 gap-4 sm:gap-5 sm:grid-cols-2">
               <div>
-                <label htmlFor="farmSize" className="label">
+                <label htmlFor="farmSize" className="label text-sm sm:text-base">
                   Farm Size
                 </label>
                 <select
@@ -180,7 +180,7 @@ function Register() {
                   name="farmSize"
                   value={formData.farmSize}
                   onChange={handleChange}
-                  className="input"
+                  className="input text-base"
                 >
                   <option value="small">Small (&lt; 50 acres)</option>
                   <option value="medium">Medium (50-500 acres)</option>
@@ -188,7 +188,7 @@ function Register() {
                 </select>
               </div>
               <div>
-                <label htmlFor="farmTotalArea" className="label">
+                <label htmlFor="farmTotalArea" className="label text-sm sm:text-base">
                   Total Area (acres)
                 </label>
                 <input
@@ -199,12 +199,12 @@ function Register() {
                   step="0.1"
                   value={formData.farmTotalArea}
                   onChange={handleChange}
-                  className="input"
+                  className="input text-base"
                 />
               </div>
             </div>
             <div>
-              <label htmlFor="farmType" className="label">
+              <label htmlFor="farmType" className="label text-sm sm:text-base">
                 Farm Type
               </label>
               <select
@@ -212,7 +212,7 @@ function Register() {
                 name="farmType"
                 value={formData.farmType}
                 onChange={handleChange}
-                className="input"
+                className="input text-base"
               >
                 <option value="mixed">Mixed</option>
                 <option value="livestock">Livestock</option>
@@ -222,7 +222,7 @@ function Register() {
               </select>
             </div>
             <div>
-              <label htmlFor="farmDescription" className="label">
+              <label htmlFor="farmDescription" className="label text-sm sm:text-base">
                 Farm Description
               </label>
               <textarea
@@ -230,7 +230,7 @@ function Register() {
                 name="farmDescription"
                 value={formData.farmDescription}
                 onChange={handleChange}
-                className="input"
+                className="input text-base"
                 rows="3"
               />
             </div>
@@ -238,16 +238,16 @@ function Register() {
         </div>
 
         {/* Admin Account Section */}
-        <div className="bg-gray-50 rounded-xl p-6 shadow-sm border border-gray-100">
-          <h3 className="text-lg font-semibold text-gray-900 mb-5 flex items-center gap-2">
+        <div className="bg-gray-50 rounded-lg sm:rounded-xl p-4 sm:p-6 shadow-sm border border-gray-100">
+          <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-4 sm:mb-5 flex items-center gap-2">
             <span className="text-primary-500">👤</span>
             Admin Account Details
           </h3>
           
-          <div className="space-y-4">
-            <div className="grid grid-cols-1 gap-y-4 gap-x-4 sm:grid-cols-2">
+          <div className="space-y-4 sm:space-y-5">
+            <div className="grid grid-cols-1 gap-4 sm:gap-5 sm:grid-cols-2">
               <div>
-                <label htmlFor="firstName" className="label">
+                <label htmlFor="firstName" className="label text-sm sm:text-base">
                   First name *
                 </label>
                 <input
@@ -257,11 +257,11 @@ function Register() {
                   required
                   value={formData.firstName}
                   onChange={handleChange}
-                  className="input"
+                  className="input text-base"
                 />
               </div>
               <div>
-                <label htmlFor="lastName" className="label">
+                <label htmlFor="lastName" className="label text-sm sm:text-base">
                   Last name *
                 </label>
                 <input
@@ -271,13 +271,13 @@ function Register() {
                   required
                   value={formData.lastName}
                   onChange={handleChange}
-                  className="input"
+                  className="input text-base"
                 />
               </div>
             </div>
 
             <div>
-              <label htmlFor="email" className="label">
+              <label htmlFor="email" className="label text-sm sm:text-base">
                 Email *
               </label>
               <input
@@ -287,12 +287,12 @@ function Register() {
                 required
                 value={formData.email}
                 onChange={handleChange}
-                className="input"
+                className="input text-base"
               />
             </div>
 
             <div>
-              <label htmlFor="phone" className="label">
+              <label htmlFor="phone" className="label text-sm sm:text-base">
                 Phone
               </label>
               <input
@@ -301,12 +301,12 @@ function Register() {
                 type="text"
                 value={formData.phone}
                 onChange={handleChange}
-                className="input"
+                className="input text-base"
               />
             </div>
 
             <div>
-              <label htmlFor="username" className="label">
+              <label htmlFor="username" className="label text-sm sm:text-base">
                 Username *
               </label>
               <input
@@ -316,12 +316,12 @@ function Register() {
                 required
                 value={formData.username}
                 onChange={handleChange}
-                className="input"
+                className="input text-base"
               />
             </div>
 
             <div>
-              <label htmlFor="password" className="label">
+              <label htmlFor="password" className="label text-sm sm:text-base">
                 Password *
               </label>
               <input
@@ -332,13 +332,13 @@ function Register() {
                 minLength={6}
                 value={formData.password}
                 onChange={handleChange}
-                className="input"
+                className="input text-base"
               />
-              <p className="mt-1 text-xs text-gray-500">Must be at least 6 characters</p>
+              <p className="mt-1 text-xs sm:text-sm text-gray-500">Must be at least 6 characters</p>
             </div>
 
             <div>
-              <label htmlFor="confirmPassword" className="label">
+              <label htmlFor="confirmPassword" className="label text-sm sm:text-base">
                 Confirm Password *
               </label>
               <input
@@ -348,7 +348,7 @@ function Register() {
                 required
                 value={formData.confirmPassword}
                 onChange={handleChange}
-                className="input"
+                className="input text-base"
               />
             </div>
           </div>
@@ -358,7 +358,7 @@ function Register() {
           <button
             type="submit"
             disabled={loading}
-            className={`w-full btn btn-primary py-3 text-base font-semibold rounded-lg shadow-md hover:shadow-lg transition-all duration-200 ${
+            className={`w-full btn btn-primary py-2.5 sm:py-3 text-base sm:text-lg font-semibold rounded-lg shadow-md hover:shadow-lg transition-all duration-200 ${
               loading ? "opacity-70 cursor-not-allowed" : ""
             }`}
           >
@@ -367,7 +367,7 @@ function Register() {
         </div>
 
         <div className="text-center pt-2">
-          <p className="text-sm text-gray-600">
+          <p className="text-xs sm:text-sm text-gray-600">
             Already have a farm account?{" "}
             <Link
               to="/login"

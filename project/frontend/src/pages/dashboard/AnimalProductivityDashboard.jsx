@@ -95,116 +95,117 @@ const AnimalProductivityDashboard = () => {
   const COLORS = ["#3b82f6", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6", "#ec4899"];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-6">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-3 sm:p-6">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="mb-8 flex justify-between items-start">
+        <div className="mb-6 sm:mb-8 flex flex-col sm:flex-row justify-between items-start gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-slate-800 flex items-center gap-3">
-              <FiUsers className="text-green-600" />
-              Animal Productivity & Breeding Analytics
+            <h1 className="text-2xl sm:text-3xl font-bold text-slate-800 flex items-center gap-2 sm:gap-3">
+              <FiUsers className="text-green-600 text-xl sm:text-2xl" />
+              <span className="truncate">Animal Productivity & Breeding</span>
             </h1>
-            <p className="text-slate-600 mt-2">
+            <p className="text-xs sm:text-sm text-slate-600 mt-1 sm:mt-2">
               Track production metrics, breeding success, and revenue generation by animal
             </p>
           </div>
-          <div className="flex gap-3">
+          <div className="flex gap-2 sm:gap-3 w-full sm:w-auto">
             <button
               onClick={() => setShowProductionForm(true)}
-              className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium transition"
+              className="flex-1 sm:flex-none flex items-center justify-center gap-1 sm:gap-2 bg-green-600 hover:bg-green-700 text-white px-3 sm:px-4 py-2 rounded-lg font-medium text-sm sm:text-base transition"
             >
-              <FiPlus /> Add Production
+              <FiPlus size={18} className="sm:w-5 sm:h-5" /> <span className="hidden sm:inline">Add Production</span><span className="sm:hidden">Prod</span>
             </button>
             <button
               onClick={() => setShowBreedingForm(true)}
-              className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition"
+              className="flex-1 sm:flex-none flex items-center justify-center gap-1 sm:gap-2 bg-blue-600 hover:bg-blue-700 text-white px-3 sm:px-4 py-2 rounded-lg font-medium text-sm sm:text-base transition"
             >
-              <FiPlus /> Add Breeding
+              <FiPlus size={18} className="sm:w-5 sm:h-5" /> <span className="hidden sm:inline">Add Breeding</span><span className="sm:hidden">Breed</span>
             </button>
           </div>
         </div>
 
         {/* KPI Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-          <div className="bg-white rounded-lg shadow-md p-6 border-l-4 border-green-500">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6 sm:mb-8">
+          <div className="bg-white rounded-lg shadow-md p-4 sm:p-6 border-l-4 border-green-500">
             <div className="flex justify-between items-start">
               <div>
-                <p className="text-sm text-slate-600 mb-1">Total Revenue</p>
-                <p className="text-3xl font-bold text-slate-800">₹{(totalRevenue / 100000).toFixed(1)}L</p>
+                <p className="text-xs sm:text-sm text-slate-600 mb-1">Total Revenue</p>
+                <p className="text-xl sm:text-3xl font-bold text-slate-800">₹{(totalRevenue / 100000).toFixed(1)}L</p>
               </div>
-              <FiDollarSign className="text-green-500 text-2xl" />
+              <FiDollarSign className="text-green-500 text-lg sm:text-2xl flex-shrink-0" />
             </div>
           </div>
 
-          <div className="bg-white rounded-lg shadow-md p-6 border-l-4 border-orange-500">
+          <div className="bg-white rounded-lg shadow-md p-4 sm:p-6 border-l-4 border-orange-500">
             <div className="flex justify-between items-start">
               <div>
-                <p className="text-sm text-slate-600 mb-1">Total Costs</p>
-                <p className="text-3xl font-bold text-slate-800">₹{(totalCosts / 100000).toFixed(1)}L</p>
+                <p className="text-xs sm:text-sm text-slate-600 mb-1">Total Costs</p>
+                <p className="text-xl sm:text-3xl font-bold text-slate-800">₹{(totalCosts / 100000).toFixed(1)}L</p>
               </div>
-              <div className="text-orange-500 text-2xl">📊</div>
+              <div className="text-orange-500 text-lg sm:text-2xl flex-shrink-0">📊</div>
             </div>
           </div>
 
-          <div className="bg-white rounded-lg shadow-md p-6 border-l-4 border-blue-500">
+          <div className="bg-white rounded-lg shadow-md p-4 sm:p-6 border-l-4 border-blue-500">
             <div className="flex justify-between items-start">
               <div>
-                <p className="text-sm text-slate-600 mb-1">Net Profit</p>
-                <p className={`text-3xl font-bold ${totalProfit >= 0 ? "text-green-600" : "text-red-600"}`}>
+                <p className="text-xs sm:text-sm text-slate-600 mb-1">Net Profit</p>
+                <p className={`text-xl sm:text-3xl font-bold ${totalProfit >= 0 ? "text-green-600" : "text-red-600"}`}>
                   ₹{(totalProfit / 100000).toFixed(1)}L
                 </p>
               </div>
-              <FiTrendingUp className="text-blue-500 text-2xl" />
+              <FiTrendingUp className="text-blue-500 text-lg sm:text-2xl flex-shrink-0" />
             </div>
           </div>
 
-          <div className="bg-white rounded-lg shadow-md p-6 border-l-4 border-purple-500">
+          <div className="bg-white rounded-lg shadow-md p-4 sm:p-6 border-l-4 border-purple-500">
             <div className="flex justify-between items-start">
               <div>
-                <p className="text-sm text-slate-600 mb-1">Breeding Success</p>
-                <p className="text-3xl font-bold text-slate-800">{successRate}%</p>
+                <p className="text-xs sm:text-sm text-slate-600 mb-1">Breeding Success</p>
+                <p className="text-xl sm:text-3xl font-bold text-slate-800">{successRate}%</p>
               </div>
-              <div className="text-purple-500 text-2xl">✓</div>
+              <div className="text-purple-500 text-lg sm:text-2xl flex-shrink-0">✓</div>
             </div>
           </div>
         </div>
 
         {/* Charts */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 mb-6 sm:mb-8">
           {/* Revenue vs Costs Chart */}
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <h2 className="text-lg font-bold text-slate-800 mb-4">Animal Revenue & Cost Analysis</h2>
+          <div className="bg-white rounded-lg shadow-md p-4 sm:p-6">
+            <h2 className="text-base sm:text-lg font-bold text-slate-800 mb-4">Animal Revenue & Cost Analysis</h2>
             {revenueData.length > 0 ? (
-              <ResponsiveContainer width="100%" height={300}>
+              <ResponsiveContainer width="100%" height={250}>
                 <BarChart data={revenueData}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                  <XAxis dataKey="animal" stroke="#94a3b8" />
-                  <YAxis stroke="#94a3b8" />
+                  <XAxis dataKey="animal" stroke="#94a3b8" tick={{ fontSize: 12 }} />
+                  <YAxis stroke="#94a3b8" tick={{ fontSize: 12 }} />
                   <Tooltip
                     contentStyle={{
                       backgroundColor: "#1e293b",
                       border: "none",
                       borderRadius: "8px",
                       color: "#fff",
+                      fontSize: 12,
                     }}
                   />
-                  <Legend />
+                  <Legend wrapperStyle={{ fontSize: 12 }} />
                   <Bar dataKey="revenue" fill="#10b981" name="Revenue" />
                   <Bar dataKey="costs" fill="#f59e0b" name="Costs" />
                 </BarChart>
               </ResponsiveContainer>
             ) : (
-              <div className="h-300 flex items-center justify-center text-slate-500">
+              <div className="h-250 flex items-center justify-center text-slate-500 text-sm">
                 No production data available
               </div>
             )}
           </div>
 
           {/* Production Type Distribution */}
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <h2 className="text-lg font-bold text-slate-800 mb-4">Production Type Distribution</h2>
+          <div className="bg-white rounded-lg shadow-md p-4 sm:p-6">
+            <h2 className="text-base sm:text-lg font-bold text-slate-800 mb-4">Production Type Distribution</h2>
             {productionTypeData.length > 0 ? (
-              <ResponsiveContainer width="100%" height={300}>
+              <ResponsiveContainer width="100%" height={250}>
                 <PieChart>
                   <Pie
                     data={productionTypeData}
@@ -226,12 +227,13 @@ const AnimalProductivityDashboard = () => {
                       border: "none",
                       borderRadius: "8px",
                       color: "#fff",
+                      fontSize: 12,
                     }}
                   />
                 </PieChart>
               </ResponsiveContainer>
             ) : (
-              <div className="h-300 flex items-center justify-center text-slate-500">
+              <div className="h-250 flex items-center justify-center text-slate-500 text-sm">
                 No production type data available
               </div>
             )}
@@ -247,55 +249,55 @@ const AnimalProductivityDashboard = () => {
 
         {/* Production Records Table */}
         <div className="bg-white rounded-lg shadow-md overflow-hidden mb-6">
-          <div className="p-6 border-b border-slate-200 flex justify-between items-center">
-            <h2 className="text-lg font-bold text-slate-800">Recent Production Records</h2>
+          <div className="p-4 sm:p-6 border-b border-slate-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+            <h2 className="text-base sm:text-lg font-bold text-slate-800">Recent Production Records</h2>
             <button
               onClick={() => exportToCSV(filteredProduction, `production-records-${new Date().toLocaleDateString()}.csv`)}
-              className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded font-medium text-sm transition"
+              className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded font-medium text-xs sm:text-sm transition w-full sm:w-auto justify-center"
             >
-              <FiDownload /> Export
+              <FiDownload size={16} /> <span className="hidden sm:inline">Export</span><span className="sm:hidden">CSV</span>
             </button>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
                 <tr className="bg-slate-50 border-b border-slate-200">
-                  <th className="px-6 py-3 text-left text-sm font-semibold text-slate-700">Date</th>
-                  <th className="px-6 py-3 text-left text-sm font-semibold text-slate-700">Animal</th>
-                  <th className="px-6 py-3 text-left text-sm font-semibold text-slate-700">Type</th>
-                  <th className="px-6 py-3 text-left text-sm font-semibold text-slate-700">Quantity</th>
-                  <th className="px-6 py-3 text-left text-sm font-semibold text-slate-700">Quality</th>
-                  <th className="px-6 py-3 text-left text-sm font-semibold text-slate-700">Market Value</th>
+                  <th className="px-3 sm:px-6 py-3 text-left text-xs sm:text-sm font-semibold text-slate-700">Date</th>
+                  <th className="px-3 sm:px-6 py-3 text-left text-xs sm:text-sm font-semibold text-slate-700">Animal</th>
+                  <th className="px-3 sm:px-6 py-3 text-left text-xs sm:text-sm font-semibold text-slate-700">Type</th>
+                  <th className="px-3 sm:px-6 py-3 text-left text-xs sm:text-sm font-semibold text-slate-700">Qty</th>
+                  <th className="px-3 sm:px-6 py-3 text-left text-xs sm:text-sm font-semibold text-slate-700">Quality</th>
+                  <th className="px-3 sm:px-6 py-3 text-left text-xs sm:text-sm font-semibold text-slate-700">Value</th>
                 </tr>
               </thead>
               <tbody>
                 {filteredProduction.length > 0 ? (
                   filteredProduction.slice(0, 10).map((record, idx) => (
                     <tr key={idx} className="border-b border-slate-200 hover:bg-slate-50">
-                      <td className="px-6 py-4 text-sm text-slate-700">
+                      <td className="px-3 sm:px-6 py-4 text-xs sm:text-sm text-slate-700 whitespace-nowrap">
                         {new Date(record.date).toLocaleDateString()}
                       </td>
-                      <td className="px-6 py-4 text-sm font-medium text-slate-800">
+                      <td className="px-3 sm:px-6 py-4 text-xs sm:text-sm font-medium text-slate-800 whitespace-nowrap">
                         {record.animal_name || "N/A"}
                       </td>
-                      <td className="px-6 py-4 text-sm text-slate-700">
+                      <td className="px-3 sm:px-6 py-4 text-xs sm:text-sm text-slate-700 whitespace-nowrap">
                         {record.production_type || "N/A"}
                       </td>
-                      <td className="px-6 py-4 text-sm font-semibold text-blue-600">
-                        {record.quantity || 0} units
+                      <td className="px-3 sm:px-6 py-4 text-xs sm:text-sm font-semibold text-blue-600 whitespace-nowrap">
+                        {record.quantity || 0}
                       </td>
-                      <td className="px-6 py-4 text-sm">
-                        <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                      <td className="px-3 sm:px-6 py-4">
+                        <span className={`px-2 sm:px-3 py-1 rounded-full text-xs font-semibold whitespace-nowrap inline-block ${
                           record.quality_grade === "premium"
                             ? "bg-green-100 text-green-700"
                             : record.quality_grade === "good"
                             ? "bg-blue-100 text-blue-700"
                             : "bg-orange-100 text-orange-700"
                         }`}>
-                          {record.quality_grade?.toUpperCase() || "STANDARD"}
+                          {record.quality_grade?.toUpperCase() || "STD"}
                         </span>
                       </td>
-                      <td className="px-6 py-4 text-sm font-semibold text-green-600">
+                      <td className="px-3 sm:px-6 py-4 text-xs sm:text-sm font-semibold text-green-600 whitespace-nowrap">
                         ₹{(record.total_market_value || 0).toFixed(0)}
                       </td>
                     </tr>
@@ -320,46 +322,46 @@ const AnimalProductivityDashboard = () => {
         />
 
         {/* Breeding Records Table */}
-        <div className="bg-white rounded-lg shadow-md overflow-hidden">
-          <div className="p-6 border-b border-slate-200 flex justify-between items-center">
-            <h2 className="text-lg font-bold text-slate-800">Breeding Records</h2>
+        <div className="bg-white rounded-lg shadow-md overflow-hidden mb-6">
+          <div className="p-4 sm:p-6 border-b border-slate-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+            <h2 className="text-base sm:text-lg font-bold text-slate-800">Breeding Records</h2>
             <button
               onClick={() => exportToCSV(filteredBreeding, `breeding-records-${new Date().toLocaleDateString()}.csv`)}
-              className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded font-medium text-sm transition"
+              className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded font-medium text-xs sm:text-sm transition w-full sm:w-auto justify-center"
             >
-              <FiDownload /> Export
+              <FiDownload size={16} /> <span className="hidden sm:inline">Export</span><span className="sm:hidden">CSV</span>
             </button>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
                 <tr className="bg-slate-50 border-b border-slate-200">
-                  <th className="px-6 py-3 text-left text-sm font-semibold text-slate-700">Date</th>
-                  <th className="px-6 py-3 text-left text-sm font-semibold text-slate-700">Sire</th>
-                  <th className="px-6 py-3 text-left text-sm font-semibold text-slate-700">Dam</th>
-                  <th className="px-6 py-3 text-left text-sm font-semibold text-slate-700">Offspring</th>
-                  <th className="px-6 py-3 text-left text-sm font-semibold text-slate-700">Status</th>
-                  <th className="px-6 py-3 text-left text-sm font-semibold text-slate-700">Success Rate</th>
+                  <th className="px-3 sm:px-6 py-3 text-left text-xs sm:text-sm font-semibold text-slate-700">Date</th>
+                  <th className="px-3 sm:px-6 py-3 text-left text-xs sm:text-sm font-semibold text-slate-700">Sire</th>
+                  <th className="px-3 sm:px-6 py-3 text-left text-xs sm:text-sm font-semibold text-slate-700">Dam</th>
+                  <th className="px-3 sm:px-6 py-3 text-left text-xs sm:text-sm font-semibold text-slate-700">Off</th>
+                  <th className="px-3 sm:px-6 py-3 text-left text-xs sm:text-sm font-semibold text-slate-700">Status</th>
+                  <th className="px-3 sm:px-6 py-3 text-left text-xs sm:text-sm font-semibold text-slate-700">Rate</th>
                 </tr>
               </thead>
               <tbody>
                 {filteredBreeding.length > 0 ? (
                   filteredBreeding.slice(0, 10).map((record, idx) => (
                     <tr key={idx} className="border-b border-slate-200 hover:bg-slate-50">
-                      <td className="px-6 py-4 text-sm text-slate-700">
+                      <td className="px-3 sm:px-6 py-4 text-xs sm:text-sm text-slate-700 whitespace-nowrap">
                         {new Date(record.breeding_date).toLocaleDateString()}
                       </td>
-                      <td className="px-6 py-4 text-sm font-medium text-slate-800">
+                      <td className="px-3 sm:px-6 py-4 text-xs sm:text-sm font-medium text-slate-800 whitespace-nowrap">
                         {record.sire_name || "N/A"}
                       </td>
-                      <td className="px-6 py-4 text-sm font-medium text-slate-800">
+                      <td className="px-3 sm:px-6 py-4 text-xs sm:text-sm font-medium text-slate-800 whitespace-nowrap">
                         {record.dam_name || "N/A"}
                       </td>
-                      <td className="px-6 py-4 text-sm text-blue-600 font-semibold">
+                      <td className="px-3 sm:px-6 py-4 text-xs sm:text-sm text-blue-600 font-semibold whitespace-nowrap">
                         {record.number_of_offspring || 0}
                       </td>
-                      <td className="px-6 py-4 text-sm">
-                        <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                      <td className="px-3 sm:px-6 py-4">
+                        <span className={`px-2 sm:px-3 py-1 rounded-full text-xs font-semibold whitespace-nowrap inline-block ${
                           record.breeding_status === "successful"
                             ? "bg-green-100 text-green-700"
                             : "bg-red-100 text-red-700"
@@ -367,14 +369,14 @@ const AnimalProductivityDashboard = () => {
                           {record.breeding_status?.toUpperCase() || "PENDING"}
                         </span>
                       </td>
-                      <td className="px-6 py-4 text-sm font-semibold text-slate-800">
+                      <td className="px-3 sm:px-6 py-4 text-xs sm:text-sm font-semibold text-slate-800 whitespace-nowrap">
                         {record.success_rate? `${record.success_rate}%` : "N/A"}
                       </td>
                     </tr>
                   ))
                 ) : (
                   <tr>
-                    <td colSpan="6" className="px-6 py-4 text-center text-slate-500">
+                    <td colSpan="6" className="px-6 py-4 text-center text-xs sm:text-sm text-slate-500">
                       No breeding records available
                     </td>
                   </tr>
@@ -386,14 +388,14 @@ const AnimalProductivityDashboard = () => {
 
         {/* Error Message */}
         {apiError && (
-          <div className="mt-6 bg-red-50 border border-red-200 rounded-lg p-4">
+          <div className="mt-4 sm:mt-6 bg-red-50 border border-red-200 rounded-lg p-4 text-sm">
             <p className="text-red-700">{apiError}</p>
           </div>
         )}
 
         {/* Loading State */}
         {isLoading && (
-          <div className="mt-6 text-center text-slate-500">
+          <div className="mt-4 sm:mt-6 text-center text-slate-500 text-sm">
             <p>Loading animal productivity data...</p>
           </div>
         )}

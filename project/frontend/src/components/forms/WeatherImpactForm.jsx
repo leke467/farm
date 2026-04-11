@@ -102,21 +102,21 @@ const WeatherImpactForm = ({ onClose, onSuccess, crops = [] }) => {
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg shadow-lg max-w-md w-full max-h-96 overflow-y-auto">
-        <div className="sticky top-0 bg-white px-6 py-4 border-b border-slate-200 flex justify-between items-center">
-          <h2 className="text-lg font-bold text-slate-800">Record Weather Impact</h2>
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-3 sm:p-4">
+      <div className="bg-white rounded-lg shadow-lg max-w-md sm:max-w-lg w-full max-h-[90vh] overflow-y-auto">
+        <div className="sticky top-0 bg-white px-4 sm:px-6 py-3 sm:py-4 border-b border-slate-200 flex justify-between items-center">
+          <h2 className="text-base sm:text-lg font-bold text-slate-800 truncate">Record Weather Impact</h2>
           {onClose && (
             <button
               onClick={onClose}
-              className="text-slate-500 hover:text-slate-700"
+              className="text-slate-500 hover:text-slate-700 flex-shrink-0"
             >
               <FiX size={20} />
             </button>
           )}
         </div>
 
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+        <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-4 sm:space-y-5">
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-1">
               Crop *
@@ -160,7 +160,7 @@ const WeatherImpactForm = ({ onClose, onSuccess, crops = [] }) => {
             )}
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-1">
                 Impact Type
@@ -282,17 +282,17 @@ const WeatherImpactForm = ({ onClose, onSuccess, crops = [] }) => {
           </div>
 
           {submitError && (
-            <div className="bg-red-50 border border-red-200 rounded-lg p-3">
-              <p className="text-red-700 text-sm">{submitError}</p>
+            <div className="bg-red-50 border border-red-200 rounded-lg p-3 sm:p-4">
+              <p className="text-red-700 text-xs sm:text-sm">{submitError}</p>
             </div>
           )}
 
-          <div className="flex gap-3 pt-4">
+          <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 pt-4 sm:pt-6">
             {onClose && (
               <button
                 type="button"
                 onClick={onClose}
-                className="flex-1 px-4 py-2 text-slate-700 border border-slate-300 rounded-lg hover:bg-slate-50 font-medium"
+                className="px-4 py-2.5 sm:py-3 text-sm sm:text-base text-slate-700 border border-slate-300 rounded-lg hover:bg-slate-50 font-medium order-2 sm:order-1"
               >
                 Cancel
               </button>
@@ -300,10 +300,11 @@ const WeatherImpactForm = ({ onClose, onSuccess, crops = [] }) => {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium disabled:opacity-50 flex items-center justify-center gap-2"
+              className="px-4 py-2.5 sm:py-3 text-sm sm:text-base bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium disabled:opacity-50 flex items-center justify-center gap-2 order-1 sm:order-2"
             >
               <FiPlus size={18} />
-              {isSubmitting ? "Saving..." : "Record Impact"}
+              <span className="hidden sm:inline">{isSubmitting ? "Saving..." : "Record Impact"}</span>
+              <span className="sm:hidden">{isSubmitting ? "Saving..." : "Record"}</span>
             </button>
           </div>
         </form>

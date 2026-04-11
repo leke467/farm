@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Farm App - Diagnostic</title>
+  <style>
+    body { font-family: monospace; padding: 2rem; background: #f5f5f5; }
+    .log { background: white; padding: 1rem; margin: 1rem 0; border: 1px solid #ddd; border-radius: 4px; }
+    .error { color: red; font-weight: bold; }
+    .success { color: green; font-weight: bold; }
+    .info { color: blue; }
+  </style>
+</head>
+<body>
+  <h1>Farm Management App - Diagnostic</h1>
+  <div id="logs"></div>
+  
+  <script>
+    const logs = [];
+    const logsDiv = document.getElementById('logs');
+    
+    function log(message, type = 'info') {
+      const entry = `[${new Date().toISOString()}] ${message}`;
+      logs.push(entry);
+      console.log(entry);
+      
+      const el = document.createElement('div');
+      el.className = 'log ' + type;
+      el.textContent = entry;
+      logsDiv.appendChild(el);
+    }
+    
+    log('Diagnostic started', 'info');
+    log('Node version: ' + (typeof process !== 'undefined' ? process.version : 'N/A'), 'info');
+    log('React version: checking...', 'info');
+    
+    // Try to check if modules can be imported
+    log('Attempting to detect module loader...', 'info');
+    
+    // Check for common issues
+    log('Checking localStorage...', 'info');
+    try {
+      localStorage.setItem('test', 'works');
+      log('✓ localStorage is available', 'success');
+      localStorage.removeItem('test');
+    } catch (e) {
+      log('✗ localStorage error: ' + e.message, 'error');
+    }
+    
+    log('Checking fetch API...', 'info');
+    if (typeof fetch !== 'undefined') {
+      log('✓ Fetch API is available', 'success');
+    } else {
+      log('✗ Fetch API not available', 'error');
+    }
+    
+    // Listen for any errors
+    window.addEventListener('error', (e) => {
+      log(`ERROR: ${e.message} at ${e.filename}:${e.lineno}`, 'error');
+    });
+    
+    window.addEventListener('unhandledrejection', (e) => {
+      log(`UNHANDLED REJECTION: ${e.reason}`, 'error');
+    });
+    
+    log('Waiting for app to load...', 'info');
+    
+    // Poll for React
+    let attempts = 0;
+    const checkReact = setInterval(() => {
+      attempts++;
+      if (window.__REACT_DEVTOOLS_GLOBAL_HOOK__) {
+        log('✓ React DevTools hook detected - app is loading!', 'success');
+        clearInterval(checkReact);
+      } else if (document.getElementById('root')?.children.length > 0) {
+        log('✓ Root element has React content', 'success');
+        clearInterval(checkReact);
+      } else if (attempts > 30) {
+        log('✗ React did not load after 30 seconds', 'error');
+        clearInterval(checkReact);
+      }
+    }, 1000);
+  </script>
+</body>
+</html>

@@ -95,101 +95,102 @@ const FinancialOverviewDashboard = () => {
   const COLORS = ["#3b82f6", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6", "#ec4899"];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-6">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-3 sm:p-6">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="mb-8 flex justify-between items-start">
+        <div className="mb-6 sm:mb-8 flex flex-col sm:flex-row justify-between items-start gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-slate-800 flex items-center gap-3">
-              <FiDollarSign className="text-green-600" />
-              Financial Overview & Analysis
+            <h1 className="text-2xl sm:text-3xl font-bold text-slate-800 flex items-center gap-2 sm:gap-3">
+              <FiDollarSign className="text-green-600 text-xl sm:text-2xl" />
+              <span className="truncate">Financial Overview</span>
             </h1>
-            <p className="text-slate-600 mt-2">
+            <p className="text-xs sm:text-sm text-slate-600 mt-1 sm:mt-2">
               Monitor revenue streams, profit margins, ROI, and debt management in real-time
             </p>
           </div>
-          <div className="flex gap-3">
+          <div className="flex gap-2 sm:gap-3 w-full sm:w-auto">
             <button
               onClick={() => setShowRevenueForm(true)}
-              className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium transition"
+              className="flex-1 sm:flex-none flex items-center justify-center gap-1 sm:gap-2 bg-green-600 hover:bg-green-700 text-white px-3 sm:px-4 py-2 rounded-lg font-medium text-sm sm:text-base transition"
             >
-              <FiPlus /> Add Revenue
+              <FiPlus size={18} /> <span className="hidden sm:inline">Add Revenue</span><span className="sm:hidden">Revenue</span>
             </button>
             <button
               onClick={() => setShowDebtForm(true)}
-              className="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-medium transition"
+              className="flex-1 sm:flex-none flex items-center justify-center gap-1 sm:gap-2 bg-red-600 hover:bg-red-700 text-white px-3 sm:px-4 py-2 rounded-lg font-medium text-sm sm:text-base transition"
             >
-              <FiPlus /> Add Debt
+              <FiPlus size={18} /> <span className="hidden sm:inline">Add Debt</span><span className="sm:hidden">Debt</span>
             </button>
           </div>
         </div>
 
         {/* KPI Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-          <div className="bg-white rounded-lg shadow-md p-6 border-l-4 border-green-500">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6 sm:mb-8">
+          <div className="bg-white rounded-lg shadow-md p-4 sm:p-6 border-l-4 border-green-500">
             <div className="flex justify-between items-start">
               <div>
-                <p className="text-sm text-slate-600 mb-1">Total Revenue</p>
-                <p className="text-3xl font-bold text-slate-800">₹{(totalRevenue / 100000).toFixed(1)}L</p>
+                <p className="text-xs sm:text-sm text-slate-600 mb-1">Total Revenue</p>
+                <p className="text-xl sm:text-3xl font-bold text-slate-800">₹{(totalRevenue / 100000).toFixed(1)}L</p>
               </div>
-              <FiDollarSign className="text-green-500 text-2xl" />
+              <FiDollarSign className="text-green-500 text-lg sm:text-2xl flex-shrink-0" />
             </div>
           </div>
 
-          <div className="bg-white rounded-lg shadow-md p-6 border-l-4 border-blue-500">
+          <div className="bg-white rounded-lg shadow-md p-4 sm:p-6 border-l-4 border-blue-500">
             <div className="flex justify-between items-start">
               <div>
-                <p className="text-sm text-slate-600 mb-1">Net Profit</p>
-                <p className={`text-3xl font-bold ${totalProfit >= 0 ? "text-green-600" : "text-red-600"}`}>
+                <p className="text-xs sm:text-sm text-slate-600 mb-1">Net Profit</p>
+                <p className={`text-xl sm:text-3xl font-bold ${totalProfit >= 0 ? "text-green-600" : "text-red-600"}`}>
                   ₹{(totalProfit / 100000).toFixed(1)}L
                 </p>
               </div>
-              <FiTrendingUp className="text-blue-500 text-2xl" />
+              <FiTrendingUp className="text-blue-500 text-lg sm:text-2xl flex-shrink-0" />
             </div>
           </div>
 
-          <div className="bg-white rounded-lg shadow-md p-6 border-l-4 border-purple-500">
+          <div className="bg-white rounded-lg shadow-md p-4 sm:p-6 border-l-4 border-purple-500">
             <div className="flex justify-between items-start">
               <div>
-                <p className="text-sm text-slate-600 mb-1">Average ROI</p>
-                <p className="text-3xl font-bold text-slate-800">{avgROI}%</p>
+                <p className="text-xs sm:text-sm text-slate-600 mb-1">Average ROI</p>
+                <p className="text-xl sm:text-3xl font-bold text-slate-800">{avgROI}%</p>
               </div>
-              <div className="text-purple-500 text-2xl">📈</div>
+              <div className="text-purple-500 text-lg sm:text-2xl flex-shrink-0">📈</div>
             </div>
           </div>
 
-          <div className="bg-white rounded-lg shadow-md p-6 border-l-4 border-orange-500">
+          <div className="bg-white rounded-lg shadow-md p-4 sm:p-6 border-l-4 border-orange-500">
             <div className="flex justify-between items-start">
               <div>
-                <p className="text-sm text-slate-600 mb-1">Active Debts</p>
-                <p className="text-3xl font-bold text-slate-800">{activeDebts}</p>
-                <p className="text-xs text-slate-500 mt-1">Outstanding: ₹{(totalDebt / 100000).toFixed(1)}L</p>
+                <p className="text-xs sm:text-sm text-slate-600 mb-1">Active Debts</p>
+                <p className="text-xl sm:text-3xl font-bold text-slate-800">{activeDebts}</p>
+                <p className="text-xs text-slate-500 mt-1">Out: ₹{(totalDebt / 100000).toFixed(1)}L</p>
               </div>
-              <FiAlertCircle className="text-orange-500 text-2xl" />
+              <FiAlertCircle className="text-orange-500 text-lg sm:text-2xl flex-shrink-0" />
             </div>
           </div>
         </div>
 
         {/* Charts */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 mb-6 sm:mb-8">
           {/* Monthly Profit/Loss Trend */}
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <h2 className="text-lg font-bold text-slate-800 mb-4">Monthly Profit/Loss Trend</h2>
+          <div className="bg-white rounded-lg shadow-md p-4 sm:p-6">
+            <h2 className="text-base sm:text-lg font-bold text-slate-800 mb-4">Monthly Profit/Loss Trend</h2>
             {monthlyData.length > 0 ? (
-              <ResponsiveContainer width="100%" height={300}>
+              <ResponsiveContainer width="100%" height={250}>
                 <LineChart data={monthlyData}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                  <XAxis dataKey="month" stroke="#94a3b8" />
-                  <YAxis stroke="#94a3b8" />
+                  <XAxis dataKey="month" stroke="#94a3b8" tick={{ fontSize: 12 }} />
+                  <YAxis stroke="#94a3b8" tick={{ fontSize: 12 }} />
                   <Tooltip
                     contentStyle={{
                       backgroundColor: "#1e293b",
                       border: "none",
                       borderRadius: "8px",
                       color: "#fff",
+                      fontSize: 12,
                     }}
                   />
-                  <Legend />
+                  <Legend wrapperStyle={{ fontSize: 12 }} />
                   <Line
                     type="monotone"
                     dataKey="profit"
@@ -200,17 +201,17 @@ const FinancialOverviewDashboard = () => {
                 </LineChart>
               </ResponsiveContainer>
             ) : (
-              <div className="h-300 flex items-center justify-center text-slate-500">
+              <div className="h-250 flex items-center justify-center text-slate-500 text-sm">
                 No financial data available
               </div>
             )}
           </div>
 
           {/* Revenue Source Distribution */}
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <h2 className="text-lg font-bold text-slate-800 mb-4">Revenue Source Breakdown</h2>
+          <div className="bg-white rounded-lg shadow-md p-4 sm:p-6">
+            <h2 className="text-base sm:text-lg font-bold text-slate-800 mb-4">Revenue Source Breakdown</h2>
             {sourceData.length > 0 ? (
-              <ResponsiveContainer width="100%" height={300}>
+              <ResponsiveContainer width="100%" height={250}>
                 <PieChart>
                   <Pie
                     data={sourceData}
@@ -232,12 +233,13 @@ const FinancialOverviewDashboard = () => {
                       border: "none",
                       borderRadius: "8px",
                       color: "#fff",
+                      fontSize: 12,
                     }}
                   />
                 </PieChart>
               </ResponsiveContainer>
             ) : (
-              <div className="h-300 flex items-center justify-center text-slate-500">
+              <div className="h-250 flex items-center justify-center text-slate-500 text-sm">
                 No revenue data available
               </div>
             )}
@@ -245,70 +247,71 @@ const FinancialOverviewDashboard = () => {
         </div>
 
         {/* Revenue & Expenses Comparison */}
-        <div className="bg-white rounded-lg shadow-md p-6 mb-8">
-          <h2 className="text-lg font-bold text-slate-800 mb-4">Revenue vs Expenses Comparison</h2>
+        <div className="bg-white rounded-lg shadow-md p-4 sm:p-6 mb-6 sm:mb-8">
+          <h2 className="text-base sm:text-lg font-bold text-slate-800 mb-4">Revenue vs Expenses Comparison</h2>
           {monthlyData.length > 0 ? (
-            <ResponsiveContainer width="100%" height={300}>
+            <ResponsiveContainer width="100%" height={250}>
               <BarChart data={monthlyData}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                <XAxis dataKey="month" stroke="#94a3b8" />
-                <YAxis stroke="#94a3b8" />
+                <XAxis dataKey="month" stroke="#94a3b8" tick={{ fontSize: 12 }} />
+                <YAxis stroke="#94a3b8" tick={{ fontSize: 12 }} />
                 <Tooltip
                   contentStyle={{
                     backgroundColor: "#1e293b",
                     border: "none",
                     borderRadius: "8px",
                     color: "#fff",
+                    fontSize: 12,
                   }}
                 />
-                <Legend />
+                <Legend wrapperStyle={{ fontSize: 12 }} />
                 <Bar dataKey="revenue" fill="#10b981" name="Revenue" />
                 <Bar dataKey="expenses" fill="#f59e0b" name="Expenses" />
               </BarChart>
             </ResponsiveContainer>
           ) : (
-            <div className="h-300 flex items-center justify-center text-slate-500">
+            <div className="h-250 flex items-center justify-center text-slate-500 text-sm">
               No data available
             </div>
           )}
         </div>
 
         {/* Debt Payment Schedule */}
-        <div className="bg-white rounded-lg shadow-md overflow-hidden mb-8">
-          <div className="p-6 border-b border-slate-200">
-            <h2 className="text-lg font-bold text-slate-800">Upcoming Debt Payments</h2>
+        <div className="bg-white rounded-lg shadow-md overflow-hidden mb-6">
+          <div className="p-4 sm:p-6 border-b border-slate-200">
+            <h2 className="text-base sm:text-lg font-bold text-slate-800">Upcoming Debt Payments</h2>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
                 <tr className="bg-slate-50 border-b border-slate-200">
-                  <th className="px-6 py-3 text-left text-sm font-semibold text-slate-700">Creditor</th>
-                  <th className="px-6 py-3 text-left text-sm font-semibold text-slate-700">Payment Amount</th>
-                  <th className="px-6 py-3 text-left text-sm font-semibold text-slate-700">Frequency</th>
-                  <th className="px-6 py-3 text-left text-sm font-semibold text-slate-700">Due Date</th>
+                  <th className="px-3 sm:px-6 py-3 text-left text-xs sm:text-sm font-semibold text-slate-700">Creditor</th>
+                  <th className="px-3 sm:px-6 py-3 text-left text-xs sm:text-sm font-semibold text-slate-700">Amount</th>
+                  <th className="px-3 sm:px-6 py-3 text-left text-xs sm:text-sm font-semibold text-slate-700">Freq</th>
+                  <th className="px-3 sm:px-6 py-3 text-left text-xs sm:text-sm font-semibold text-slate-700">Due</th>
                 </tr>
               </thead>
               <tbody>
                 {upcomingPayments.length > 0 ? (
                   upcomingPayments.map((payment, idx) => (
                     <tr key={idx} className="border-b border-slate-200 hover:bg-slate-50">
-                      <td className="px-6 py-4 text-sm font-medium text-slate-800">
+                      <td className="px-3 sm:px-6 py-4 text-xs sm:text-sm font-medium text-slate-800 whitespace-nowrap">
                         {payment.creditor}
                       </td>
-                      <td className="px-6 py-4 text-sm font-semibold text-blue-600">
+                      <td className="px-3 sm:px-6 py-4 text-xs sm:text-sm font-semibold text-blue-600 whitespace-nowrap">
                         ₹{payment.amount.toFixed(0)}
                       </td>
-                      <td className="px-6 py-4 text-sm text-slate-700">
-                        {payment.frequency.charAt(0).toUpperCase() + payment.frequency.slice(1)}
+                      <td className="px-3 sm:px-6 py-4 text-xs sm:text-sm text-slate-700 whitespace-nowrap">
+                        {payment.frequency.charAt(0).toUpperCase()}
                       </td>
-                      <td className="px-6 py-4 text-sm text-orange-600 font-semibold">
+                      <td className="px-3 sm:px-6 py-4 text-xs sm:text-sm text-orange-600 font-semibold whitespace-nowrap">
                         {payment.dueDate}
                       </td>
                     </tr>
                   ))
                 ) : (
                   <tr>
-                    <td colSpan="4" className="px-6 py-4 text-center text-slate-500">
+                    <td colSpan="4" className="px-6 py-4 text-center text-xs sm:text-sm text-slate-500">
                       No pending debt payments
                     </td>
                   </tr>
@@ -320,54 +323,54 @@ const FinancialOverviewDashboard = () => {
 
         {/* Revenue Details Table */}
         <div className="bg-white rounded-lg shadow-md overflow-hidden">
-          <div className="p-6 border-b border-slate-200 flex justify-between items-center">
-            <h2 className="text-lg font-bold text-slate-800">Recent Revenue Records</h2>
+          <div className="p-4 sm:p-6 border-b border-slate-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+            <h2 className="text-base sm:text-lg font-bold text-slate-800">Recent Revenue Records</h2>
             <button
               onClick={() => exportToCSV(revenues, `revenue-${new Date().toLocaleDateString()}.csv`)}
-              className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded font-medium text-sm transition"
+              className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded font-medium text-xs sm:text-sm transition w-full sm:w-auto justify-center"
             >
-              <FiDownload /> Export
+              <FiDownload size={16} /> <span className="hidden sm:inline">Export</span><span className="sm:hidden">CSV</span>
             </button>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
                 <tr className="bg-slate-50 border-b border-slate-200">
-                  <th className="px-6 py-3 text-left text-sm font-semibold text-slate-700">Date</th>
-                  <th className="px-6 py-3 text-left text-sm font-semibold text-slate-700">Source</th>
-                  <th className="px-6 py-3 text-left text-sm font-semibold text-slate-700">Item Sold</th>
-                  <th className="px-6 py-3 text-left text-sm font-semibold text-slate-700">Quantity</th>
-                  <th className="px-6 py-3 text-left text-sm font-semibold text-slate-700">Unit Price</th>
-                  <th className="px-6 py-3 text-left text-sm font-semibold text-slate-700">Total Amount</th>
+                  <th className="px-3 sm:px-6 py-3 text-left text-xs sm:text-sm font-semibold text-slate-700">Date</th>
+                  <th className="px-3 sm:px-6 py-3 text-left text-xs sm:text-sm font-semibold text-slate-700">Source</th>
+                  <th className="px-3 sm:px-6 py-3 text-left text-xs sm:text-sm font-semibold text-slate-700">Item</th>
+                  <th className="px-3 sm:px-6 py-3 text-left text-xs sm:text-sm font-semibold text-slate-700">Qty</th>
+                  <th className="px-3 sm:px-6 py-3 text-left text-xs sm:text-sm font-semibold text-slate-700">Price</th>
+                  <th className="px-3 sm:px-6 py-3 text-left text-xs sm:text-sm font-semibold text-slate-700">Total</th>
                 </tr>
               </thead>
               <tbody>
                 {revenues.length > 0 ? (
                   revenues.slice(0, 10).map((revenue, idx) => (
                     <tr key={idx} className="border-b border-slate-200 hover:bg-slate-50">
-                      <td className="px-6 py-4 text-sm text-slate-700">
+                      <td className="px-3 sm:px-6 py-4 text-xs sm:text-sm text-slate-700 whitespace-nowrap">
                         {new Date(revenue.date).toLocaleDateString()}
                       </td>
-                      <td className="px-6 py-4 text-sm font-medium text-slate-800">
+                      <td className="px-3 sm:px-6 py-4 text-xs sm:text-sm font-medium text-slate-800 whitespace-nowrap">
                         {revenue.source || "N/A"}
                       </td>
-                      <td className="px-6 py-4 text-sm text-slate-700">
+                      <td className="px-3 sm:px-6 py-4 text-xs sm:text-sm text-slate-700 whitespace-nowrap">
                         {revenue.item_sold || "N/A"}
                       </td>
-                      <td className="px-6 py-4 text-sm text-slate-700">
+                      <td className="px-3 sm:px-6 py-4 text-xs sm:text-sm text-slate-700 whitespace-nowrap">
                         {revenue.quantity || 0}
                       </td>
-                      <td className="px-6 py-4 text-sm text-slate-700">
+                      <td className="px-3 sm:px-6 py-4 text-xs sm:text-sm text-slate-700 whitespace-nowrap">
                         ₹{(revenue.unit_price || 0).toFixed(2)}
                       </td>
-                      <td className="px-6 py-4 text-sm font-semibold text-green-600">
+                      <td className="px-3 sm:px-6 py-4 text-xs sm:text-sm font-semibold text-green-600 whitespace-nowrap">
                         ₹{(revenue.amount || 0).toFixed(2)}
                       </td>
                     </tr>
                   ))
                 ) : (
                   <tr>
-                    <td colSpan="6" className="px-6 py-4 text-center text-slate-500">
+                    <td colSpan="6" className="px-6 py-4 text-center text-xs sm:text-sm text-slate-500">
                       No revenue records available
                     </td>
                   </tr>
@@ -379,14 +382,14 @@ const FinancialOverviewDashboard = () => {
 
         {/* Error Message */}
         {apiError && (
-          <div className="mt-6 bg-red-50 border border-red-200 rounded-lg p-4">
+          <div className="mt-4 sm:mt-6 bg-red-50 border border-red-200 rounded-lg p-4 text-sm">
             <p className="text-red-700">{apiError}</p>
           </div>
         )}
 
         {/* Loading State */}
         {isLoading && (
-          <div className="mt-6 text-center text-slate-500">
+          <div className="mt-4 sm:mt-6 text-center text-slate-500 text-sm">
             <p>Loading financial data...</p>
           </div>
         )}

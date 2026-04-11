@@ -103,137 +103,139 @@ const CropAnalyticsDashboard = () => {
   const COLORS = ["#3b82f6", "#10b981", "#f59e0b", "#ef4444"];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-6">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-3 sm:p-6">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="mb-8 flex justify-between items-start">
+        <div className="mb-6 sm:mb-8 flex flex-col sm:flex-row justify-between items-start gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-slate-800 flex items-center gap-3">
-              <FiBarChart2 className="text-amber-600" />
-              Crop Analytics & Environmental Intelligence
+            <h1 className="text-2xl sm:text-3xl font-bold text-slate-800 flex items-center gap-2 sm:gap-3">
+              <FiBarChart2 className="text-amber-600 text-xl sm:text-2xl" />
+              <span className="truncate">Crop Analytics</span>
             </h1>
-            <p className="text-slate-600 mt-2">
+            <p className="text-xs sm:text-sm text-slate-600 mt-1 sm:mt-2">
               Analyze crop yields, optimize fertilizer usage, and track weather impacts on production
             </p>
           </div>
-          <div className="flex gap-3">
+          <div className="flex gap-2 sm:gap-3 w-full sm:w-auto flex-wrap">
             <button
               onClick={() => setShowWeatherForm(true)}
-              className="flex items-center gap-2 bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-lg font-medium transition"
+              className="flex-1 sm:flex-none flex items-center justify-center gap-1 sm:gap-2 bg-orange-600 hover:bg-orange-700 text-white px-2 sm:px-4 py-2 rounded-lg font-medium text-xs sm:text-base transition"
             >
-              <FiPlus /> Weather Impact
+              <FiPlus size={16} /> <span className="hidden sm:inline">Weather</span><span className="sm:hidden">W</span>
             </button>
             <button
               onClick={() => setShowFertilizerForm(true)}
-              className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg font-medium transition"
+              className="flex-1 sm:flex-none flex items-center justify-center gap-1 sm:gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-2 sm:px-4 py-2 rounded-lg font-medium text-xs sm:text-base transition"
             >
-              <FiPlus /> Fertilizer
+              <FiPlus size={16} /> <span className="hidden sm:inline">Fert</span><span className="sm:hidden">F</span>
             </button>
             <button
               onClick={() => setShowYieldForm(true)}
-              className="flex items-center gap-2 bg-cyan-600 hover:bg-cyan-700 text-white px-4 py-2 rounded-lg font-medium transition"
+              className="flex-1 sm:flex-none flex items-center justify-center gap-1 sm:gap-2 bg-cyan-600 hover:bg-cyan-700 text-white px-2 sm:px-4 py-2 rounded-lg font-medium text-xs sm:text-base transition"
             >
-              <FiPlus /> Yield Analysis
+              <FiPlus size={16} /> <span className="hidden sm:inline">Yield</span><span className="sm:hidden">Y</span>
             </button>
           </div>
         </div>
 
         {/* KPI Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-          <div className="bg-white rounded-lg shadow-md p-6 border-l-4 border-blue-500">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6 sm:mb-8">
+          <div className="bg-white rounded-lg shadow-md p-4 sm:p-6 border-l-4 border-blue-500">
             <div className="flex justify-between items-start">
               <div>
-                <p className="text-sm text-slate-600 mb-1">Yield Performance</p>
-                <p className="text-3xl font-bold text-slate-800">{avgYieldPerformance}%</p>
+                <p className="text-xs sm:text-sm text-slate-600 mb-1">Yield Performance</p>
+                <p className="text-xl sm:text-3xl font-bold text-slate-800">{avgYieldPerformance}%</p>
               </div>
-              <FiTrendingUp className="text-blue-500 text-2xl" />
+              <FiTrendingUp className="text-blue-500 text-lg sm:text-2xl flex-shrink-0" />
             </div>
           </div>
 
-          <div className="bg-white rounded-lg shadow-md p-6 border-l-4 border-green-500">
+          <div className="bg-white rounded-lg shadow-md p-4 sm:p-6 border-l-4 border-green-500">
             <div className="flex justify-between items-start">
               <div>
-                <p className="text-sm text-slate-600 mb-1">Average ROI</p>
-                <p className="text-3xl font-bold text-slate-800">{avgROI}%</p>
+                <p className="text-xs sm:text-sm text-slate-600 mb-1">Average ROI</p>
+                <p className="text-xl sm:text-3xl font-bold text-slate-800">{avgROI}%</p>
               </div>
-              <div className="text-green-500 text-2xl">📊</div>
+              <div className="text-green-500 text-lg sm:text-2xl flex-shrink-0">📊</div>
             </div>
           </div>
 
-          <div className="bg-white rounded-lg shadow-md p-6 border-l-4 border-orange-500">
+          <div className="bg-white rounded-lg shadow-md p-4 sm:p-6 border-l-4 border-orange-500">
             <div className="flex justify-between items-start">
               <div>
-                <p className="text-sm text-slate-600 mb-1">Total Yield Loss</p>
-                <p className="text-3xl font-bold text-slate-800">{totalYieldLoss.toFixed(0)} units</p>
+                <p className="text-xs sm:text-sm text-slate-600 mb-1">Total Yield Loss</p>
+                <p className="text-xl sm:text-3xl font-bold text-slate-800">{totalYieldLoss.toFixed(0)} <span className="text-sm">units</span></p>
               </div>
-              <FiCloud className="text-orange-500 text-2xl" />
+              <FiCloud className="text-orange-500 text-lg sm:text-2xl flex-shrink-0" />
             </div>
           </div>
 
-          <div className="bg-white rounded-lg shadow-md p-6 border-l-4 border-purple-500">
+          <div className="bg-white rounded-lg shadow-md p-4 sm:p-6 border-l-4 border-purple-500">
             <div className="flex justify-between items-start">
               <div>
-                <p className="text-sm text-slate-600 mb-1">Pending Recommendations</p>
-                <p className="text-3xl font-bold text-slate-800">{pendingRecommendations}</p>
+                <p className="text-xs sm:text-sm text-slate-600 mb-1">Pending Recs</p>
+                <p className="text-xl sm:text-3xl font-bold text-slate-800">{pendingRecommendations}</p>
               </div>
-              <FiAlertTriangle className="text-purple-500 text-2xl" />
+              <FiAlertTriangle className="text-purple-500 text-lg sm:text-2xl flex-shrink-0" />
             </div>
           </div>
         </div>
 
         {/* Charts */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 mb-6 sm:mb-8">
           {/* Yield vs Expected */}
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <h2 className="text-lg font-bold text-slate-800 mb-4">Expected vs Actual Yield</h2>
+          <div className="bg-white rounded-lg shadow-md p-4 sm:p-6">
+            <h2 className="text-base sm:text-lg font-bold text-slate-800 mb-4">Expected vs Actual Yield</h2>
             {yieldData.length > 0 ? (
-              <ResponsiveContainer width="100%" height={300}>
+              <ResponsiveContainer width="100%" height={250}>
                 <BarChart data={yieldData}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                  <XAxis dataKey="crop" stroke="#94a3b8" />
-                  <YAxis stroke="#94a3b8" />
+                  <XAxis dataKey="crop" stroke="#94a3b8" tick={{ fontSize: 12 }} />
+                  <YAxis stroke="#94a3b8" tick={{ fontSize: 12 }} />
                   <Tooltip
                     contentStyle={{
                       backgroundColor: "#1e293b",
                       border: "none",
                       borderRadius: "8px",
                       color: "#fff",
+                      fontSize: 12,
                     }}
                   />
-                  <Legend />
+                  <Legend wrapperStyle={{ fontSize: 12 }} />
                   <Bar dataKey="expected" fill="#94a3b8" name="Expected Yield" />
                   <Bar dataKey="actual" fill="#3b82f6" name="Actual Yield" />
                 </BarChart>
               </ResponsiveContainer>
             ) : (
-              <div className="h-300 flex items-center justify-center text-slate-500">
+              <div className="h-250 flex items-center justify-center text-slate-500 text-sm">
                 No yield data available
               </div>
             )}
           </div>
 
           {/* Weather Impact by Type */}
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <h2 className="text-lg font-bold text-slate-800 mb-4">Yield Loss by Weather Event</h2>
+          <div className="bg-white rounded-lg shadow-md p-4 sm:p-6">
+            <h2 className="text-base sm:text-lg font-bold text-slate-800 mb-4">Yield Loss by Weather</h2>
             {weatherData.length > 0 ? (
-              <ResponsiveContainer width="100%" height={300}>
+              <ResponsiveContainer width="100%" height={250}>
                 <BarChart data={weatherData}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                  <XAxis dataKey="name" stroke="#94a3b8" />
-                  <YAxis stroke="#94a3b8" />
+                  <XAxis dataKey="name" stroke="#94a3b8" tick={{ fontSize: 12 }} />
+                  <YAxis stroke="#94a3b8" tick={{ fontSize: 12 }} />
                   <Tooltip
                     contentStyle={{
                       backgroundColor: "#1e293b",
                       border: "none",
                       borderRadius: "8px",
                       color: "#fff",
+                      fontSize: 12,
                     }}
                   />
-                  <Bar dataKey="loss" fill="#f59e0b" name="Estimated Loss (units)" />
+                  <Bar dataKey="loss" fill="#f59e0b" name="Est. Loss (units)" />
                 </BarChart>
               </ResponsiveContainer>
             ) : (
-              <div className="h-300 flex items-center justify-center text-slate-500">
+              <div className="h-250 flex items-center justify-center text-slate-500 text-sm">
                 No weather impact data available
               </div>
             )}
@@ -241,12 +243,12 @@ const CropAnalyticsDashboard = () => {
         </div>
 
         {/* ROI Distribution and Recommendation Status */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 mb-6 sm:mb-8">
           {/* ROI Chart */}
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <h2 className="text-lg font-bold text-slate-800 mb-4">Crop ROI Performance</h2>
+          <div className="bg-white rounded-lg shadow-md p-4 sm:p-6">
+            <h2 className="text-base sm:text-lg font-bold text-slate-800 mb-4">Crop ROI Performance</h2>
             {yieldData.length > 0 ? (
-              <ResponsiveContainer width="100%" height={300}>
+              <ResponsiveContainer width="100%" height={250}>
                 <LineChart data={yieldData}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
                   <XAxis dataKey="crop" stroke="#94a3b8" />
@@ -316,62 +318,62 @@ const CropAnalyticsDashboard = () => {
 
         {/* Fertilizer Recommendations Table */}
         <div className="bg-white rounded-lg shadow-md overflow-hidden mb-6">
-          <div className="p-6 border-b border-slate-200 flex justify-between items-center">
-            <h2 className="text-lg font-bold text-slate-800">Fertilizer Recommendations</h2>
+          <div className="p-4 sm:p-6 border-b border-slate-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-0">
+            <h2 className="text-base sm:text-lg font-bold text-slate-800 truncate">Fertilizer Recommendations</h2>
             <button
               onClick={() => exportToCSV(recommendations, `fertilizer-recommendations-${new Date().toLocaleDateString()}.csv`)}
-              className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded font-medium text-sm transition"
+              className="flex items-center gap-1 sm:gap-2 bg-blue-600 hover:bg-blue-700 text-white px-2 sm:px-3 py-2 rounded font-medium text-xs sm:text-sm transition flex-shrink-0"
             >
-              <FiDownload /> Export
+              <FiDownload size={16} /> <span className="hidden sm:inline">Export</span>
             </button>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
                 <tr className="bg-slate-50 border-b border-slate-200">
-                  <th className="px-6 py-3 text-left text-sm font-semibold text-slate-700">Date</th>
-                  <th className="px-6 py-3 text-left text-sm font-semibold text-slate-700">Crop</th>
-                  <th className="px-6 py-3 text-left text-sm font-semibold text-slate-700">Fertilizer Type</th>
-                  <th className="px-6 py-3 text-left text-sm font-semibold text-slate-700">Recommended Qty</th>
-                  <th className="px-6 py-3 text-left text-sm font-semibold text-slate-700">Expected Yield Increase</th>
-                  <th className="px-6 py-3 text-left text-sm font-semibold text-slate-700">Status</th>
+                  <th className="px-3 sm:px-6 py-3 text-left text-xs sm:text-sm font-semibold text-slate-700">Date</th>
+                  <th className="px-3 sm:px-6 py-3 text-left text-xs sm:text-sm font-semibold text-slate-700">Crop</th>
+                  <th className="px-3 sm:px-6 py-3 text-left text-xs sm:text-sm font-semibold text-slate-700">Type</th>
+                  <th className="px-3 sm:px-6 py-3 text-left text-xs sm:text-sm font-semibold text-slate-700">Qty</th>
+                  <th className="px-3 sm:px-6 py-3 text-left text-xs sm:text-sm font-semibold text-slate-700">Yield %</th>
+                  <th className="px-3 sm:px-6 py-3 text-left text-xs sm:text-sm font-semibold text-slate-700">Status</th>
                 </tr>
               </thead>
               <tbody>
                 {recommendations.length > 0 ? (
                   recommendations.slice(0, 10).map((rec, idx) => (
                     <tr key={idx} className="border-b border-slate-200 hover:bg-slate-50">
-                      <td className="px-6 py-4 text-sm text-slate-700">
+                      <td className="px-3 sm:px-6 py-4 text-xs sm:text-sm text-slate-700 whitespace-nowrap">
                         {new Date(rec.date).toLocaleDateString()}
                       </td>
-                      <td className="px-6 py-4 text-sm font-medium text-slate-800">
+                      <td className="px-3 sm:px-6 py-4 text-xs sm:text-sm font-medium text-slate-800 whitespace-nowrap">
                         {rec.crop_name || "N/A"}
                       </td>
-                      <td className="px-6 py-4 text-sm text-slate-700">
+                      <td className="px-3 sm:px-6 py-4 text-xs sm:text-sm text-slate-700">
                         {rec.fertilizer_type || "N/A"}
                       </td>
-                      <td className="px-6 py-4 text-sm text-blue-600 font-semibold">
-                        {rec.recommended_quantity || 0} units
+                      <td className="px-3 sm:px-6 py-4 text-xs sm:text-sm text-blue-600 font-semibold whitespace-nowrap">
+                        {rec.recommended_quantity || 0}
                       </td>
-                      <td className="px-6 py-4 text-sm text-green-600 font-semibold">
+                      <td className="px-3 sm:px-6 py-4 text-xs sm:text-sm text-green-600 font-semibold whitespace-nowrap">
                         {rec.yield_increase_percentage || 0}%
                       </td>
-                      <td className="px-6 py-4 text-sm">
-                        <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                      <td className="px-3 sm:px-6 py-4 text-xs sm:text-sm">
+                        <span className={`px-2 py-1 rounded text-xs font-semibold whitespace-nowrap inline-block ${
                           rec.status === "applied"
                             ? "bg-green-100 text-green-700"
                             : rec.status === "pending"
                             ? "bg-orange-100 text-orange-700"
                             : "bg-slate-100 text-slate-700"
                         }`}>
-                          {rec.status?.toUpperCase() || "PENDING"}
+                          {rec.status?.substring(0, 3).toUpperCase() || "PEN"}
                         </span>
                       </td>
                     </tr>
                   ))
                 ) : (
                   <tr>
-                    <td colSpan="6" className="px-6 py-4 text-center text-slate-500">
+                    <td colSpan="6" className="px-3 sm:px-6 py-4 text-center text-xs sm:text-sm text-slate-500">
                       No recommendations available
                     </td>
                   </tr>
@@ -383,62 +385,62 @@ const CropAnalyticsDashboard = () => {
 
         {/* Weather Impact Records */}
         <div className="bg-white rounded-lg shadow-md overflow-hidden">
-          <div className="p-6 border-b border-slate-200 flex justify-between items-center">
-            <h2 className="text-lg font-bold text-slate-800">Weather Impact Records</h2>
+          <div className="p-4 sm:p-6 border-b border-slate-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-0">
+            <h2 className="text-base sm:text-lg font-bold text-slate-800 truncate">Weather Impact Records</h2>
             <button
               onClick={() => exportToCSV(weatherImpacts, `weather-impacts-${new Date().toLocaleDateString()}.csv`)}
-              className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded font-medium text-sm transition"
+              className="flex items-center gap-1 sm:gap-2 bg-blue-600 hover:bg-blue-700 text-white px-2 sm:px-3 py-2 rounded font-medium text-xs sm:text-sm transition flex-shrink-0"
             >
-              <FiDownload /> Export
+              <FiDownload size={16} /> <span className="hidden sm:inline">Export</span>
             </button>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
                 <tr className="bg-slate-50 border-b border-slate-200">
-                  <th className="px-6 py-3 text-left text-sm font-semibold text-slate-700">Date</th>
-                  <th className="px-6 py-3 text-left text-sm font-semibold text-slate-700">Crop</th>
-                  <th className="px-6 py-3 text-left text-sm font-semibold text-slate-700">Impact Type</th>
-                  <th className="px-6 py-3 text-left text-sm font-semibold text-slate-700">Severity</th>
-                  <th className="px-6 py-3 text-left text-sm font-semibold text-slate-700">Estimated Loss</th>
-                  <th className="px-6 py-3 text-left text-sm font-semibold text-slate-700">Recovery Strategy</th>
+                  <th className="px-3 sm:px-6 py-3 text-left text-xs sm:text-sm font-semibold text-slate-700">Date</th>
+                  <th className="px-3 sm:px-6 py-3 text-left text-xs sm:text-sm font-semibold text-slate-700">Crop</th>
+                  <th className="px-3 sm:px-6 py-3 text-left text-xs sm:text-sm font-semibold text-slate-700">Type</th>
+                  <th className="px-3 sm:px-6 py-3 text-left text-xs sm:text-sm font-semibold text-slate-700">Severity</th>
+                  <th className="px-3 sm:px-6 py-3 text-left text-xs sm:text-sm font-semibold text-slate-700">Loss</th>
+                  <th className="px-3 sm:px-6 py-3 text-left text-xs sm:text-sm font-semibold text-slate-700">Strategy</th>
                 </tr>
               </thead>
               <tbody>
                 {weatherImpacts.length > 0 ? (
                   weatherImpacts.slice(0, 10).map((impact, idx) => (
                     <tr key={idx} className="border-b border-slate-200 hover:bg-slate-50">
-                      <td className="px-6 py-4 text-sm text-slate-700">
+                      <td className="px-3 sm:px-6 py-4 text-xs sm:text-sm text-slate-700 whitespace-nowrap">
                         {new Date(impact.impact_date).toLocaleDateString()}
                       </td>
-                      <td className="px-6 py-4 text-sm font-medium text-slate-800">
+                      <td className="px-3 sm:px-6 py-4 text-xs sm:text-sm font-medium text-slate-800 whitespace-nowrap">
                         {impact.crop_name || "N/A"}
                       </td>
-                      <td className="px-6 py-4 text-sm text-slate-700">
+                      <td className="px-3 sm:px-6 py-4 text-xs sm:text-sm text-slate-700">
                         {impact.impact_type || "N/A"}
                       </td>
-                      <td className="px-6 py-4 text-sm">
-                        <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                      <td className="px-3 sm:px-6 py-4 text-xs sm:text-sm">
+                        <span className={`px-2 py-1 rounded text-xs font-semibold whitespace-nowrap inline-block ${
                           impact.severity === "high"
                             ? "bg-red-100 text-red-700"
                             : impact.severity === "medium"
                             ? "bg-orange-100 text-orange-700"
                             : "bg-yellow-100 text-yellow-700"
                         }`}>
-                          {impact.severity?.toUpperCase() || "LOW"}
+                          {impact.severity?.substring(0, 3).toUpperCase() || "LO"}
                         </span>
                       </td>
-                      <td className="px-6 py-4 text-sm font-semibold text-orange-600">
-                        {impact.estimated_yield_loss || 0} units
+                      <td className="px-3 sm:px-6 py-4 text-xs sm:text-sm font-semibold text-orange-600 whitespace-nowrap">
+                        {impact.estimated_yield_loss || 0}
                       </td>
-                      <td className="px-6 py-4 text-sm text-slate-700">
-                        {impact.recovery_strategy?.substring(0, 30) || "N/A"}
+                      <td className="px-3 sm:px-6 py-4 text-xs sm:text-sm text-slate-700">
+                        {impact.recovery_strategy?.substring(0, 20) || "N/A"}...
                       </td>
                     </tr>
                   ))
                 ) : (
                   <tr>
-                    <td colSpan="6" className="px-6 py-4 text-center text-slate-500">
+                    <td colSpan="6" className="px-3 sm:px-6 py-4 text-center text-xs sm:text-sm text-slate-500">
                       No weather impact records available
                     </td>
                   </tr>
@@ -450,14 +452,14 @@ const CropAnalyticsDashboard = () => {
 
         {/* Error Message */}
         {apiError && (
-          <div className="mt-6 bg-red-50 border border-red-200 rounded-lg p-4">
+          <div className="mt-4 sm:mt-6 bg-red-50 border border-red-200 rounded-lg p-4 text-sm">
             <p className="text-red-700">{apiError}</p>
           </div>
         )}
 
         {/* Loading State */}
         {isLoading && (
-          <div className="mt-6 text-center text-slate-500">
+          <div className="mt-4 sm:mt-6 text-center text-slate-500 text-sm">
             <p>Loading crop analytics data...</p>
           </div>
         )}

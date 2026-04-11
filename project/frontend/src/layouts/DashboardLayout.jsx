@@ -3,6 +3,7 @@ import { Outlet, Link, useLocation, useNavigate } from "react-router-dom";
 import { useUser } from "../context/UserContext";
 import { useFarmData } from "../context/FarmDataContext";
 import apiService from "../services/api";
+import AIAgentPanel from "../components/AIAgentPanel";
 import {
   FiHome,
   FiUsers,
@@ -305,6 +306,7 @@ function DashboardLayout() {
           </motion.div>
         </main>
       </div>
+      <AIAgentPanel />
     </div>
   );
 }

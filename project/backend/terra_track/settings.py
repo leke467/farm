@@ -37,6 +37,7 @@ INSTALLED_APPS = [
     'inventory',
     'expenses',
     'reports',
+    'ai_agent',
 ]
 
 MIDDLEWARE = [
