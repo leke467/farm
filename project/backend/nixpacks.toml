@@ -2,5 +2,13 @@
 nixPkgs = ["...", "libpq"]
 aptPkgs = ["...", "libpq-dev"]
 
-[phases.install]
-cmds = ["...", "pip install -r requirements.txt"]
+[phases.build]
+cmds = [
+    "...",
+    "python manage.py migrate --noinput",
+    "python create_superuser.py",
+    "python manage.py collectstatic --noinput"
+]
+
+[start]
+cmd = "gunicorn terra_track.wsgi --bind 0.0.0.0:$PORT"
