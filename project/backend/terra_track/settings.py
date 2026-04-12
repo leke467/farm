@@ -37,7 +37,7 @@ INSTALLED_APPS = [
     'inventory',
     'expenses',
     'reports',
-    'ai_agent',
+    # 'ai_agent',  # Temporarily disabled due to import error
 ]
 
 MIDDLEWARE = [
