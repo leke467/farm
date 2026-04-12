@@ -1,0 +1,6 @@
+[phases.setup]
+nixPkgs = ["...", "libpq"]
+aptPkgs = ["...", "libpq-dev"]
+
+[phases.install]
+cmds = ["...", "pip install -r requirements.txt"]
