@@ -9,6 +9,6 @@ psycopg[binary]==3.2.4
 celery==5.3.4
 redis==5.0.1
 django-extensions==3.2.3
-google-genai==1.1.0
+google-generativeai==0.3.0
 gunicorn==21.2.0
 whitenoise==6.6.0
