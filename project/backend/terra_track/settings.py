@@ -114,7 +114,7 @@ elif DB_TYPE.lower() == 'postgres':
             'USER': config('DB_USER', default='your_db_user'),
             'PASSWORD': config('DB_PASSWORD', default='your_db_password'),
             'HOST': config('DB_HOST', default='localhost'),
-            'PORT': config('DB_PORT', default='5432'),
+            'PORT': int(config('DB_PORT', default='5432')),
         }
     }
 
