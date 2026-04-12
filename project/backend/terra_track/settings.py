@@ -89,7 +89,7 @@ elif DB_TYPE.lower() == 'mssql':
             'USER': config('DB_USER', default='your_db_user'),
             'PASSWORD': config('DB_PASSWORD', default='your_db_password'),
             'HOST': config('DB_HOST', default='localhost'),
-            'PORT': config('DB_PORT', default='1433'),
+            'PORT': config('DB_PORT', default=1433, cast=int),
             'OPTIONS': {
                 'driver': config('DB_DRIVER', default='ODBC Driver 17 for SQL Server'),
             },
@@ -103,7 +103,7 @@ elif DB_TYPE.lower() == 'mysql':
             'USER': config('DB_USER', default='your_db_user'),
             'PASSWORD': config('DB_PASSWORD', default='your_db_password'),
             'HOST': config('DB_HOST', default='localhost'),
-            'PORT': config('DB_PORT', default='3306'),
+            'PORT': config('DB_PORT', default=3306, cast=int),
         }
     }
 elif DB_TYPE.lower() == 'postgres':
@@ -114,7 +114,7 @@ elif DB_TYPE.lower() == 'postgres':
             'USER': config('DB_USER', default='your_db_user'),
             'PASSWORD': config('DB_PASSWORD', default='your_db_password'),
             'HOST': config('DB_HOST', default='localhost'),
-            'PORT': config('DB_PORT', default='5432'),
+            'PORT': config('DB_PORT', default=5432, cast=int),
         }
     }
 
