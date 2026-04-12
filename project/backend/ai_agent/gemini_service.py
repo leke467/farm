@@ -2,7 +2,7 @@
 Gemini AI Service - Intelligent farm conversation and analysis
 Uses Google Gemini with round-robin key rotation for optimal rate limits
 """
-import google.genai as genai
+import google.generativeai as genai
 import logging
 from typing import Optional, Dict, Any
 from decouple import config
@@ -30,7 +30,8 @@ class GeminiAIService:
     def __init__(self):
         # Get next API key using round-robin rotation
         api_key = self.get_gemini_api_key()
-        self.client = genai.Client(api_key=api_key)
+        genai.configure(api_key=api_key)
+        self.model = genai.GenerativeModel('gemini-1.5-flash')
         self.conversation_history = []
     
     @classmethod
@@ -105,21 +106,9 @@ Provide helpful, practical advice about farm management, profitability, and opti
             
             logger.info(f"Sending prompt to Gemini (length: {len(full_prompt)})")
             
-            # Get response using new google.genai API
-            try:
-                response = self.client.models.generate_content(
-                    model='gemini-2.0-flash',
-                    contents=full_prompt
-                )
-                ai_response = response.text
-            except AttributeError as e:
-                # Try alternative API format
-                logger.warning(f"AttributeError with models API, trying alternative: {str(e)}")
-                response = self.client.models.generate_content(
-                    model='gemini-2.0-flash',
-                    contents=[{'text': full_prompt}]
-                )
-                ai_response = response.text
+            # Get response using google.generativeai API
+            response = self.model.generate_content(full_prompt)
+            ai_response = response.text
             
             logger.info(f"Got response from Gemini: {len(ai_response)} chars")
             
@@ -167,8 +156,5 @@ Provide a detailed, actionable explanation of:
 4. Potential challenges and how to overcome them
 5. Resources or tools needed"""
         
-        response = self.client.models.generate_content(
-            model='gemini-2.0-flash',
-            contents=prompt
-        )
+        response = self.model.generate_content(prompt)
         return response.text
