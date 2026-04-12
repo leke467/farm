@@ -5,6 +5,7 @@ Uses Google Gemini with round-robin key rotation for optimal rate limits
 import google.genai as genai
 import logging
 from typing import Optional, Dict, Any
+from decouple import config
 
 logger = logging.getLogger(__name__)
 
@@ -16,15 +17,13 @@ class GeminiAIService:
     Uses round-robin rotation for API keys to maximize free tier usage
     """
     
-    # Hardcoded Gemini API keys with round-robin rotation
-    # Each key provides ~1,500 requests/day, total ~7,500/day across 5 keys
-    GEMINI_API_KEYS = [
-        'AIzaSyB47LtGqr6_BOSc5QxxdesrHVemxcZjQyc',
-        'AIzaSyAB2LuDkjq7T0cXZba7zIyextmxDKKaww4',
-        'AIzaSyDv-OSDGDDkie6_r2n9ZU4CCVHOveqUt74',
-        'AIzaSyBKH99Vyl2AjUc7DoI1L1Z38LXlTtyoXrI',
-        'AIzaSyCiaKR-ZefCQclnpK0KMQpWgROSi2WnwlA',
-    ]
+    # Load Gemini API keys from environment variable (comma-separated list)
+    _keys_str = config('GEMINI_API_KEYS', default='')
+    GEMINI_API_KEYS = [k.strip() for k in _keys_str.split(',') if k.strip()]
+    
+    # Fallback to empty list gracefully if no keys found
+    if not GEMINI_API_KEYS:
+        logger.warning("No Gemini API keys found in environment variables (GEMINI_API_KEYS)")
     
     _key_index = 0  # Class variable for round-robin rotation
     
@@ -37,6 +36,9 @@ class GeminiAIService:
     @classmethod
     def get_gemini_api_key(cls):
         """Get next API key in round-robin rotation"""
+        if not cls.GEMINI_API_KEYS:
+            raise ValueError("No Gemini API keys configured. Please add GEMINI_API_KEYS to your .env file.")
+            
         key = cls.GEMINI_API_KEYS[cls._key_index]
         cls._key_index = (cls._key_index + 1) % len(cls.GEMINI_API_KEYS)
         return key
