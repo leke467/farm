@@ -106,9 +106,21 @@ Provide helpful, practical advice about farm management, profitability, and opti
             
             logger.info(f"Sending prompt to Gemini (length: {len(full_prompt)})")
             
-            # Get response using google.generativeai API
-            response = self.model.generate_content(full_prompt)
-            ai_response = response.text
+            # Get response using new google.genai API
+            try:
+                response = self.client.models.generate_content(
+                    model='gemini-2.0-flash',
+                    contents=full_prompt
+                )
+                ai_response = response.text
+            except AttributeError as e:
+                # Try alternative API format
+                logger.warning(f"AttributeError with models API, trying alternative: {str(e)}")
+                response = self.client.models.generate_content(
+                    model='gemini-2.0-flash',
+                    contents=[{'text': full_prompt}]
+                )
+                ai_response = response.text
             
             logger.info(f"Got response from Gemini: {len(ai_response)} chars")
             

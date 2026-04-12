@@ -11,4 +11,4 @@ cmds = [
 ]
 
 [start]
-cmd = "gunicorn terra_track.wsgi --bind 0.0.0.0:$PORT"
+cmd = "sh -c \"gunicorn terra_track.wsgi --bind 0.0.0.0:$PORT\""
