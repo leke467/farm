@@ -5,6 +5,7 @@ Django settings for terra_track project.
 from pathlib import Path
 from decouple import config
 import os
+import dj_database_url
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -73,50 +74,60 @@ TEMPLATES = [
 WSGI_APPLICATION = 'terra_track.wsgi.application'
 
 # Database
-DB_TYPE = config('DB_TYPE', default='sqlite3')
-if DB_TYPE.lower() == 'sqlite3':
+# Use Railway's DATABASE_URL if available, otherwise fall back to individual vars
+if 'DATABASE_URL' in os.environ:
     DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
-        }
+        'default': dj_database_url.config(
+            default=os.environ.get('DATABASE_URL'),
+            conn_max_age=600,
+            conn_health_checks=True,
+        )
     }
-elif DB_TYPE.lower() == 'mssql':
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sql_server.pyodbc',
-            'NAME': config('DB_NAME', default='your_db_name'),
-            'USER': config('DB_USER', default='your_db_user'),
-            'PASSWORD': config('DB_PASSWORD', default='your_db_password'),
-            'HOST': config('DB_HOST', default='localhost'),
-            'PORT': config('DB_PORT', default=1433, cast=int),
-            'OPTIONS': {
-                'driver': config('DB_DRIVER', default='ODBC Driver 17 for SQL Server'),
-            },
+else:
+    DB_TYPE = config('DB_TYPE', default='sqlite3')
+    if DB_TYPE.lower() == 'sqlite3':
+        DATABASES = {
+            'default': {
+                'ENGINE': 'django.db.backends.sqlite3',
+                'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+            }
         }
-    }
-elif DB_TYPE.lower() == 'mysql':
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.mysql',
-            'NAME': config('DB_NAME', default='your_db_name'),
-            'USER': config('DB_USER', default='your_db_user'),
-            'PASSWORD': config('DB_PASSWORD', default='your_db_password'),
-            'HOST': config('DB_HOST', default='localhost'),
-            'PORT': config('DB_PORT', default=3306, cast=int),
+    elif DB_TYPE.lower() == 'mssql':
+        DATABASES = {
+            'default': {
+                'ENGINE': 'django.db.backends.sql_server.pyodbc',
+                'NAME': config('DB_NAME', default='your_db_name'),
+                'USER': config('DB_USER', default='your_db_user'),
+                'PASSWORD': config('DB_PASSWORD', default='your_db_password'),
+                'HOST': config('DB_HOST', default='localhost'),
+                'PORT': config('DB_PORT', default=1433, cast=int),
+                'OPTIONS': {
+                    'driver': config('DB_DRIVER', default='ODBC Driver 17 for SQL Server'),
+                },
+            }
         }
-    }
-elif DB_TYPE.lower() == 'postgres':
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.postgresql',
-            'NAME': config('DB_NAME', default='your_db_name'),
-            'USER': config('DB_USER', default='your_db_user'),
-            'PASSWORD': config('DB_PASSWORD', default='your_db_password'),
-            'HOST': config('DB_HOST', default='localhost'),
-            'PORT': config('DB_PORT', default=5432, cast=int),
+    elif DB_TYPE.lower() == 'mysql':
+        DATABASES = {
+            'default': {
+                'ENGINE': 'django.db.backends.mysql',
+                'NAME': config('DB_NAME', default='your_db_name'),
+                'USER': config('DB_USER', default='your_db_user'),
+                'PASSWORD': config('DB_PASSWORD', default='your_db_password'),
+                'HOST': config('DB_HOST', default='localhost'),
+                'PORT': config('DB_PORT', default=3306, cast=int),
+            }
         }
-    }
+    elif DB_TYPE.lower() == 'postgres':
+        DATABASES = {
+            'default': {
+                'ENGINE': 'django.db.backends.postgresql',
+                'NAME': config('DB_NAME', default='your_db_name'),
+                'USER': config('DB_USER', default='your_db_user'),
+                'PASSWORD': config('DB_PASSWORD', default='your_db_password'),
+                'HOST': config('DB_HOST', default='localhost'),
+                'PORT': config('DB_PORT', default=5432, cast=int),
+            }
+        }
 
 
 
