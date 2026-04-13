@@ -5,10 +5,8 @@ aptPkgs = ["...", "libpq-dev"]
 [phases.build]
 cmds = [
     "...",
-    "python manage.py migrate --noinput",
-    "python create_superuser.py",
     "python manage.py collectstatic --noinput"
 ]
 
 [start]
-cmd = "sh -c \"gunicorn terra_track.wsgi --bind 0.0.0.0:$PORT\""
+cmd = "sh start.sh"
