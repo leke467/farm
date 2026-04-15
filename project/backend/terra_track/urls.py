@@ -14,7 +14,7 @@ urlpatterns = [
     path('api/inventory/', include('inventory.urls')),
     path('api/expenses/', include('expenses.urls')),
     path('api/reports/', include('reports.urls')),
-    path('api/ai-agent/', include('ai_agent.urls')),
+    # path('api/ai-agent/', include('ai_agent.urls')),
 ]
 
 if settings.DEBUG:
