@@ -9,4 +9,4 @@ cmds = [
 ]
 
 [start]
-cmd = "python manage.py migrate --noinput && python create_superuser.py && sh -c \"gunicorn terra_track.wsgi --bind 0.0.0.0:$PORT\""
+cmd = "python manage.py migrate --noinput && (python create_superuser.py || true) && sh -c \"gunicorn terra_track.wsgi --bind 0.0.0.0:$PORT --log-level debug --access-logfile - --error-logfile - --timeout 120\""
