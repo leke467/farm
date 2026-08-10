@@ -82,17 +82,26 @@ const HealthAlerts = () => {
   const fetchHealthData = async () => {
     setIsLoading(true);
     try {
+      const farmParam = activeFarm?.id ? `?farm=${activeFarm.id}` : "";
       const [alertsRes, vaccsRes, breedingRes, animalsRes] = await Promise.all([
-        apiService.get("/api/animals/health-alerts/"),
-        apiService.get("/api/animals/vaccinations/"),
-        apiService.get("/api/animals/breeding/"),
-        apiService.get("/api/animals/"),
+        apiService.get(`/animals/health-alerts/${farmParam}`).catch(() => []),
+        apiService.get(`/animals/vaccinations/${farmParam}`).catch(() => []),
+        apiService.get(`/animals/breeding/${farmParam}`).catch(() => []),
+        apiService.getAnimals({ farm: activeFarm?.id }).catch(() => []),
       ]);
 
-      setAlerts(alertsRes.data);
-      setVaccinations(vaccsRes.data);
-      setBreedingCalendars(breedingRes.data);
-      setAnimals(animalsRes.data);
+      const parseArray = (res) => {
+        if (!res || res._error) return [];
+        if (Array.isArray(res)) return res;
+        if (Array.isArray(res?.results)) return res.results;
+        if (Array.isArray(res?.data)) return res.data;
+        return [];
+      };
+
+      setAlerts(parseArray(alertsRes));
+      setVaccinations(parseArray(vaccsRes));
+      setBreedingCalendars(parseArray(breedingRes));
+      setAnimals(parseArray(animalsRes));
     } catch (error) {
       setApiError("Failed to load health data");
       console.error("Error fetching health data:", error);
@@ -103,59 +112,43 @@ const HealthAlerts = () => {
 
   const onAlertSubmit = async (data) => {
     try {
-      await apiService.post("/api/animals/health-alerts/", data);
+      await apiService.post("/animals/health-alerts/", data);
       setApiSuccess("Health alert created successfully!");
       resetAlert();
       setIsAddAlertModalOpen(false);
       fetchHealthData();
-      setTimeout(() => setApiSuccess(""), 3000);
     } catch (error) {
-      setApiError(error.response?.data?.detail || "Failed to create health alert");
+      setApiError("Failed to create health alert");
     }
   };
 
   const onVaccineSubmit = async (data) => {
     try {
-      await apiService.post("/api/animals/vaccinations/", data);
+      await apiService.post("/animals/vaccinations/", data);
       setApiSuccess("Vaccination scheduled successfully!");
       resetVaccine();
       setIsAddVaccineModalOpen(false);
       fetchHealthData();
-      setTimeout(() => setApiSuccess(""), 3000);
     } catch (error) {
-      setApiError(error.response?.data?.detail || "Failed to schedule vaccination");
+      setApiError("Failed to schedule vaccination");
     }
   };
 
   const onBreedingSubmit = async (data) => {
     try {
-      await apiService.post("/api/animals/breeding/", data);
-      setApiSuccess("Breeding calendar created successfully!");
+      await apiService.post("/animals/breeding/", data);
+      setApiSuccess("Breeding record added successfully!");
       resetBreeding();
       setIsAddBreedingModalOpen(false);
       fetchHealthData();
-      setTimeout(() => setApiSuccess(""), 3000);
     } catch (error) {
-      setApiError(error.response?.data?.detail || "Failed to create breeding calendar");
-    }
-  };
-
-  const handleAcknowledgeAlert = async (alertId) => {
-    try {
-      await apiService.patch(`/api/animals/health-alerts/${alertId}/`, {
-        status: "acknowledged",
-      });
-      fetchHealthData();
-      setApiSuccess("Alert acknowledged!");
-      setTimeout(() => setApiSuccess(""), 2000);
-    } catch (error) {
-      setApiError("Failed to acknowledge alert");
+      setApiError("Failed to add breeding record");
     }
   };
 
   const handleResolveAlert = async (alertId) => {
     try {
-      await apiService.patch(`/api/animals/health-alerts/${alertId}/`, {
+      await apiService.patch(`/animals/health-alerts/${alertId}/`, {
         status: "resolved",
       });
       fetchHealthData();
@@ -168,7 +161,7 @@ const HealthAlerts = () => {
 
   const handleDeleteAlert = (alertId) => {
     if (window.confirm("Are you sure you want to delete this alert?")) {
-      apiService.delete(`/api/animals/health-alerts/${alertId}/`).then(() => {
+      apiService.delete(`/animals/health-alerts/${alertId}/`).then(() => {
         fetchHealthData();
         setApiSuccess("Alert deleted!");
         setTimeout(() => setApiSuccess(""), 2000);
@@ -176,8 +169,13 @@ const HealthAlerts = () => {
     }
   };
 
+  const safeAlerts = Array.isArray(alerts) ? alerts : [];
+  const safeVaccinations = Array.isArray(vaccinations) ? vaccinations : [];
+  const safeBreedingCalendars = Array.isArray(breedingCalendars) ? breedingCalendars : [];
+  const safeAnimals = Array.isArray(animals) ? animals : [];
+
   // Filters
-  const filteredAlerts = alerts.filter((alert) => {
+  const filteredAlerts = safeAlerts.filter((alert) => {
     let matches = true;
     if (filterPriority !== "all") matches = matches && alert.priority === filterPriority;
     if (filterStatus !== "all") matches = matches && alert.status === filterStatus;
@@ -185,14 +183,14 @@ const HealthAlerts = () => {
   });
 
   // Stats
-  const activeAlerts = alerts.filter((a) => a.status === "active").length;
-  const overdueVaccines = vaccinations.filter((v) => v.status === "overdue").length;
-  const upcomingBreedings = breedingCalendars.filter((b) => b.status === "planning").length;
+  const activeAlerts = safeAlerts.filter((a) => a.status === "active").length;
+  const overdueVaccines = safeVaccinations.filter((v) => v.status === "overdue").length;
+  const upcomingBreedings = safeBreedingCalendars.filter((b) => b.status === "planning").length;
 
   // Animals dropdown
-  const animalOptions = animals.map((a) => ({
+  const animalOptions = safeAnimals.map((a) => ({
     value: a.id,
-    label: `${a.name} (${a.animal_type})`,
+    label: `${a.name || 'Animal #' + a.id} (${a.animal_type || a.type || 'Animal'})`,
   }));
 
   // Priority and status options

@@ -1,4 +1,5 @@
 from django.db import models
+from django.utils import timezone
 from farms.models import Farm
 
 class Animal(models.Model):
@@ -28,11 +29,13 @@ class Animal(models.Model):
         ('pregnant', 'Pregnant'),
         ('nursing', 'Nursing'),
         ('quarantined', 'Quarantined'),
+        ('sold', 'Sold'),
+        ('archived', 'Archived'),
     ]
     
     farm = models.ForeignKey(Farm, on_delete=models.CASCADE, related_name='animals')
     name = models.CharField(max_length=100)
-    animal_type = models.CharField(max_length=20, choices=ANIMAL_TYPE_CHOICES)
+    animal_type = models.CharField(max_length=50)
     breed = models.CharField(max_length=100, blank=True)
     birth_date = models.DateField(null=True, blank=True)
     gender = models.CharField(max_length=10, choices=GENDER_CHOICES, default='female')
@@ -40,11 +43,12 @@ class Animal(models.Model):
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='healthy')
     notes = models.TextField(blank=True)
     
-    # Group tracking fields
+    # Group tracking & acquisition fields
     is_group = models.BooleanField(default=False)
     count = models.PositiveIntegerField(default=1)
     avg_weight = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True)
     established_date = models.DateField(null=True, blank=True)
+    purchase_cost = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True, default=0, help_text="Initial purchase / acquisition price")
     
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -76,16 +80,65 @@ class MedicalRecord(models.Model):
     class Meta:
         ordering = ['-date']
 
+class FeedMix(models.Model):
+    """Custom Feed Mix / Formulation Ratio (e.g., Broiler Finisher Blend: 60% Maize + 40% Soy)"""
+    farm = models.ForeignKey('farms.Farm', on_delete=models.CASCADE, related_name='feed_mixes')
+    name = models.CharField(max_length=150)
+    description = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['name']
+
+    def __str__(self):
+        return f"{self.name} ({self.farm.name})"
+
+class FeedMixItem(models.Model):
+    """Component ingredient and percentage in a FeedMix"""
+    feed_mix = models.ForeignKey(FeedMix, on_delete=models.CASCADE, related_name='ingredients')
+    inventory_item = models.ForeignKey('inventory.InventoryItem', on_delete=models.SET_NULL, null=True, blank=True, related_name='feed_mix_components')
+    ingredient_name = models.CharField(max_length=100)
+    percentage = models.DecimalField(max_digits=5, decimal_places=2, help_text="Proportion percentage (e.g. 60.00)")
+
+    def __str__(self):
+        return f"{self.ingredient_name} ({self.percentage}%)"
+
 class FeedRecord(models.Model):
-    animal = models.ForeignKey(Animal, on_delete=models.CASCADE, related_name='food_consumption')
-    date = models.DateField()
+    animal = models.ForeignKey(Animal, on_delete=models.CASCADE, related_name='food_consumption', null=True, blank=True)
+    group_name = models.CharField(max_length=100, blank=True)
+    date = models.DateField(default=timezone.now)
     amount = models.DecimalField(max_digits=8, decimal_places=2)
+    unit = models.CharField(max_length=20, default='kg')
     feed_type = models.CharField(max_length=100, blank=True)
+    feed_mix = models.ForeignKey(FeedMix, on_delete=models.SET_NULL, null=True, blank=True, related_name='feed_records')
+    cost = models.DecimalField(max_digits=10, decimal_places=2, default=0, null=True, blank=True)
+    deduct_from_inventory = models.BooleanField(default=True, help_text="Should feed be deducted from inventory stock")
+    is_recurring = models.BooleanField(default=False)
+    end_date = models.DateField(null=True, blank=True, help_text="Recurring daily feed schedule end date")
     notes = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
-    
+
     class Meta:
         ordering = ['-date']
+
+class RecurringFeedSchedule(models.Model):
+    farm = models.ForeignKey('farms.Farm', on_delete=models.CASCADE, related_name='recurring_feed_schedules')
+    animal = models.ForeignKey(Animal, on_delete=models.CASCADE, related_name='recurring_schedules', null=True, blank=True)
+    group_name = models.CharField(max_length=100, blank=True)
+    feed_type = models.CharField(max_length=100, blank=True)
+    feed_mix = models.ForeignKey(FeedMix, on_delete=models.SET_NULL, null=True, blank=True, related_name='recurring_schedules')
+    daily_amount = models.DecimalField(max_digits=8, decimal_places=2)
+    unit = models.CharField(max_length=20, default='kg')
+    start_date = models.DateField(default=timezone.now)
+    end_date = models.DateField()
+    deduct_from_inventory = models.BooleanField(default=True)
+    is_active = models.BooleanField(default=True)
+    last_run_date = models.DateField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
 
 class SampleWeight(models.Model):
     animal = models.ForeignKey(Animal, on_delete=models.CASCADE, related_name='sample_weights')
@@ -132,7 +185,7 @@ class Vaccination(models.Model):
     ]
     
     animal = models.ForeignKey(Animal, on_delete=models.CASCADE, related_name='vaccinations')
-    vaccine_type = models.CharField(max_length=50, choices=VACCINE_TYPE_CHOICES)
+    vaccine_type = models.CharField(max_length=50)
     scheduled_date = models.DateField()
     completed_date = models.DateField(null=True, blank=True)
     veterinarian = models.CharField(max_length=100, blank=True)
@@ -271,7 +324,7 @@ class ProductionRecord(models.Model):
     ]
     
     animal = models.ForeignKey(Animal, on_delete=models.CASCADE, related_name='production_records')
-    production_type = models.CharField(max_length=20, choices=PRODUCTION_TYPE_CHOICES)
+    production_type = models.CharField(max_length=50)
     quantity = models.DecimalField(max_digits=10, decimal_places=2)
     unit = models.CharField(max_length=50, help_text="e.g. liters, pieces, kg")
     recorded_date = models.DateField()

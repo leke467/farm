@@ -1,9 +1,13 @@
 import { useState } from 'react';
-import { FiEdit2, FiTrash2, FiChevronDown, FiChevronUp } from 'react-icons/fi';
 import { motion } from 'framer-motion';
+import { FiEdit2, FiTrash2, FiChevronUp, FiChevronDown } from 'react-icons/fi';
+import { useFarmData } from '../../context/FarmDataContext';
+import { formatFarmCurrency } from '../../utils/formatters';
 
-function AnimalCard({ animal, onEdit, onDelete }) {
+function AnimalCard({ animal, onEdit, onDelete, onLogFeed, onRecordProduction }) {
+  const { activeFarm } = useFarmData();
   const [expanded, setExpanded] = useState(false);
+  const feedRecords = animal.food_consumption || animal.foodConsumption || animal.feed_records || [];
   
   // Calculate animal age
   const calculateAge = (birthDate) => {
@@ -66,7 +70,16 @@ function AnimalCard({ animal, onEdit, onDelete }) {
               )}
             </div>
           </div>
-          <div className="flex space-x-2">
+          <div className="flex items-center space-x-2">
+            {onRecordProduction && (
+              <button
+                onClick={() => onRecordProduction(animal)}
+                className="px-2.5 py-1 text-xs font-bold text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border border-emerald-300 rounded-lg flex items-center gap-1 transition-colors shadow-2xs"
+                title="Record Milk, Eggs, Wool, or Yield from this animal"
+              >
+                <span>🥛 Yield</span>
+              </button>
+            )}
             <button 
               onClick={() => onEdit(animal)}
               className="p-2 text-gray-500 hover:text-primary-500 hover:bg-primary-50 rounded-full"
@@ -172,28 +185,42 @@ function AnimalCard({ animal, onEdit, onDelete }) {
                 
                 {/* Feed consumption */}
                 <div className="mb-6">
-                  <h4 className="text-lg font-medium mb-3">Feed Consumption</h4>
-                  {animal.foodConsumption && animal.foodConsumption.length > 0 ? (
-                    <div className="overflow-x-auto">
-                      <table className="min-w-full">
-                        <thead>
-                          <tr className="border-b">
+                  <div className="flex justify-between items-center mb-3">
+                    <h4 className="text-lg font-medium text-slate-800">🌾 Feed Consumption</h4>
+                    {onLogFeed && (
+                      <button
+                        onClick={() => onLogFeed(animal)}
+                        className="text-xs bg-green-600 hover:bg-green-700 text-white px-2.5 py-1.5 rounded-lg font-medium transition-colors flex items-center gap-1"
+                      >
+                        + Log Feed
+                      </button>
+                    )}
+                  </div>
+                  {feedRecords.length > 0 ? (
+                    <div className="overflow-x-auto border rounded-lg">
+                      <table className="min-w-full text-xs">
+                        <thead className="bg-slate-50 border-b">
+                          <tr>
                             <th className="text-left py-2 px-3">Date</th>
-                            <th className="text-right py-2 px-3">Amount (lbs)</th>
+                            <th className="text-left py-2 px-3">Feed Type</th>
+                            <th className="text-right py-2 px-3">Amount</th>
+                            <th className="text-right py-2 px-3">Cost</th>
                           </tr>
                         </thead>
-                        <tbody>
-                          {animal.foodConsumption.map((record, index) => (
-                            <tr key={index} className="border-b">
-                              <td className="py-2 px-3">{new Date(record.date).toLocaleDateString()}</td>
-                              <td className="text-right py-2 px-3">{record.amount}</td>
+                        <tbody className="divide-y">
+                          {feedRecords.map((record, index) => (
+                            <tr key={index} className="hover:bg-slate-50">
+                              <td className="py-2 px-3">{record.date}</td>
+                              <td className="py-2 px-3 font-medium text-slate-700">{record.feed_type || 'Feed'}</td>
+                              <td className="text-right py-2 px-3 font-bold text-slate-900">{record.amount} {record.unit || 'kg'}</td>
+                              <td className="text-right py-2 px-3 text-slate-600 font-semibold">{formatFarmCurrency(record.cost || 0, activeFarm)}</td>
                             </tr>
                           ))}
                         </tbody>
                       </table>
                     </div>
                   ) : (
-                    <p className="text-gray-500">No feed data available</p>
+                    <p className="text-gray-500 text-xs">No feed recorded yet for this group.</p>
                   )}
                 </div>
                 
@@ -275,28 +302,42 @@ function AnimalCard({ animal, onEdit, onDelete }) {
                 </div>
                 
                 <div>
-                  <h4 className="text-lg font-medium mb-3">Feed Consumption</h4>
-                  {animal.foodConsumption && animal.foodConsumption.length > 0 ? (
-                    <div className="overflow-x-auto">
-                      <table className="min-w-full">
-                        <thead>
-                          <tr className="border-b">
+                  <div className="flex justify-between items-center mb-3">
+                    <h4 className="text-lg font-medium text-slate-800">🌾 Feed Consumption</h4>
+                    {onLogFeed && (
+                      <button
+                        onClick={() => onLogFeed(animal)}
+                        className="text-xs bg-green-600 hover:bg-green-700 text-white px-2.5 py-1.5 rounded-lg font-medium transition-colors flex items-center gap-1"
+                      >
+                        + Log Feed
+                      </button>
+                    )}
+                  </div>
+                  {feedRecords.length > 0 ? (
+                    <div className="overflow-x-auto border rounded-lg">
+                      <table className="min-w-full text-xs">
+                        <thead className="bg-slate-50 border-b">
+                          <tr>
                             <th className="text-left py-2 px-3">Date</th>
-                            <th className="text-right py-2 px-3">Amount (lbs)</th>
+                            <th className="text-left py-2 px-3">Feed Type</th>
+                            <th className="text-right py-2 px-3">Amount</th>
+                            <th className="text-right py-2 px-3">Cost</th>
                           </tr>
                         </thead>
-                        <tbody>
-                          {animal.foodConsumption.map((record, index) => (
-                            <tr key={index} className="border-b">
-                              <td className="py-2 px-3">{new Date(record.date).toLocaleDateString()}</td>
-                              <td className="text-right py-2 px-3">{record.amount}</td>
+                        <tbody className="divide-y">
+                          {feedRecords.map((record, index) => (
+                            <tr key={index} className="hover:bg-slate-50">
+                              <td className="py-2 px-3">{record.date}</td>
+                              <td className="py-2 px-3 font-medium text-slate-700">{record.feed_type || 'Feed'}</td>
+                              <td className="text-right py-2 px-3 font-bold text-slate-900">{record.amount} {record.unit || 'kg'}</td>
+                              <td className="text-right py-2 px-3 text-slate-600 font-semibold">{formatFarmCurrency(record.cost || 0, activeFarm)}</td>
                             </tr>
                           ))}
                         </tbody>
                       </table>
                     </div>
                   ) : (
-                    <p className="text-gray-500">No feed data available</p>
+                    <p className="text-gray-500 text-xs">No feed recorded yet for this animal.</p>
                   )}
                 </div>
               </>

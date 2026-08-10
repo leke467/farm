@@ -1,4 +1,29 @@
 import { useState } from "react";
+import { FiInfo } from "react-icons/fi";
+
+/**
+ * Helper component for rendering Field Label + Hoverable Tooltip Hint Icon
+ */
+export function FieldLabelWithHint({ label, required, hint, htmlFor }) {
+  if (!label) return null;
+  return (
+    <div className="flex items-center gap-1.5 mb-1.5">
+      <label htmlFor={htmlFor} className="block text-sm font-medium text-gray-700">
+        <span>{label}</span>
+        {required ? <span className="text-red-500 ml-1">*</span> : null}
+      </label>
+      {hint ? (
+        <div className="relative group flex items-center">
+          <FiInfo className="w-3.5 h-3.5 text-gray-400 hover:text-green-600 transition-colors cursor-help flex-shrink-0" />
+          <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block w-56 p-2 bg-slate-900 text-white text-xs rounded-md shadow-xl z-50 pointer-events-none leading-relaxed text-center font-normal">
+            <span>{hint}</span>
+            <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-slate-900"></div>
+          </div>
+        </div>
+      ) : null}
+    </div>
+  );
+}
 
 /**
  * FormField Component - Reusable form field with validation
@@ -17,11 +42,14 @@ export function FormField({
   pattern,
   disabled = false,
   className = "",
+  helperText,
+  explanation,
 }) {
   const [showPassword, setShowPassword] = useState(false);
 
   const error = errors?.[name];
   const hasError = !!error;
+  const hint = helperText || explanation;
 
   const inputClasses = `
     w-full px-4 py-2 border rounded-lg transition-colors
@@ -35,12 +63,7 @@ export function FormField({
 
   return (
     <div className="mb-4">
-      {label && (
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          {label}
-          {required && <span className="text-red-500 ml-1">*</span>}
-        </label>
-      )}
+      <FieldLabelWithHint label={label} required={required} hint={hint} htmlFor={name} />
 
       <div className="relative">
         <input
@@ -97,18 +120,16 @@ export function SelectField({
   required = false,
   disabled = false,
   className = "",
+  helperText,
+  explanation,
 }) {
   const error = errors?.[name];
   const hasError = !!error;
+  const hint = helperText || explanation;
 
   return (
     <div className="mb-4">
-      {label && (
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          {label}
-          {required && <span className="text-red-500 ml-1">*</span>}
-        </label>
-      )}
+      <FieldLabelWithHint label={label} required={required} hint={hint} htmlFor={name} />
 
       <select
         {...register(name, {
@@ -153,18 +174,16 @@ export function TextAreaField({
   rows = 4,
   disabled = false,
   className = "",
+  helperText,
+  explanation,
 }) {
   const error = errors?.[name];
   const hasError = !!error;
+  const hint = helperText || explanation;
 
   return (
     <div className="mb-4">
-      {label && (
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          {label}
-          {required && <span className="text-red-500 ml-1">*</span>}
-        </label>
-      )}
+      <FieldLabelWithHint label={label} required={required} hint={hint} htmlFor={name} />
 
       <textarea
         {...register(name, {
@@ -212,18 +231,16 @@ export function DateField({
   max,
   disabled = false,
   className = "",
+  helperText,
+  explanation,
 }) {
   const error = errors?.[name];
   const hasError = !!error;
+  const hint = helperText || explanation;
 
   return (
     <div className="mb-4">
-      {label && (
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          {label}
-          {required && <span className="text-red-500 ml-1">*</span>}
-        </label>
-      )}
+      <FieldLabelWithHint label={label} required={required} hint={hint} htmlFor={name} />
 
       <input
         {...register(name, {
@@ -263,7 +280,30 @@ export function DateField({
 }
 
 /**
- * NumberField Component - Number input with validation
+ * Format string/number to include thousands separator commas
+ * e.g. "1000000" -> "1,000,000"
+ * e.g. "2000.50" -> "2,000.50"
+ */
+export function formatNumberWithCommas(value) {
+  if (value === null || value === undefined || value === "") return "";
+  const str = String(value).replace(/,/g, "");
+  if (isNaN(str) && str !== "-" && !str.includes(".")) return value;
+  const parts = str.split(".");
+  parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  return parts.join(".");
+}
+
+/**
+ * Remove commas from formatted string
+ * e.g. "1,000,000" -> "1000000"
+ */
+export function cleanCommaNumber(value) {
+  if (value === null || value === undefined || value === "") return "";
+  return String(value).replace(/,/g, "");
+}
+
+/**
+ * NumberField Component - Input with automatic thousands separator commas
  */
 export function NumberField({
   label,
@@ -277,46 +317,58 @@ export function NumberField({
   step = "any",
   disabled = false,
   className = "",
+  helperText,
+  explanation,
+  onChange: customOnChange,
 }) {
   const error = errors?.[name];
   const hasError = !!error;
+  const hint = helperText || explanation;
+
+  const fieldRegister = register
+    ? register(name, {
+        required: required ? `${label || name} is required` : false,
+        validate: (value) => {
+          if (!value) return true;
+          const cleanVal = cleanCommaNumber(value);
+          const numValue = parseFloat(cleanVal);
+          if (isNaN(numValue)) return "Please enter a valid number";
+          if (min !== undefined && numValue < parseFloat(min)) {
+            return `Must be at least ${min}`;
+          }
+          if (max !== undefined && numValue > parseFloat(max)) {
+            return `Cannot exceed ${max}`;
+          }
+          return true;
+        },
+      })
+    : {};
+
+  const handleChange = (e) => {
+    const rawVal = e.target.value;
+    const cleaned = cleanCommaNumber(rawVal);
+    // Allow digits, single decimal dot, negative sign
+    if (/^-?\d*\.?\d*$/.test(cleaned)) {
+      const formatted = formatNumberWithCommas(cleaned);
+      e.target.value = formatted;
+      if (fieldRegister.onChange) fieldRegister.onChange(e);
+      if (customOnChange) customOnChange(cleaned, formatted);
+    }
+  };
 
   return (
     <div className="mb-4">
-      {label && (
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          {label}
-          {required && <span className="text-red-500 ml-1">*</span>}
-        </label>
-      )}
+      <FieldLabelWithHint label={label} required={required} hint={hint} htmlFor={name} />
 
       <input
-        {...register(name, {
-          required: required ? `${label || name} is required` : false,
-          validate: (value) => {
-            if (!value) return true;
-
-            const numValue = parseFloat(value);
-
-            if (min !== undefined && numValue < parseFloat(min)) {
-              return `Must be at least ${min}`;
-            }
-
-            if (max !== undefined && numValue > parseFloat(max)) {
-              return `Cannot exceed ${max}`;
-            }
-
-            return true;
-          },
-        })}
-        type="number"
+        {...fieldRegister}
+        type="text"
+        inputMode="decimal"
         placeholder={placeholder}
-        min={min}
-        max={max}
-        step={step}
         disabled={disabled}
+        onChange={handleChange}
         className={`
-          w-full px-4 py-2 border rounded-lg transition-colors
+          w-full px-4 py-2 border rounded-lg transition-colors font-mono font-medium
           ${hasError ? "border-red-500 bg-red-50" : "border-gray-300 bg-white"}
           focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent
           ${disabled ? "bg-gray-100 cursor-not-allowed" : ""}

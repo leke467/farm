@@ -46,11 +46,16 @@ function Dashboard() {
     (item) => item.quantity <= item.minQuantity
   ).length;
 
+  const currencySymbol = activeFarm?.currency === 'USD' ? '$' : activeFarm?.currency === 'EUR' ? '€' : activeFarm?.currency === 'GBP' ? '£' : '₦';
+  const areaUnit = activeFarm?.unit_system === 'metric' ? 'hectares' : 'acres';
+
   return (
-    <div className="p-3 sm:p-6 lg:p-8">
-      <div className="mb-6 sm:mb-8">
-        <h1 className="text-2xl sm:text-3xl lg:text-4xl font-display font-bold">Dashboard</h1>
-        <p className="text-sm sm:text-base text-gray-600 mt-1">Farm overview and key metrics</p>
+    <div className="space-y-6 sm:space-y-8">
+      <div>
+        <h1 className="text-2xl sm:text-3xl lg:text-4xl font-display font-bold text-gray-900">Dashboard</h1>
+        <p className="text-xs sm:text-sm text-gray-600 mt-1">
+          {activeFarm?.name ? `${activeFarm.name} — Overview` : 'Farm overview and key metrics'}
+        </p>
       </div>
 
       {/* Summary Cards */}
@@ -63,15 +68,15 @@ function Dashboard() {
           color="primary"
         />
         <SummaryCard
-          title="Crop Acreage"
-          value={`${totalAcres} acres`}
+          title="Crop Area"
+          value={`${totalAcres} ${areaUnit}`}
           icon={<FiGrid size={24} />}
           change={0}
           color="secondary"
         />
         <SummaryCard
           title="This Month Expenses"
-          value={`$${thisMonthExpenses.toLocaleString()}`}
+          value={`${currencySymbol}${thisMonthExpenses.toLocaleString()}`}
           icon={<FiDollarSign size={24} />}
           change={-3}
           color="accent"

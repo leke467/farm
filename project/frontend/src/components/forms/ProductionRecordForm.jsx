@@ -1,51 +1,67 @@
 import { useState, useEffect } from "react";
-import { FiPlus, FiX } from "react-icons/fi";
+import { FiPlus, FiX, FiCheckCircle } from "react-icons/fi";
 import apiService from "../../services/api";
+import { useFarmData } from "../../context/FarmDataContext";
+import { useToast } from "../../context/ToastContext";
 
 const ProductionRecordForm = ({ animalId, onClose, onSuccess, animals = [] }) => {
+  const { activeFarm } = useFarmData();
+  const { toast } = useToast();
+  const currencySymbol = activeFarm?.currency_symbol || "₦";
+
   const [formData, setFormData] = useState({
     animal: animalId || "",
     date: new Date().toISOString().split("T")[0],
     production_type: "milk",
     quantity: "",
     unit: "liters",
-    quality_grade: "good",
+    quality_grade: "A",
     market_price_per_unit: "",
     notes: "",
   });
 
+  const [looseQuantity, setLooseQuantity] = useState("");
+  const [unitsPerCrate, setUnitsPerCrate] = useState(30);
+
+  const [addToInventory, setAddToInventory] = useState(true);
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
 
+  const isEggOrCrate = formData.production_type === "eggs" || formData.unit === "crates";
+
   const productionTypes = [
-    { value: "milk", label: "Milk" },
-    { value: "eggs", label: "Eggs" },
-    { value: "wool", label: "Wool" },
-    { value: "meat", label: "Meat" },
-    { value: "honey", label: "Honey" },
-    { value: "dairy", label: "Dairy Products" },
-    { value: "other", label: "Other" },
+    { value: "eggs", label: "Eggs 🥚" },
+    { value: "milk", label: "Milk 🥛" },
+    { value: "wool", label: "Wool 🧶" },
+    { value: "meat", label: "Meat 🥩" },
+    { value: "honey", label: "Honey 🍯" },
+    { value: "dairy", label: "Dairy Products 🧀" },
+    { value: "manure", label: "Manure / Fertilizer 🌾" },
+    { value: "other", label: "Other 📦" },
   ];
 
   const units = {
+    eggs: ["crates", "pieces", "dozen", "units"],
     milk: ["liters", "gallons", "kg"],
-    eggs: ["units", "dozen"],
     wool: ["kg", "lbs"],
     meat: ["kg", "lbs"],
     honey: ["liters", "kg", "lbs"],
     dairy: ["units", "kg"],
+    manure: ["bags", "kg", "tons"],
     other: ["units", "kg", "lbs"],
   };
 
   const qualityGrades = [
-    { value: "premium", label: "Premium" },
-    { value: "good", label: "Good" },
-    { value: "standard", label: "Standard" },
+    { value: "A", label: "Grade A (Premium)" },
+    { value: "B", label: "Grade B (Good)" },
+    { value: "C", label: "Grade C (Standard)" },
   ];
 
   const validateForm = () => {
     const newErrors = {};
+    const mainQty = parseFloat(formData.quantity) || 0;
+    const looseQty = parseFloat(looseQuantity) || 0;
 
     if (!formData.animal) {
       newErrors.animal = "Animal is required";
@@ -53,11 +69,8 @@ const ProductionRecordForm = ({ animalId, onClose, onSuccess, animals = [] }) =>
     if (!formData.date) {
       newErrors.date = "Date is required";
     }
-    if (!formData.quantity || parseFloat(formData.quantity) <= 0) {
+    if (mainQty <= 0 && looseQty <= 0) {
       newErrors.quantity = "Quantity must be greater than 0";
-    }
-    if (!formData.market_price_per_unit || parseFloat(formData.market_price_per_unit) < 0) {
-      newErrors.market_price_per_unit = "Market price must be 0 or greater";
     }
 
     setErrors(newErrors);
@@ -69,10 +82,8 @@ const ProductionRecordForm = ({ animalId, onClose, onSuccess, animals = [] }) =>
     setFormData((prev) => ({
       ...prev,
       [name]: value,
-      // Reset unit if production type changes
       ...(name === "production_type" && { unit: units[value]?.[0] || prev.unit }),
     }));
-    // Clear error for this field when user starts typing
     if (errors[name]) {
       setErrors((prev) => ({ ...prev, [name]: "" }));
     }
@@ -89,15 +100,34 @@ const ProductionRecordForm = ({ animalId, onClose, onSuccess, animals = [] }) =>
     setIsSubmitting(true);
 
     try {
+      const mainQty = parseFloat(formData.quantity) || 0;
+      const looseQty = parseFloat(looseQuantity) || 0;
+      const pcsPerCrate = parseFloat(unitsPerCrate) || 30;
+
+      let finalQuantity = mainQty;
+      let summaryNote = "";
+
+      if (isEggOrCrate && (mainQty > 0 || looseQty > 0)) {
+        if (formData.unit === "crates") {
+          finalQuantity = Number((mainQty + looseQty / pcsPerCrate).toFixed(2));
+          const totalEggs = Math.round(mainQty * pcsPerCrate + looseQty);
+          summaryNote = `[Yield: ${mainQty} crates + ${looseQty} loose pieces = ${finalQuantity} crates (${totalEggs} eggs total)]`;
+        } else if (formData.unit === "pieces") {
+          finalQuantity = Math.round(mainQty + looseQty * pcsPerCrate);
+          summaryNote = `[Yield: ${mainQty} pieces + ${looseQty} crates = ${finalQuantity} eggs total]`;
+        }
+      }
+
       const payload = {
         animal: formData.animal,
-        date: formData.date,
+        recorded_date: formData.date,
         production_type: formData.production_type,
-        quantity: parseFloat(formData.quantity),
+        quantity: finalQuantity,
         unit: formData.unit,
         quality_grade: formData.quality_grade,
-        market_price_per_unit: parseFloat(formData.market_price_per_unit),
-        notes: formData.notes,
+        market_price_per_unit: formData.market_price_per_unit ? parseFloat(formData.market_price_per_unit) : 0,
+        notes: formData.notes ? `${formData.notes}\n${summaryNote}`.trim() : summaryNote,
+        add_to_inventory: addToInventory,
       };
 
       const response = await apiService.createProductionRecord(payload);
@@ -105,17 +135,11 @@ const ProductionRecordForm = ({ animalId, onClose, onSuccess, animals = [] }) =>
       if (response._error) {
         setSubmitError(response.detail || "Failed to create production record");
       } else {
-        // Success
-        setFormData({
-          animal: animalId || "",
-          date: new Date().toISOString().split("T")[0],
-          production_type: "milk",
-          quantity: "",
-          unit: "liters",
-          quality_grade: "good",
-          market_price_per_unit: "",
-          notes: "",
-        });
+        toast.success(
+          `Recorded ${finalQuantity} ${formData.unit} of ${formData.production_type}! ${
+            addToInventory ? "Added to Farm Inventory (Stock In)." : ""
+          }`
+        );
         onSuccess?.();
         if (onClose) {
           onClose();
@@ -148,9 +172,10 @@ const ProductionRecordForm = ({ animalId, onClose, onSuccess, animals = [] }) =>
         <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-4 sm:space-y-5">
           {/* Animal Selection */}
           <div>
-            <label className="block text-xs sm:text-sm font-medium text-slate-700 mb-2">
+            <label className="block text-xs sm:text-sm font-medium text-slate-700 mb-1">
               Animal *
             </label>
+            <p className="text-xs text-slate-500 mb-1.5 leading-relaxed">Select animal or group producing this yield.</p>
             <select
               name="animal"
               value={formData.animal}
@@ -174,9 +199,10 @@ const ProductionRecordForm = ({ animalId, onClose, onSuccess, animals = [] }) =>
 
           {/* Date */}
           <div>
-            <label className="block text-xs sm:text-sm font-medium text-slate-700 mb-2">
+            <label className="block text-xs sm:text-sm font-medium text-slate-700 mb-1">
               Date *
             </label>
+            <p className="text-xs text-slate-500 mb-1.5 leading-relaxed">Date output was collected or recorded.</p>
             <input
               type="date"
               name="date"
@@ -195,9 +221,10 @@ const ProductionRecordForm = ({ animalId, onClose, onSuccess, animals = [] }) =>
           {/* Production Type & Unit */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
             <div>
-              <label className="block text-xs sm:text-sm font-medium text-slate-700 mb-2">
+              <label className="block text-xs sm:text-sm font-medium text-slate-700 mb-1">
                 Type *
               </label>
+              <p className="text-xs text-slate-500 mb-1.5 leading-relaxed">Product type (Milk, Eggs, etc.).</p>
               <select
                 name="production_type"
                 value={formData.production_type}
@@ -213,9 +240,10 @@ const ProductionRecordForm = ({ animalId, onClose, onSuccess, animals = [] }) =>
             </div>
 
             <div>
-              <label className="block text-xs sm:text-sm font-medium text-slate-700 mb-2">
+              <label className="block text-xs sm:text-sm font-medium text-slate-700 mb-1">
                 Unit
               </label>
+              <p className="text-xs text-slate-500 mb-1.5 leading-relaxed">Measurement unit.</p>
               <select
                 name="unit"
                 value={formData.unit}
@@ -233,21 +261,83 @@ const ProductionRecordForm = ({ animalId, onClose, onSuccess, animals = [] }) =>
 
           {/* Quantity */}
           <div>
-            <label className="block text-xs sm:text-sm font-medium text-slate-700 mb-2">
-              Quantity *
+            <label className="block text-xs sm:text-sm font-medium text-slate-700 mb-1">
+              {isEggOrCrate ? "Yield Quantity (Crates & Loose Pieces) *" : "Quantity *"}
             </label>
-            <input
-              type="number"
-              name="quantity"
-              value={formData.quantity}
-              onChange={handleChange}
-              placeholder="0"
-              step="0.01"
-              min="0"
-              className={`w-full px-3 sm:px-4 py-2 sm:py-2.5 text-base border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                errors.quantity ? "border-red-500" : "border-slate-300"
-              }`}
-            />
+            <p className="text-xs text-slate-500 mb-1.5 leading-relaxed">
+              {isEggOrCrate
+                ? "Enter full crates and loose pieces collected (e.g. 3 crates and 16 pieces)."
+                : "Total output collected on this date."}
+            </p>
+
+            {isEggOrCrate ? (
+              <div className="space-y-3 bg-amber-50/70 p-3.5 rounded-xl border border-amber-200 shadow-2xs">
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-bold text-amber-900 mb-1">
+                      Full Crates 📦
+                    </label>
+                    <input
+                      type="number"
+                      name="quantity"
+                      value={formData.quantity}
+                      onChange={handleChange}
+                      placeholder="e.g. 3"
+                      step="1"
+                      min="0"
+                      className="w-full px-3 py-2 text-base border border-amber-300 rounded-lg focus:ring-2 focus:ring-amber-500 bg-white font-bold text-amber-950"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-amber-900 mb-1">
+                      Loose Pieces 🥚
+                    </label>
+                    <input
+                      type="number"
+                      value={looseQuantity}
+                      onChange={(e) => setLooseQuantity(e.target.value)}
+                      placeholder="e.g. 16"
+                      step="1"
+                      min="0"
+                      className="w-full px-3 py-2 text-base border border-amber-300 rounded-lg focus:ring-2 focus:ring-amber-500 bg-white font-bold text-amber-950"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-amber-900 border-t border-amber-200/80 pt-2.5">
+                  <div className="flex items-center gap-1.5">
+                    <span className="font-semibold">Pieces / crate:</span>
+                    <input
+                      type="number"
+                      value={unitsPerCrate}
+                      onChange={(e) => setUnitsPerCrate(e.target.value)}
+                      className="w-12 px-1.5 py-0.5 text-xs text-center border border-amber-300 rounded bg-white font-bold text-slate-800"
+                    />
+                  </div>
+
+                  {((parseFloat(formData.quantity) || 0) > 0 || (parseFloat(looseQuantity) || 0) > 0) && (
+                    <div className="font-black text-emerald-900 bg-emerald-100 px-3 py-1 rounded-lg border border-emerald-300 shadow-2xs">
+                      = {Number(((parseFloat(formData.quantity) || 0) + (parseFloat(looseQuantity) || 0) / (parseFloat(unitsPerCrate) || 30)).toFixed(2))} Crates ({Math.round((parseFloat(formData.quantity) || 0) * (parseFloat(unitsPerCrate) || 30) + (parseFloat(looseQuantity) || 0))} Eggs)
+                    </div>
+                  )}
+                </div>
+              </div>
+            ) : (
+              <input
+                type="number"
+                name="quantity"
+                value={formData.quantity}
+                onChange={handleChange}
+                placeholder="0"
+                step="0.01"
+                min="0"
+                className={`w-full px-3 sm:px-4 py-2 sm:py-2.5 text-base border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                  errors.quantity ? "border-red-500" : "border-slate-300"
+                }`}
+              />
+            )}
+
             {errors.quantity && (
               <p className="text-red-500 text-xs mt-1">{errors.quantity}</p>
             )}
@@ -255,9 +345,10 @@ const ProductionRecordForm = ({ animalId, onClose, onSuccess, animals = [] }) =>
 
           {/* Quality Grade */}
           <div>
-            <label className="block text-xs sm:text-sm font-medium text-slate-700 mb-2">
+            <label className="block text-xs sm:text-sm font-medium text-slate-700 mb-1">
               Quality Grade
             </label>
+            <p className="text-xs text-slate-500 mb-1.5 leading-relaxed">Assessed quality standard of the batch.</p>
             <select
               name="quality_grade"
               value={formData.quality_grade}
@@ -274,15 +365,16 @@ const ProductionRecordForm = ({ animalId, onClose, onSuccess, animals = [] }) =>
 
           {/* Market Price */}
           <div>
-            <label className="block text-xs sm:text-sm font-medium text-slate-700 mb-2">
-              Market Price per Unit (₹) *
+            <label className="block text-xs sm:text-sm font-medium text-slate-700 mb-1">
+              Market Price per Unit ({currencySymbol})
             </label>
+            <p className="text-xs text-slate-500 mb-1.5 leading-relaxed">Estimated market value or selling price per unit.</p>
             <input
               type="number"
               name="market_price_per_unit"
               value={formData.market_price_per_unit}
               onChange={handleChange}
-              placeholder="0"
+              placeholder="0.00"
               step="0.01"
               min="0"
               className={`w-full px-3 sm:px-4 py-2 sm:py-2.5 text-base border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
@@ -292,6 +384,32 @@ const ProductionRecordForm = ({ animalId, onClose, onSuccess, animals = [] }) =>
             {errors.market_price_per_unit && (
               <p className="text-red-500 text-xs mt-1">{errors.market_price_per_unit}</p>
             )}
+          </div>
+
+          {/* Add to Farm Inventory Checkbox */}
+          <div className="bg-emerald-50/90 border border-emerald-300 rounded-xl p-3.5 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-lg bg-emerald-600 text-white font-bold flex items-center justify-center text-base shadow-xs flex-shrink-0">
+                📦
+              </div>
+              <div>
+                <h4 className="text-xs sm:text-sm font-bold text-emerald-950 flex items-center gap-1.5">
+                  <span>Add to Farm Inventory</span>
+                  <span className="bg-emerald-200 text-emerald-900 text-[10px] uppercase tracking-wide font-extrabold px-2 py-0.5 rounded-full">
+                    Green / Yield
+                  </span>
+                </h4>
+                <p className="text-[11px] text-emerald-800 leading-tight mt-0.5">
+                  Automatically adds output (e.g. {formData.production_type || "milk"}) to stock inventory as Green yield.
+                </p>
+              </div>
+            </div>
+            <input
+              type="checkbox"
+              checked={addToInventory}
+              onChange={(e) => setAddToInventory(e.target.checked)}
+              className="w-5 h-5 text-emerald-600 rounded focus:ring-emerald-500 cursor-pointer flex-shrink-0 ml-2"
+            />
           </div>
 
           {/* Notes */}

@@ -72,7 +72,8 @@ class FarmRegistrationSerializer(serializers.ModelSerializer):
     
     def validate_farm_type(self, value):
         """Farm type must be valid"""
-        valid_types = ['mixed', 'livestock', 'crop', 'dairy', 'poultry']
+        from farms.models import Farm
+        valid_types = [t[0] for t in Farm.FARM_TYPE_CHOICES]
         if value and value not in valid_types:
             raise serializers.ValidationError(f"Farm type must be one of: {', '.join(valid_types)}")
         return value
@@ -102,10 +103,9 @@ class FarmRegistrationSerializer(serializers.ModelSerializer):
         farm_data = {k: validated_data.pop(k, None) for k in farm_fields}
         validated_data.pop('confirm_password')
         
-        # Extract role for user (should be 'owner' from frontend)
-        user_role = validated_data.pop('role', 'owner')
-
-        validated_data['is_admin'] = True if user_role == 'admin' else False
+        # Registration always creates an owner
+        validated_data.pop('role', None)
+        validated_data['is_admin'] = True
         
         user = User.objects.create_user(**validated_data)
         # Create farm with provided details
@@ -124,8 +124,12 @@ class FarmRegistrationSerializer(serializers.ModelSerializer):
         FarmMember.objects.create(
             farm=farm,
             user=user,
-            role=user_role
+            role='owner'
         )
+        
+        # Seed default categories for the new farm
+        from farms.management.commands.seed_default_categories import seed_farm_categories
+        seed_farm_categories(farm)
         
         return user
 
@@ -151,6 +155,14 @@ class LoginSerializer(serializers.Serializer):
         
         if username and password:
             user = authenticate(username=username, password=password)
+            if not user:
+                # Fallback: check if 'username' is an email address
+                try:
+                    user_obj = User.objects.get(email__iexact=username)
+                    user = authenticate(username=user_obj.username, password=password)
+                except (User.DoesNotExist, User.MultipleObjectsReturned):
+                    pass
+
             if not user:
                 raise serializers.ValidationError({"non_field_errors": "Invalid username or password"})
             if not user.is_active:
@@ -179,19 +191,23 @@ class ChangePasswordSerializer(serializers.Serializer):
 
     def validate(self, attrs):
         user = self.context['request'].user
+        from django.contrib.auth import get_user_model
+        UserModel = get_user_model()
+        db_user = UserModel.objects.filter(pk=user.pk).first() or user
+
         current_password = attrs.get('current_password')
 
-        if user.must_change_password:
-            if current_password and not user.check_password(current_password):
+        if db_user.must_change_password:
+            if current_password and not db_user.check_password(current_password):
                 raise serializers.ValidationError({'current_password': 'Current password is incorrect'})
         else:
             if not current_password:
                 raise serializers.ValidationError({'current_password': 'Current password is required'})
-            if not user.check_password(current_password):
+            if not db_user.check_password(current_password):
                 raise serializers.ValidationError({'current_password': 'Current password is incorrect'})
 
         if attrs['new_password'] != attrs['confirm_password']:
             raise serializers.ValidationError({'confirm_password': "Passwords don't match"})
 
-        validate_password(attrs['new_password'], user)
+        validate_password(attrs['new_password'], db_user)
         return attrs

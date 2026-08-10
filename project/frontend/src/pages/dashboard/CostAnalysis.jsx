@@ -3,13 +3,14 @@ import { FiBarChart2, FiTrendingUp, FiDollarSign, FiSearch } from "react-icons/f
 import apiService from "../../services/api";
 import { useUser } from "../../context/UserContext";
 import { useFarmData } from "../../context/FarmDataContext";
-import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
+import { BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
+import { formatCurrency, formatFarmCurrency, getFarmCurrencySymbol } from "../../utils/formatters";
 
 const CostAnalysis = () => {
   const { token } = useUser();
   const { activeFarm } = useFarmData();
 
-  const [costTracking, setCostTracking] = useState([]);
+  const [inventoryItems, setInventoryItems] = useState([]);
   const [transactions, setTransactions] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [apiError, setApiError] = useState("");
@@ -25,23 +26,61 @@ const CostAnalysis = () => {
 
   const fetchData = async () => {
     setIsLoading(true);
+    setApiError("");
     try {
-      const [costRes, transRes] = await Promise.all([
-        apiService.get("/api/inventory/cost-tracking/"),
-        apiService.get("/api/inventory/transactions/"),
+      const [itemsRes, transRes] = await Promise.all([
+        apiService.get(`/inventory/?farm=${activeFarm.id}`),
+        apiService.get(`/inventory/transactions/?farm=${activeFarm.id}`),
       ]);
-      setCostTracking(costRes.data);
-      setTransactions(transRes.data);
+
+      const itemsList = Array.isArray(itemsRes) ? itemsRes : itemsRes?.results || itemsRes?.data || [];
+      const transList = Array.isArray(transRes) ? transRes : transRes?.results || transRes?.data || [];
+
+      setInventoryItems(itemsList);
+      setTransactions(transList);
     } catch (error) {
-      setApiError("Failed to load cost data");
-      console.error("Error:", error);
+      console.error("Failed to load inventory cost data:", error);
+      setApiError("Failed to load inventory cost data");
+      setInventoryItems([]);
+      setTransactions([]);
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Filter data
-  let filteredCosts = costTracking;
+  // Build cost tracking items from inventory items and transactions
+  const costTrackingData = (inventoryItems || []).map((item) => {
+    const itemTrans = (transactions || []).filter(
+      (t) => t.item === item.id || t.item_id === item.id || t.inventory_item === item.id
+    );
+
+    const unitsPurchased = itemTrans
+      .filter((t) => t.transaction_type === "in" || t.transaction_type === "purchase")
+      .reduce((sum, t) => sum + Number(t.quantity || 0), 0);
+
+    const unitsIssued = itemTrans
+      .filter((t) => t.transaction_type === "out" || t.transaction_type === "usage")
+      .reduce((sum, t) => sum + Number(t.quantity || 0), 0);
+
+    const costPerUnit = Number(item.cost_per_unit || 0);
+    const quantity = Number(item.quantity || 0);
+    const totalVal = item.total_value != null ? Number(item.total_value) : quantity * costPerUnit;
+    const purchaseCost = unitsPurchased > 0 ? unitsPurchased * costPerUnit : totalVal;
+
+    return {
+      id: item.id,
+      inventory_item: item,
+      cost_method: item.cost_method || "weighted_avg",
+      total_units_purchased: unitsPurchased || quantity,
+      total_units_issued: unitsIssued,
+      total_purchase_cost: purchaseCost,
+      weighted_avg_cost: costPerUnit,
+      current_value: totalVal,
+    };
+  });
+
+  // Filter data safely
+  let filteredCosts = costTrackingData;
   if (selectedMethod !== "all") {
     filteredCosts = filteredCosts.filter((c) => c.cost_method === selectedMethod);
   }
@@ -50,29 +89,35 @@ const CostAnalysis = () => {
   }
   if (searchQuery) {
     filteredCosts = filteredCosts.filter((c) =>
-      c.inventory_item?.name.toLowerCase().includes(searchQuery.toLowerCase())
+      c.inventory_item?.name?.toLowerCase().includes(searchQuery.toLowerCase())
     );
   }
 
-  // Calculate totals
-  const totalPurchaseCost = filteredCosts.reduce((sum, c) => sum + (c.total_purchase_cost || 0), 0);
-  const totalInventoryValue = filteredCosts.reduce((sum, c) => {
-    const item = transactions.find((t) => t.item === c.inventory_item?.id);
-    return sum + (c.weighted_avg_cost * (c.total_units_purchased - c.total_units_issued) || 0);
-  }, 0);
+  // Calculate totals safely
+  const totalPurchaseCost = (filteredCosts || []).reduce((sum, c) => sum + Number(c.total_purchase_cost || 0), 0);
+  const totalInventoryValue = (filteredCosts || []).reduce((sum, c) => sum + Number(c.current_value || 0), 0);
+
   const costMethodBreakdown = {};
-  filteredCosts.forEach((c) => {
-    costMethodBreakdown[c.cost_method] = (costMethodBreakdown[c.cost_method] || 0) + c.total_purchase_cost;
+  (filteredCosts || []).forEach((c) => {
+    const method = c.cost_method || "weighted_avg";
+    costMethodBreakdown[method] = (costMethodBreakdown[method] || 0) + Number(c.total_purchase_cost || 0);
   });
 
   const categoryBreakdown = {};
-  filteredCosts.forEach((c) => {
-    const cat = c.inventory_item?.category || "unknown";
-    categoryBreakdown[cat] = (categoryBreakdown[cat] || 0) + (c.weighted_avg_cost * c.total_units_purchased);
+  (filteredCosts || []).forEach((c) => {
+    const cat = c.inventory_item?.category || "uncategorized";
+    categoryBreakdown[cat] = (categoryBreakdown[cat] || 0) + Number(c.total_purchase_cost || 0);
   });
 
+  const methodLabels = {
+    weighted_avg: "Weighted Average",
+    weighted_average: "Weighted Average",
+    fifo: "FIFO",
+    lifo: "LIFO",
+  };
+
   const costByMethodData = Object.entries(costMethodBreakdown).map(([method, value]) => ({
-    name: method.toUpperCase(),
+    name: methodLabels[method.toLowerCase()] || method.toUpperCase(),
     value: parseFloat(value.toFixed(2)),
   }));
 
@@ -111,7 +156,7 @@ const CostAnalysis = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-gray-600 text-sm font-medium">Total Purchase Cost</p>
-              <p className="text-3xl font-bold text-primary-600">${totalPurchaseCost.toFixed(2)}</p>
+              <p className="text-3xl font-bold text-primary-600">{formatFarmCurrency(totalPurchaseCost, activeFarm)}</p>
             </div>
             <FiDollarSign className="text-4xl text-primary-100" />
           </div>
@@ -120,7 +165,7 @@ const CostAnalysis = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-gray-600 text-sm font-medium">Current Inventory Value</p>
-              <p className="text-3xl font-bold text-green-600">${totalInventoryValue.toFixed(2)}</p>
+              <p className="text-3xl font-bold text-green-600">{formatFarmCurrency(totalInventoryValue, activeFarm)}</p>
             </div>
             <FiTrendingUp className="text-4xl text-green-100" />
           </div>
@@ -178,48 +223,96 @@ const CostAnalysis = () => {
       {/* Charts */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Cost by Method */}
-        <div className="bg-white rounded-lg shadow p-6">
-          <h3 className="text-lg font-semibold mb-4">Cost Distribution by Method</h3>
+        <div className="bg-white rounded-lg shadow p-6 flex flex-col justify-between">
+          <div>
+            <h3 className="text-lg font-semibold text-gray-800">Cost Distribution by Valuation Method</h3>
+            <p className="text-xs text-gray-500 mt-1 mb-4">
+              Breakdown of total inventory value based on accounting cost methods (Weighted Average, FIFO, LIFO).
+            </p>
+          </div>
           {costByMethodData.length > 0 ? (
-            <ResponsiveContainer width="100%" height={300}>
-              <PieChart>
-                <Pie
-                  data={costByMethodData}
-                  cx="50%"
-                  cy="50%"
-                  labelLine={false}
-                  label={({ name, value }) => `${name}: $${value}`}
-                  outerRadius={80}
-                  fill="#8884d8"
-                  dataKey="value"
-                >
-                  {costByMethodData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                  ))}
-                </Pie>
-                <Tooltip formatter={(value) => `$${value.toFixed(2)}`} />
-              </PieChart>
-            </ResponsiveContainer>
+            <div>
+              <ResponsiveContainer width="100%" height={240}>
+                <PieChart>
+                  <Pie
+                    data={costByMethodData}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={45}
+                    outerRadius={75}
+                    paddingAngle={3}
+                    dataKey="value"
+                  >
+                    {costByMethodData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip formatter={(value) => formatFarmCurrency(value, activeFarm)} />
+                  <Legend />
+                </PieChart>
+              </ResponsiveContainer>
+              {/* Summary Cards */}
+              <div className="mt-4 space-y-2 border-t pt-3">
+                {costByMethodData.map((entry, index) => {
+                  const pct = totalPurchaseCost > 0 ? ((entry.value / totalPurchaseCost) * 100).toFixed(1) : "100.0";
+                  return (
+                    <div key={index} className="flex items-center justify-between p-2 rounded bg-gray-50 text-xs">
+                      <div className="flex items-center space-x-2">
+                        <span
+                          className="w-3 h-3 rounded-full inline-block"
+                          style={{ backgroundColor: COLORS[index % COLORS.length] }}
+                        />
+                        <span className="font-semibold text-gray-700">{entry.name}</span>
+                      </div>
+                      <span className="font-bold text-gray-900">
+                        {formatFarmCurrency(entry.value, activeFarm)} ({pct}%)
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
           ) : (
-            <p className="text-gray-500 text-center py-8">No data available</p>
+            <p className="text-gray-500 text-center py-8">No valuation data available</p>
           )}
         </div>
 
         {/* Cost by Category */}
-        <div className="bg-white rounded-lg shadow p-6">
-          <h3 className="text-lg font-semibold mb-4">Cost Distribution by Category</h3>
+        <div className="bg-white rounded-lg shadow p-6 flex flex-col justify-between">
+          <div>
+            <h3 className="text-lg font-semibold text-gray-800">Cost Distribution by Category</h3>
+            <p className="text-xs text-gray-500 mt-1 mb-4">
+              Total expenditure across feed, seeds, fertilizer, equipment, medical, and other stock categories.
+            </p>
+          </div>
           {costByCategoryData.length > 0 ? (
             <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={costByCategoryData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="name" angle={-45} textAnchor="end" height={80} />
-                <YAxis />
-                <Tooltip formatter={(value) => `$${value.toFixed(2)}`} />
-                <Bar dataKey="value" fill="#3b82f6" />
+              <BarChart
+                data={costByCategoryData}
+                margin={{ top: 15, right: 15, left: 10, bottom: 25 }}
+              >
+                <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                <XAxis dataKey="name" angle={-35} textAnchor="end" height={60} tick={{ fontSize: 12 }} />
+                <YAxis
+                  width={75}
+                  tick={{ fontSize: 11 }}
+                  tickFormatter={(val) => {
+                    const sym = getFarmCurrencySymbol(activeFarm);
+                    if (val >= 1000000) return `${sym}${(val / 1000000).toFixed(1)}M`;
+                    if (val >= 1000) return `${sym}${(val / 1000).toFixed(0)}k`;
+                    return `${sym}${val}`;
+                  }}
+                />
+                <Tooltip formatter={(value) => formatFarmCurrency(value, activeFarm)} />
+                <Bar dataKey="value" radius={[6, 6, 0, 0]}>
+                  {costByCategoryData.map((entry, index) => (
+                    <Cell key={`bar-${index}`} fill={COLORS[index % COLORS.length]} />
+                  ))}
+                </Bar>
               </BarChart>
             </ResponsiveContainer>
           ) : (
-            <p className="text-gray-500 text-center py-8">No data available</p>
+            <p className="text-gray-500 text-center py-8">No category data available</p>
           )}
         </div>
       </div>
@@ -247,10 +340,10 @@ const CostAnalysis = () => {
                 filteredCosts.map((cost) => (
                   <tr key={cost.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 text-sm font-medium text-gray-900">
-                      {cost.inventory_item?.name}
+                      {cost.inventory_item?.name || "Unnamed Item"}
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-700 capitalize">
-                      {cost.inventory_item?.category}
+                      {cost.inventory_item?.category || "N/A"}
                     </td>
                     <td className="px-6 py-4 text-sm">
                       <span className="inline-block px-3 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-800">
@@ -264,10 +357,10 @@ const CostAnalysis = () => {
                       {cost.total_units_issued}
                     </td>
                     <td className="px-6 py-4 text-sm text-right font-medium text-gray-900">
-                      ${cost.total_purchase_cost?.toFixed(2) || "0.00"}
+                      {formatFarmCurrency(cost.total_purchase_cost, activeFarm)}
                     </td>
                     <td className="px-6 py-4 text-sm text-right font-medium text-primary-600">
-                      ${cost.weighted_avg_cost?.toFixed(2) || "0.00"}
+                      {formatFarmCurrency(cost.weighted_avg_cost, activeFarm)}
                     </td>
                   </tr>
                 ))

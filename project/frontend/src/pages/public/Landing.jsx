@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { FiBarChart2, FiUsers, FiCalendar, FiCloud, FiMenu, FiX } from 'react-icons/fi';
+import Logo from '../../components/Logo';
 
 function Landing() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -20,11 +21,7 @@ function Landing() {
       <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <div className="flex justify-between items-center">
           <div className="flex items-center gap-2 md:gap-3">
-            <img
-              src="https://placehold.co/40x40/2F855A/FFFFFF?text=TT"
-              alt="Terra Track"
-              className="h-8 w-8 md:h-10 md:w-10 rounded-lg"
-            />
+            <Logo size={36} />
             <span className="text-lg md:text-xl font-display font-bold text-green-700">
               Terra Track
             </span>

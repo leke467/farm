@@ -6,17 +6,21 @@ import { UserProvider } from "./context/UserContext";
 import { FarmDataProvider } from "./context/FarmDataContext";
 import { ApiProvider } from "./context/ApiContext";
 
+import { ToastProvider } from "./context/ToastContext";
+
 console.log("🚀 main.jsx loading...");
 
 // Global error handler
 window.addEventListener('error', (event) => {
   console.error('❌ Global Error:', event.error);
-  document.getElementById('root').innerHTML = `<div style="padding: 2rem; font-family: monospace; color: red;"><h1>Error Loading App</h1><pre>${event.error?.stack || event.message}</pre></div>`;
+  // Ignore removeChild DOM errors typically caused by browser extensions or Google Translate
+  if (event.message?.includes('removeChild') || event.error?.message?.includes('removeChild')) {
+    return;
+  }
 });
 
 window.addEventListener('unhandledrejection', (event) => {
   console.error('❌ Unhandled Promise Rejection:', event.reason);
-  document.getElementById('root').innerHTML = `<div style="padding: 2rem; font-family: monospace; color: red;"><h1>Error Loading App</h1><pre>${event.reason?.stack || event.reason}</pre></div>`;
 });
 
 try {
@@ -30,7 +34,9 @@ try {
       <ApiProvider>
         <UserProvider>
           <FarmDataProvider>
-            <App />
+            <ToastProvider>
+              <App />
+            </ToastProvider>
           </FarmDataProvider>
         </UserProvider>
       </ApiProvider>

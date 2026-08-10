@@ -11,12 +11,13 @@ class InventoryItem(models.Model):
         ('fuel', 'Fuel'),
         ('tools', 'Tools'),
         ('seeds', 'Seeds'),
+        ('production', 'Production / Yield'),
         ('other', 'Other'),
     ]
     
     farm = models.ForeignKey(Farm, on_delete=models.CASCADE, related_name='inventory')
     name = models.CharField(max_length=200)
-    category = models.CharField(max_length=20, choices=CATEGORY_CHOICES)
+    category = models.CharField(max_length=50)
     quantity = models.DecimalField(max_digits=10, decimal_places=2)
     unit = models.CharField(max_length=50)
     min_quantity = models.DecimalField(max_digits=10, decimal_places=2, help_text="Minimum stock level")
@@ -112,6 +113,7 @@ class InventoryAudit(models.Model):
     
     farm = models.ForeignKey(Farm, on_delete=models.CASCADE, related_name='inventory_audits')
     audit_date = models.DateField(default=timezone.now)
+    end_date = models.DateField(null=True, blank=True, help_text="End date for multi-day audit range")
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='draft')
     notes = models.TextField(blank=True)
     created_by = models.CharField(max_length=100, blank=True)

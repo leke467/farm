@@ -1,7 +1,9 @@
 from rest_framework import serializers
 from .models import (Animal, WeightRecord, MedicalRecord, FeedRecord, SampleWeight, 
                      WaterQuality, Vaccination, BreedingCalendar, HealthAlert,
-                     BreedingRecord, ProductionRecord, AnimalProductionMetrics)
+                     BreedingRecord, ProductionRecord, AnimalProductionMetrics,
+                     FeedMix, FeedMixItem, RecurringFeedSchedule)
+from farms.models import Farm
 from terra_track.validators import AnimalValidator, NumberValidator
 
 class WeightRecordSerializer(serializers.ModelSerializer):
@@ -23,6 +25,46 @@ class WeightRecordSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("Date cannot be in the future")
         return value
 
+class FeedMixItemSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = FeedMixItem
+        fields = '__all__'
+
+class FeedMixSerializer(serializers.ModelSerializer):
+    ingredients = FeedMixItemSerializer(many=True, required=False)
+
+    class Meta:
+        model = FeedMix
+        fields = '__all__'
+        read_only_fields = ['created_at', 'updated_at']
+
+    def create(self, validated_data):
+        ingredients_data = validated_data.pop('ingredients', [])
+        feed_mix = FeedMix.objects.create(**validated_data)
+        for item_data in ingredients_data:
+            FeedMixItem.objects.create(feed_mix=feed_mix, **item_data)
+        return feed_mix
+
+    def update(self, instance, validated_data):
+        ingredients_data = validated_data.pop('ingredients', None)
+        instance.name = validated_data.get('name', instance.name)
+        instance.description = validated_data.get('description', instance.description)
+        instance.save()
+        if ingredients_data is not None:
+            instance.ingredients.all().delete()
+            for item_data in ingredients_data:
+                FeedMixItem.objects.create(feed_mix=instance, **item_data)
+        return instance
+
+class RecurringFeedScheduleSerializer(serializers.ModelSerializer):
+    animal_name = serializers.CharField(source='animal.name', read_only=True)
+    feed_mix_name = serializers.CharField(source='feed_mix.name', read_only=True)
+
+    class Meta:
+        model = RecurringFeedSchedule
+        fields = '__all__'
+        read_only_fields = ['created_at', 'last_run_date']
+
 class MedicalRecordSerializer(serializers.ModelSerializer):
     class Meta:
         model = MedicalRecord
@@ -43,6 +85,9 @@ class MedicalRecordSerializer(serializers.ModelSerializer):
         return value
 
 class FeedRecordSerializer(serializers.ModelSerializer):
+    animal = serializers.PrimaryKeyRelatedField(queryset=Animal.objects.all(), required=False, allow_null=True)
+    animal_name = serializers.CharField(source='animal.name', read_only=True)
+
     class Meta:
         model = FeedRecord
         fields = '__all__'
@@ -139,6 +184,7 @@ class HealthAlertSerializer(serializers.ModelSerializer):
         return value
 
 class AnimalSerializer(serializers.ModelSerializer):
+    farm = serializers.PrimaryKeyRelatedField(queryset=Farm.objects.all(), required=False, allow_null=True)
     weight_history = WeightRecordSerializer(many=True, read_only=True)
     medical_history = MedicalRecordSerializer(many=True, read_only=True)
     food_consumption = FeedRecordSerializer(many=True, read_only=True)
@@ -164,17 +210,21 @@ class AnimalSerializer(serializers.ModelSerializer):
         return value
     
     def validate_count(self, value):
-        """Group count must be at least 2 for groups"""
-        if value is not None and int(value) < 1:
-            raise serializers.ValidationError("Count must be at least 1")
+        """Group count cannot be negative"""
+        if value is not None and int(value) < 0:
+            raise serializers.ValidationError("Count cannot be negative")
         return value
     
     def validate(self, data):
         """Cross-field validation"""
-        # If is_group, count must be >= 2
-        if data.get('is_group') and data.get('count', 1) < 2:
+        # Allow count = 0 if sold, otherwise count must be >= 1
+        status = data.get('status', getattr(self.instance, 'status', 'healthy'))
+        count = data.get('count', getattr(self.instance, 'count', 1))
+        is_group = data.get('is_group', getattr(self.instance, 'is_group', False))
+
+        if is_group and status != 'sold' and count < 1:
             raise serializers.ValidationError({
-                "count": "Group must have at least 2 animals"
+                "count": "Group count must be at least 1 unless marked as sold"
             })
         
         return data

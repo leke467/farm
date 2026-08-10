@@ -34,7 +34,16 @@ class ApiService {
 
   // Generic API request method
   async request(endpoint, options = {}, skipAuth = false) {
-    const url = `${API_BASE_URL}${endpoint}`;
+    let cleanEndpoint = endpoint || "";
+    if (cleanEndpoint.startsWith("/api/")) {
+      cleanEndpoint = cleanEndpoint.substring(4);
+    } else if (cleanEndpoint.startsWith("api/")) {
+      cleanEndpoint = cleanEndpoint.substring(3);
+    }
+    if (!cleanEndpoint.startsWith("/")) {
+      cleanEndpoint = "/" + cleanEndpoint;
+    }
+    const url = `${API_BASE_URL}${cleanEndpoint}`;
     const config = {
       headers: this.getHeaders(skipAuth),
       ...options,
@@ -663,6 +672,95 @@ class ApiService {
     return this.request(endpoint, {
       ...options,
       method: "DELETE",
+    });
+  }
+
+  // Farm Categories
+  async getFarmCategories(farmId, categoryType = '') {
+    const params = categoryType ? `?category_type=${categoryType}` : '';
+    return this.request(`/farms/${farmId}/categories/${params}`);
+  }
+
+  async createFarmCategory(farmId, categoryData) {
+    return this.request(`/farms/${farmId}/categories/`, {
+      method: 'POST',
+      body: JSON.stringify(categoryData),
+    });
+  }
+
+  async updateFarmCategory(farmId, categoryId, categoryData) {
+    return this.request(`/farms/${farmId}/categories/${categoryId}/`, {
+      method: 'PUT',
+      body: JSON.stringify(categoryData),
+    });
+  }
+
+  async deleteFarmCategory(farmId, categoryId) {
+    return this.request(`/farms/${farmId}/categories/${categoryId}/`, {
+      method: 'DELETE',
+    });
+  }
+
+  // Subscription methods
+  async getSubscriptionPlans() {
+    return this.request('/subscriptions/plans/', {}, true);
+  }
+
+  async getMySubscription(farmId = null) {
+    const query = farmId ? `?farm=${farmId}` : '';
+    return this.request(`/subscriptions/me/${query}`);
+  }
+
+  async subscribe(planId, idempotencyKey, redirectUrl = '') {
+    return this.request('/subscriptions/subscribe/', {
+      method: 'POST',
+      body: JSON.stringify({ plan_id: planId, idempotency_key: idempotencyKey, redirect_url: redirectUrl }),
+    });
+  }
+
+  async verifySubscriptionPayment(reference) {
+    return this.request(`/subscriptions/verify/${reference}/`);
+  }
+
+  async verifyLatestSubscriptionPayment() {
+    return this.request('/subscriptions/verify-latest/');
+  }
+
+  async cancelSubscription() {
+    return this.request('/subscriptions/cancel/', {
+      method: 'POST',
+    });
+  }
+
+  // AI Agent methods
+  async getAIAnalysis(farmId = null) {
+    const query = farmId ? `?farm_id=${farmId}` : '';
+    return this.request(`/ai-agent/analyze/${query}`);
+  }
+
+  async getAIRecommendations(farmId = null) {
+    const query = farmId ? `?farm_id=${farmId}` : '';
+    return this.request(`/ai-agent/recommendations/${query}`);
+  }
+
+  async getAIAlerts(farmId = null) {
+    const query = farmId ? `?farm_id=${farmId}` : '';
+    return this.request(`/ai-agent/alerts/${query}`);
+  }
+
+  async getAIForecast(farmId = null) {
+    const query = farmId ? `?farm_id=${farmId}` : '';
+    return this.request(`/ai-agent/forecast/${query}`);
+  }
+
+  async chatWithAI(message, recommendationTitle = null, farmId = null) {
+    return this.request('/ai-agent/chat/', {
+      method: 'POST',
+      body: JSON.stringify({
+        message,
+        recommendation_title: recommendationTitle,
+        farm_id: farmId,
+      }),
     });
   }
 }

@@ -9,6 +9,7 @@ import { FormField, SelectField, DateField, NumberField } from "../../components
 import apiService from "../../services/api";
 import { useUser } from "../../context/UserContext";
 import { useFarmData } from "../../context/FarmDataContext";
+import { formatFarmCurrency, formatNumber } from "../../utils/formatters";
 
 // Validation schema
 const transactionSchema = yup.object().shape({
@@ -75,15 +76,25 @@ const InventoryTransactions = () => {
   };
 
   const onSubmit = async (data) => {
+    const payload = {
+      ...data,
+      item: data.item || data.item_id,
+      item_id: data.item_id || data.item,
+      quantity: Number(data.quantity || 0),
+      cost_per_unit: data.cost_per_unit ? Number(data.cost_per_unit) : null,
+      transaction_date: data.transaction_date || new Date().toISOString().split("T")[0],
+    };
     try {
-      await apiService.post("/api/inventory/transactions/", data);
+      await apiService.post("/inventory/transactions/", payload);
       setApiSuccess("Transaction created successfully!");
       reset();
       setIsAddModalOpen(false);
       fetchData();
       setTimeout(() => setApiSuccess(""), 3000);
     } catch (error) {
-      setApiError(error.response?.data?.detail || "Failed to create transaction");
+      const errRes = error.response?.data;
+      const errMsg = typeof errRes === "object" ? Object.values(errRes).flat().join(" ") : "Failed to create transaction";
+      setApiError(errMsg || "Failed to create transaction");
     }
   };
 
@@ -215,17 +226,17 @@ const InventoryTransactions = () => {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className="bg-white rounded-lg shadow p-6 border-l-4 border-green-500">
           <p className="text-gray-600 text-sm font-medium">Total Stock In</p>
-          <p className="text-3xl font-bold text-gray-900">{totalIn.toFixed(2)}</p>
+          <p className="text-3xl font-bold text-gray-900">{formatNumber(totalIn, 2)}</p>
           <p className="text-xs text-gray-500 mt-2">Units received</p>
         </div>
         <div className="bg-white rounded-lg shadow p-6 border-l-4 border-red-500">
           <p className="text-gray-600 text-sm font-medium">Total Stock Out</p>
-          <p className="text-3xl font-bold text-gray-900">{totalOut.toFixed(2)}</p>
+          <p className="text-3xl font-bold text-gray-900">{formatNumber(totalOut, 2)}</p>
           <p className="text-xs text-gray-500 mt-2">Units issued</p>
         </div>
         <div className="bg-white rounded-lg shadow p-6 border-l-4 border-blue-500">
           <p className="text-gray-600 text-sm font-medium">Transaction Value</p>
-          <p className="text-3xl font-bold text-gray-900">${totalValue.toFixed(2)}</p>
+          <p className="text-3xl font-bold text-gray-900">{formatFarmCurrency(totalValue, activeFarm)}</p>
           <p className="text-xs text-gray-500 mt-2">Net inventory cost</p>
         </div>
       </div>
@@ -311,13 +322,13 @@ const InventoryTransactions = () => {
                       </span>
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-700">
-                      {parseFloat(trans.quantity).toFixed(2)}
+                      {formatNumber(trans.quantity, 2)}
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-700">
-                      ${(trans.cost_per_unit || 0).toFixed(2)}
+                      {formatFarmCurrency(trans.cost_per_unit || 0, activeFarm)}
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-700 font-medium">
-                      ${(trans.total_cost || 0).toFixed(2)}
+                      {formatFarmCurrency(trans.total_cost || 0, activeFarm)}
                     </td>
                     <td className="px-6 py-4">
                       <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(trans.status)}`}>

@@ -39,7 +39,8 @@ INSTALLED_APPS = [
     'inventory',
     'expenses',
     'reports',
-    # 'ai_agent',  # Temporarily disabled due to import error
+    'subscriptions',
+    'ai_agent',
 ]
 
 MIDDLEWARE = [
@@ -75,55 +76,79 @@ TEMPLATES = [
 WSGI_APPLICATION = 'terra_track.wsgi.application'
 
 # Database
-DB_TYPE = config('DB_TYPE', default='sqlite3')
-if DB_TYPE.lower() == 'sqlite3':
+# https://docs.djangoproject.com/en/5.0/ref/settings/#databases
+
+DATABASES = {}
+
+db_engine = config('DB_ENGINE', default=config('DB_TYPE', default='sqlite3')).lower()
+
+if db_engine in ('django.db.backends.sqlite3', 'sqlite3', 'sqlite'):
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+            'NAME': config('DB_NAME', default=BASE_DIR / 'db.sqlite3'),
         }
     }
-elif DB_TYPE.lower() == 'mssql':
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sql_server.pyodbc',
-            'NAME': config('DB_NAME', default='your_db_name'),
-            'USER': config('DB_USER', default='your_db_user'),
-            'PASSWORD': config('DB_PASSWORD', default='your_db_password'),
-            'HOST': config('DB_HOST', default='localhost'),
-            'PORT': config('DB_PORT', default=1433, cast=int),
-            'OPTIONS': {
-                'driver': config('DB_DRIVER', default='ODBC Driver 17 for SQL Server'),
-            },
-        }
-    }
-elif DB_TYPE.lower() == 'mysql':
+
+elif db_engine in ('django.db.backends.mysql', 'mysql', 'mariadb'):
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.mysql',
-            'NAME': config('DB_NAME', default='your_db_name'),
-            'USER': config('DB_USER', default='your_db_user'),
-            'PASSWORD': config('DB_PASSWORD', default='your_db_password'),
+            'NAME': config('DB_NAME', default=''),
+            'USER': config('DB_USER', default='root'),
+            'PASSWORD': config('DB_PASSWORD', default=''),
             'HOST': config('DB_HOST', default='localhost'),
-            'PORT': config('DB_PORT', default=3306, cast=int),
+            'PORT': config('DB_PORT', default='3306'),
         }
     }
-elif DB_TYPE.lower() == 'postgres':
+
+elif db_engine in ('django.db.backends.postgresql', 'postgres', 'postgresql'):
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.postgresql',
-            'NAME': config('DB_NAME', default='your_db_name'),
-            'USER': config('DB_USER', default='your_db_user'),
-            'PASSWORD': config('DB_PASSWORD', default='your_db_password'),
+            'NAME': config('DB_NAME', default=''),
+            'USER': config('DB_USER', default='postgres'),
+            'PASSWORD': config('DB_PASSWORD', default=''),
             'HOST': config('DB_HOST', default='localhost'),
-            'PORT': config('DB_PORT', default=5432, cast=int),
+            'PORT': config('DB_PORT', default='5432'),
         }
     }
 
+elif db_engine in ('mssql', 'sqlserver', 'django.db.backends.mssql'):
+    raw_host = config('DB_HOST', default='localhost')
+    cleaned_host = raw_host.replace('\\\\', '\\')
+    db_port = config('DB_PORT', default='1433')
+    
+    db_config = {
+        'ENGINE': 'mssql',
+        'NAME': config('DB_NAME', default=''),
+        'USER': config('DB_USER', default=''),
+        'PASSWORD': config('DB_PASSWORD', default=''),
+        'HOST': cleaned_host,
+        'OPTIONS': {
+            'driver': config('DB_DRIVER', default='ODBC Driver 17 for SQL Server'),
+            'unicode_results': True,
+            'extra_params': "TrustServerCertificate=yes",
+        },
+    }
+    if db_port and str(db_port).strip().isdigit():
+        db_config['PORT'] = str(db_port).strip()
 
+    DATABASES = {
+        'default': db_config
+    }
 
-# Database configuration using dj-database-url for production/Railway
-DATABASE_URL = config('DATABASE_URL', default=None)
+else:
+    # Default fallback: SQLite3
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
+
+# Priority override: Production DATABASE_URL (Railway, Supabase, Neon, Render, Heroku, AWS RDS)
+DATABASE_URL = config('DATABASE_URL', default=None) or config('POSTGRES_URL', default=None)
 if DATABASE_URL:
     DATABASES['default'] = dj_database_url.config(
         default=DATABASE_URL,
@@ -221,13 +246,21 @@ LOGGING = {
     },
     'root': {
         'handlers': ['console'],
-        'level': 'DEBUG',
+        'level': 'INFO',
     },
     'loggers': {
         'django.db.backends': {
-            'level': 'DEBUG',
+            'level': 'INFO',
             'handlers': ['console'],
             'propagate': False,
         },
     },
 }
+
+# Monnify Config
+MONNIFY = {
+    'API_KEY': config('MONNIFY_API_KEY', default=''),
+    'SECRET_KEY': config('MONNIFY_SECRET_KEY', default=''),
+    'CONTRACT_CODE': config('MONNIFY_CONTRACT_CODE', default=''),
+    'BASE_URL': config('MONNIFY_BASE_URL', default='https://sandbox.monnify.com'),
+}

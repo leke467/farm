@@ -1,5 +1,5 @@
 from django.urls import path
-from . import views
+from . import views, category_views
 
 urlpatterns = [
     path('', views.FarmListCreateView.as_view(), name='farm-list-create'),
@@ -9,5 +9,7 @@ urlpatterns = [
     path('<int:farm_id>/permissions/roles/<str:role>/', views.farm_role_permissions_view, name='farm-role-permissions'),
     path('<int:farm_id>/permissions/users/<int:user_id>/', views.farm_user_permissions_view, name='farm-user-permissions'),
     path('<int:farm_id>/permissions/me/', views.my_farm_permissions_view, name='my-farm-permissions'),
+    path('<int:farm_id>/categories/', category_views.farm_categories_view, name='farm-categories'),
+    path('<int:farm_id>/categories/<int:category_id>/', category_views.farm_category_detail_view, name='farm-category-detail'),
     path('user/', views.user_farms_view, name='user-farms'),
 ]

@@ -9,6 +9,23 @@ from .engine import FarmAIEngine
 from .gemini_service import GeminiAIService
 from farms.models import Farm
 
+def get_user_farm(request):
+    """Helper to resolve the target farm for the user."""
+    farm_id = request.query_params.get('farm_id') or request.data.get('farm_id')
+    if farm_id:
+        try:
+            return Farm.objects.get(pk=farm_id)
+        except (Farm.DoesNotExist, ValueError):
+            pass
+    farm = request.user.owned_farms.first()
+    if farm:
+        return farm
+    membership = request.user.farm_memberships.first()
+    if membership:
+        return membership.farm
+    return None
+
+
 class AIAgentViewSet(viewsets.ViewSet):
     """
     AI Agent API endpoints
@@ -26,8 +43,7 @@ class AIAgentViewSet(viewsets.ViewSet):
         
         try:
             logger.info("Analyze request received")
-            # Get user's active farm
-            farm = request.user.owned_farms.first()
+            farm = get_user_farm(request)
             if not farm:
                 logger.warning(f"No farm found for user {request.user.id}")
                 return Response(
@@ -53,7 +69,7 @@ class AIAgentViewSet(viewsets.ViewSet):
     def recommendations(self, request):
         """Get only recommendations"""
         try:
-            farm = request.user.owned_farms.first()
+            farm = get_user_farm(request)
             if not farm:
                 return Response(
                     {'error': 'No active farm found'},
@@ -77,7 +93,7 @@ class AIAgentViewSet(viewsets.ViewSet):
     def alerts(self, request):
         """Get only alerts"""
         try:
-            farm = request.user.owned_farms.first()
+            farm = get_user_farm(request)
             if not farm:
                 return Response(
                     {'error': 'No active farm found'},
@@ -101,7 +117,7 @@ class AIAgentViewSet(viewsets.ViewSet):
     def forecast(self, request):
         """Get financial forecast"""
         try:
-            farm = request.user.owned_farms.first()
+            farm = get_user_farm(request)
             if not farm:
                 return Response(
                     {'error': 'No active farm found'},
@@ -137,7 +153,7 @@ class AIAgentViewSet(viewsets.ViewSet):
         
         try:
             logger.info("Chat request received")
-            farm = request.user.owned_farms.first()
+            farm = get_user_farm(request)
             if not farm:
                 logger.warning(f"No farm found for user {request.user.id}")
                 return Response(

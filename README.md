@@ -1,172 +1,181 @@
-# Terra Track - Farm Management System
+# 🌾 TerraTrack — Smart Farm Management System
 
-A comprehensive farm management solution built with React frontend and Django backend.
+**TerraTrack** is a modern, comprehensive, full-stack farm management application designed to empower farm owners, managers, and workers to efficiently track livestock, crop lifecycles, inventory stock, farm financial transactions, sales & income, and automated health alerts.
 
-## Features
+---
 
-- **Animal Management**: Track livestock health, breeding, and productivity
-- **Crop Planning**: Monitor crop growth stages and harvest planning
-- **Task Management**: Schedule and track farm activities
-- **Inventory Management**: Monitor supplies and equipment
-- **Expense Tracking**: Financial management and budgeting
-- **Reports & Analytics**: Comprehensive reporting and data visualization
-- **Multi-user Support**: Role-based access control
+## 🚀 Key Features
 
-## Tech Stack
+* **🐄 Livestock Management**: Complete tracking of animal herds, breeding schedules, medical records, vaccinations, daily feed consumption logs, and multi-product harvest tracking (Eggs, Milk, Wool, Honey, Meat).
+* **🌾 Crop Management**: Crop lifecycle tracking, planting schedules, harvest records, and yield monitoring.
+* **📦 Smart Inventory & Stock In**: Real-time stock levels, low-stock threshold alerts, compound unit tracking (Crates + Loose Pieces), and automatic stock-in when harvesting animal production.
+* **💵 Financial & Expense Tracker**: Detailed expense breakdown, cost allocation per flock/crop vs general farm overhead, active debt tracking, and revenue analytics.
+* **📈 Sales & Income Management**: Dedicated sales module to log farm produce sales, bulk animal sales with auto-stock deduction, customer order tracking, and revenue logs.
+* **💳 Per-Farm Monnify Subscription**: Integrated Monnify payment gateway for farm subscription plans (Free Trial, Pro Monthly, Pro Yearly). Subscriptions are tied per farm — all farm workers and managers automatically inherit full active access when the farm owner subscribes.
+* **🔐 Multi-Role Access & Permissions**: Fine-grained role-based permissions (`Owner`, `Manager`, `Worker`, `Viewer`) with customizable per-user override matrix in Settings.
+* **🤖 AI Farm Assistant**: Embedded Gemini-powered AI engine for instant agricultural recommendations, financial forecasting, and health diagnostics.
 
-### Frontend
-- React 18 with Vite
-- Tailwind CSS for styling
-- React Router for navigation
-- Chart.js for data visualization
-- Framer Motion for animations
+---
 
-### Backend
-- Django 4.2 with Django REST Framework
-- SQLite database (easily configurable to PostgreSQL)
-- Token-based authentication
-- Celery for background tasks
-- Redis for caching and task queue
+## 📋 Prerequisites & System Requirements
 
-## Quick Start
+Ensure you have the following installed on your machine before setting up TerraTrack:
 
-### Backend Setup
+| Tool | Recommended Version | Note |
+| :--- | :--- | :--- |
+| **Python** | `3.10.x` or `3.12.x` | Tested on **Python 3.12.8** |
+| **Node.js** | `v18.0.0` or higher | Tested on **Node.js v24.18.0** |
+| **npm** | `v9.0.0` or higher | Ships with Node.js |
+| **Git** | Latest | Version control |
 
-1. Navigate to the backend directory:
+---
+
+## 📁 Project Architecture
+
+```text
+farm/
+├── project/
+│   ├── backend/               # Django 5.x REST Framework Backend
+│   │   ├── accounts/          # User Auth & Token Management
+│   │   ├── ai_agent/          # Gemini AI Assistant API Engine
+│   │   ├── animals/           # Livestock, Feed, Health Alerts & Production
+│   │   ├── crops/             # Crop Cycles & Harvest Tracking
+│   │   ├── expenses/          # Expense Logs & Allocation
+│   │   ├── farms/             # Farm Profiles, Members & Role Permissions
+│   │   ├── inventory/         # Stock Items, Transactions & Audits
+│   │   ├── reports/           # Financial & Operational Analytics
+│   │   ├── subscriptions/     # Monnify Checkout & Farm Subscription Plans
+│   │   ├── tasks/             # Scheduled Farm Tasks & Reminders
+│   │   ├── manage.py
+│   │   └── requirements.txt
+│   │
+│   └── frontend/              # React 18 + Vite 7 + Vanilla CSS App
+│       ├── src/
+│       │   ├── components/    # Reusable UI & Modal Components
+│       │   ├── context/       # React Context (User, Farm, Toast, Api)
+│       │   ├── layouts/       # Auth & Dashboard Layouts
+│       │   ├── pages/         # Dashboard & Public Landing Pages
+│       │   ├── services/      # Axios / Fetch API Service Layer
+│       │   └── utils/         # Currency & Unit Helper Utilities
+│       ├── package.json
+│       └── vite.config.js
+└── README.md
+```
+
+---
+
+## 🛠️ Installation & Setup Guide
+
+### 1️⃣ Clone the Repository
+
 ```bash
-cd backend
+git clone https://github.com/leke467/farm.git
+cd farm
 ```
 
-2. Create a virtual environment:
-```bash
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-```
+---
 
-3. Run the setup script:
-```bash
-python setup.py
-```
+### 2️⃣ Backend Setup (Django REST Framework)
 
-4. Start the development server:
-```bash
-python manage.py runserver
-```
+1. **Navigate to the backend directory**:
+   ```bash
+   cd project/backend
+   ```
 
-The Django backend will be available at `http://localhost:8000`
+2. **Create a Python Virtual Environment**:
+   * **Windows**:
+     ```bash
+     python -m venv venv
+     venv\Scripts\activate
+     ```
+   * **macOS / Linux**:
+     ```bash
+     python3 -m venv venv
+     source venv/bin/activate
+     ```
 
-### Frontend Setup
+3. **Install Dependencies**:
+   ```bash
+   pip install -r requirements.txt
+   ```
 
-1. Install dependencies:
-```bash
-npm install
-```
+4. **Configure Environment Variables**:
+   Create a `.env` file inside `project/backend/`:
+   ```ini
+   SECRET_KEY=your-django-secret-key
+   DEBUG=True
+   ALLOWED_HOSTS=localhost,127.0.0.1
+   GEMINI_API_KEY=your-google-gemini-api-key
+   MONNIFY_API_KEY=your-monnify-api-key
+   MONNIFY_SECRET_KEY=your-monnify-secret-key
+   MONNIFY_CONTRACT_CODE=your-monnify-contract-code
+   MONNIFY_BASE_URL=https://sandbox.monnify.com
+   ```
 
-2. Start the development server:
-```bash
-npm run dev
-```
+5. **Apply Database Migrations**:
+   ```bash
+   python manage.py migrate
+   ```
 
-The React frontend will be available at `http://localhost:5173`
+6. **Create Superuser (Admin Account)**:
+   ```bash
+   python manage.py createsuperuser
+   ```
 
-## API Endpoints
+7. **Start the Django Development Server**:
+   ```bash
+   python manage.py runserver 8000
+   ```
+   The backend API will run live at `http://127.0.0.1:8000/api/`.
 
-### Authentication
-- `POST /api/auth/login/` - User login
-- `POST /api/auth/register/` - User registration
-- `POST /api/auth/logout/` - User logout
-- `GET /api/auth/profile/` - Get user profile
-- `PUT /api/auth/profile/update/` - Update user profile
+---
 
-### Farms
-- `GET /api/farms/` - List user's farms
-- `POST /api/farms/` - Create new farm
-- `GET /api/farms/{id}/` - Get farm details
-- `PUT /api/farms/{id}/` - Update farm
-- `DELETE /api/farms/{id}/` - Delete farm
+### 3️⃣ Frontend Setup (React 18 + Vite)
 
-### Animals
-- `GET /api/animals/` - List animals
-- `POST /api/animals/` - Create new animal
-- `GET /api/animals/{id}/` - Get animal details
-- `PUT /api/animals/{id}/` - Update animal
-- `DELETE /api/animals/{id}/` - Delete animal
+1. **Open a new terminal and navigate to the frontend directory**:
+   ```bash
+   cd project/frontend
+   ```
 
-### Crops
-- `GET /api/crops/` - List crops
-- `POST /api/crops/` - Create new crop
-- `GET /api/crops/{id}/` - Get crop details
-- `PUT /api/crops/{id}/` - Update crop
-- `DELETE /api/crops/{id}/` - Delete crop
+2. **Install Node Dependencies**:
+   ```bash
+   npm install
+   ```
 
-### Tasks
-- `GET /api/tasks/` - List tasks
-- `POST /api/tasks/` - Create new task
-- `GET /api/tasks/{id}/` - Get task details
-- `PUT /api/tasks/{id}/` - Update task
-- `DELETE /api/tasks/{id}/` - Delete task
+3. **Start the Vite Development Server**:
+   ```bash
+   npm run dev
+   ```
+   The application web interface will launch at `http://localhost:5173`.
 
-### Inventory
-- `GET /api/inventory/` - List inventory items
-- `POST /api/inventory/` - Create new inventory item
-- `GET /api/inventory/{id}/` - Get inventory item details
-- `PUT /api/inventory/{id}/` - Update inventory item
-- `DELETE /api/inventory/{id}/` - Delete inventory item
-- `GET /api/inventory/low-stock/` - Get low stock items
+4. **Build Production Bundle**:
+   To test or deploy the production build:
+   ```bash
+   npm run build
+   ```
 
-### Expenses
-- `GET /api/expenses/` - List expenses
-- `POST /api/expenses/` - Create new expense
-- `GET /api/expenses/{id}/` - Get expense details
-- `PUT /api/expenses/{id}/` - Update expense
-- `DELETE /api/expenses/{id}/` - Delete expense
-- `GET /api/expenses/summary/` - Get expense summary
+---
 
-### Reports
-- `GET /api/reports/analytics/` - Dashboard analytics
-- `GET /api/reports/production/` - Production reports
-- `GET /api/reports/` - List saved reports
-- `POST /api/reports/` - Create new report
+## 🔑 Default Roles & Access Hierarchy
 
-## Environment Variables
+| Role | Access Level | Description |
+| :--- | :--- | :--- |
+| **Owner** | Full Admin Access | Complete control over farm settings, member management, permissions, and billing. |
+| **Manager** | Operational Control | Can manage animals, crops, inventory, tasks, expenses, and sales records. |
+| **Worker** | Day-to-Day Logger | Can log production, feed, and tasks. Subscription and farm settings are hidden. |
+| **Viewer** | Read-Only | Read-only view for auditors or temporary observers. |
 
-Create a `.env` file in the backend directory:
+---
 
-```env
-SECRET_KEY=your-secret-key-here
-DEBUG=True
-REDIS_URL=redis://localhost:6379
-DATABASE_URL=sqlite:///db.sqlite3
-```
+## 🧪 Verification & Health Check
 
-## Database Models
+After launching both servers:
+1. Access the app frontend at `http://localhost:5173`.
+2. Register a new user or log in with your superuser credentials.
+3. Verify backend status at `http://127.0.0.1:8000/api/farms/`.
 
-### Core Models
-- **User**: Extended Django user model with farm-specific fields
-- **Farm**: Farm information and settings
-- **FarmMember**: User roles within farms
+---
 
-### Operational Models
-- **Animal**: Individual animals or groups with health tracking
-- **Crop**: Crop planning and growth stage tracking
-- **Task**: Farm task management with assignments
-- **InventoryItem**: Supply and equipment tracking
-- **Expense**: Financial transaction recording
+## 📝 License
 
-### Supporting Models
-- **WeightRecord**: Animal weight tracking
-- **MedicalRecord**: Animal health records
-- **GrowthStage**: Crop development stages
-- **Harvest**: Crop yield recording
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests if applicable
-5. Submit a pull request
-
-## License
-
-This project is licensed under the MIT License.
+Distributed under the MIT License. See `LICENSE` for more information.

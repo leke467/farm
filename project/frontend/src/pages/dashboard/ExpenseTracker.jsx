@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useForm } from "react-hook-form";
+import { useState, useEffect } from "react";
+import { useForm, Controller } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import {
   FiPlus,
@@ -7,10 +7,14 @@ import {
   FiSearch,
   FiDollarSign,
   FiPieChart,
+  FiInfo,
 } from "react-icons/fi";
 import { useFarmData } from "../../context/FarmDataContext";
+import { formatFarmCurrency } from "../../utils/formatters";
 import { Dialog } from "@headlessui/react";
 import { motion } from "framer-motion";
+import CategoryCombobox from "../../components/CategoryCombobox";
+import apiService from "../../services/api";
 import {
   FormField,
   SelectField,
@@ -20,9 +24,11 @@ import {
   SubmitButton,
 } from "../../components/forms/FormComponents";
 import { expenseSchema } from "../../components/forms/validationSchemas";
+import { useToast } from "../../context/ToastContext";
 
 function ExpenseTracker() {
-  const { expenses, addExpense, updateExpense, deleteExpense } = useFarmData();
+  const { activeFarm, expenses, animals, addExpense, updateExpense, deleteExpense, refreshData } = useFarmData();
+  const { toast } = useToast();
   const [filter, setFilter] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -30,6 +36,24 @@ function ExpenseTracker() {
   const [currentExpense, setCurrentExpense] = useState(null);
   const [apiError, setApiError] = useState("");
   const [apiSuccess, setApiSuccess] = useState("");
+  const [expenseCategorySuggestions, setExpenseCategorySuggestions] = useState([]);
+  const [linkedAnimalId, setLinkedAnimalId] = useState("");
+
+  useEffect(() => {
+    const loadCategories = async () => {
+      if (activeFarm?.id) {
+        try {
+          const cats = await apiService.getFarmCategories(activeFarm.id, 'expense_category');
+          if (!cats._error) {
+            setExpenseCategorySuggestions(cats);
+          }
+        } catch (error) {
+          console.error("Failed to load categories:", error);
+        }
+      }
+    };
+    loadCategories();
+  }, [activeFarm?.id]);
 
   const {
     register,
@@ -37,6 +61,7 @@ function ExpenseTracker() {
     formState: { errors, isSubmitting },
     reset,
     setValue,
+    control,
   } = useForm({
     resolver: yupResolver(expenseSchema),
     defaultValues: {
@@ -50,30 +75,61 @@ function ExpenseTracker() {
     },
   });
 
+  const formatDateToYYYYMMDD = (d) => {
+    if (!d) return new Date().toISOString().split("T")[0];
+    if (d instanceof Date && !isNaN(d)) {
+      const year = d.getFullYear();
+      const month = String(d.getMonth() + 1).padStart(2, "0");
+      const day = String(d.getDate()).padStart(2, "0");
+      return `${year}-${month}-${day}`;
+    }
+    const str = String(d);
+    if (str.includes("T")) return str.split("T")[0];
+    const parsed = new Date(d);
+    if (!isNaN(parsed.getTime())) {
+      const year = parsed.getFullYear();
+      const month = String(parsed.getMonth() + 1).padStart(2, "0");
+      const day = String(parsed.getDate()).padStart(2, "0");
+      return `${year}-${month}-${day}`;
+    }
+    return str;
+  };
+
   const onSubmit = async (data) => {
     setApiError("");
     setApiSuccess("");
     try {
+      const rawDate = formatDateToYYYYMMDD(data.date);
       const expenseData = {
-        date: data.date,
+        farm: activeFarm?.id,
+        date: rawDate,
         category: data.category,
         description: data.description,
-        amount: parseFloat(data.amount),
+        amount: parseFloat(String(data.amount).replace(/,/g, "")),
         vendor: data.vendor,
         payment_method: data.payment_method,
         notes: data.notes,
+        linked_animal: linkedAnimalId || null,
       };
 
       if (isEditModalOpen && currentExpense) {
-        updateExpense(currentExpense.id, expenseData);
-        setApiSuccess(`Expense updated successfully!`);
+        await updateExpense(currentExpense.id, expenseData);
+        const msg = `Expense updated successfully!`;
+        toast.success(msg);
+        setApiSuccess(msg);
         setIsEditModalOpen(false);
         setCurrentExpense(null);
       } else {
-        addExpense(expenseData);
-        setApiSuccess(`Expense "${data.description}" added successfully!`);
+        await addExpense(expenseData);
+        const msg = `Expense "${data.description}" added successfully!`;
+        toast.success(msg);
+        setApiSuccess(msg);
         setIsAddModalOpen(false);
       }
+      if (refreshData) {
+        try { refreshData(); } catch (e) {}
+      }
+      setLinkedAnimalId("");
       reset();
     } catch (error) {
       setApiError(
@@ -91,6 +147,7 @@ function ExpenseTracker() {
     setValue("vendor", expense.vendor || "");
     setValue("payment_method", expense.payment_method || "Credit Card");
     setValue("notes", expense.notes || "");
+    setLinkedAnimalId(expense.linked_animal ? String(expense.linked_animal) : "");
     setIsEditModalOpen(true);
   };
 
@@ -161,173 +218,224 @@ function ExpenseTracker() {
         expense.vendor.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
-  return (
-    <div>
-      <div className="mb-6 flex flex-col md:flex-row md:items-center md:justify-between">
-        <div>
-          <h1 className="text-3xl font-display font-bold">Expense Tracker</h1>
-          <p className="text-gray-600">Track and manage farm expenses</p>
-        </div>
+  const getLinkedAnimalName = (expense) => {
+    const animId = expense.linked_animal || expense.linked_animal_id || expense.linkedAnimal || expense.linkedAnimalId || expense.animal_id || expense.animal;
+    if (!animId) return null;
+    const found = (animals || []).find((a) => String(a.id) === String(animId));
+    return found ? found.name : `Animal #${animId}`;
+  };
 
-        <div className="mt-4 md:mt-0">
-          <button
-            className="btn btn-primary flex items-center"
-            onClick={() => setIsAddModalOpen(true)}
-          >
-            <FiPlus className="mr-2" />
-            Add Expense
-          </button>
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Expense Management</h1>
+          <p className="text-sm text-gray-500">Track and manage all farm expenditures</p>
         </div>
+        <button
+          onClick={() => setIsAddModalOpen(true)}
+          className="btn btn-primary inline-flex items-center self-start md:self-auto"
+        >
+          <FiPlus className="mr-2" /> Add Expense
+        </button>
       </div>
 
+      {apiSuccess && <FormSuccess message={apiSuccess} onDismiss={() => setApiSuccess("")} />}
+      {apiError && <FormError message={apiError} onDismiss={() => setApiError("")} />}
+
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <div className="bg-white rounded-xl shadow-md p-6">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-6">
+        <div className="bg-white rounded-xl shadow-md p-4 sm:p-6">
           <div className="flex items-center justify-between">
-            <h3 className="text-lg font-medium">Total Expenses</h3>
-            <div className="p-3 bg-primary-100 text-primary-600 rounded-lg">
-              <FiDollarSign size={24} />
+            <h3 className="text-sm sm:text-lg font-medium text-gray-700">Total Expenses</h3>
+            <div className="p-2.5 sm:p-3 bg-primary-100 text-primary-600 rounded-lg">
+              <FiDollarSign className="text-lg sm:text-2xl" />
             </div>
           </div>
-          <p className="text-3xl font-bold mt-4">
-            ${totalExpenses.toLocaleString()}
+          <p className="text-xl sm:text-3xl font-bold mt-2 sm:mt-4 text-gray-900">
+            {formatFarmCurrency(totalExpenses, activeFarm)}
           </p>
         </div>
 
-        <div className="bg-white rounded-xl shadow-md p-6">
+        <div className="bg-white rounded-xl shadow-md p-4 sm:p-6">
           <div className="flex items-center justify-between">
-            <h3 className="text-lg font-medium">Largest Category</h3>
-            <div className="p-3 bg-secondary-100 text-secondary-600 rounded-lg">
-              <FiPieChart size={24} />
+            <h3 className="text-sm sm:text-lg font-medium text-gray-700">Top Category</h3>
+            <div className="p-2.5 sm:p-3 bg-secondary-100 text-secondary-600 rounded-lg">
+              <FiPieChart className="text-lg sm:text-2xl" />
             </div>
           </div>
-          <p className="text-3xl font-bold mt-4">
+          <p className="text-xl sm:text-3xl font-bold mt-2 sm:mt-4 capitalize text-gray-900">
             {Object.entries(expensesByCategory).sort(
               (a, b) => b[1] - a[1]
             )[0]?.[0] || "N/A"}
           </p>
         </div>
 
-        <div className="bg-white rounded-xl shadow-md p-6">
+        <div className="bg-white rounded-xl shadow-md p-4 sm:p-6">
           <div className="flex items-center justify-between">
-            <h3 className="text-lg font-medium">This Month</h3>
-            <div className="p-3 bg-accent-100 text-accent-600 rounded-lg">
-              <FiDollarSign size={24} />
+            <h3 className="text-sm sm:text-lg font-medium text-gray-700">This Month</h3>
+            <div className="p-2.5 sm:p-3 bg-accent-100 text-accent-600 rounded-lg">
+              <FiDollarSign className="text-lg sm:text-2xl" />
             </div>
           </div>
-          <p className="text-3xl font-bold mt-4">
-            $
-            {safeExpenses
-              .filter(
-                (e) => new Date(e.date).getMonth() === new Date().getMonth()
-              )
-              .reduce((sum, e) => sum + e.amount, 0)
-              .toLocaleString()}
+          <p className="text-xl sm:text-3xl font-bold mt-2 sm:mt-4 text-gray-900">
+            {formatFarmCurrency(
+              safeExpenses
+                .filter(
+                  (e) => new Date(e.date).getMonth() === new Date().getMonth()
+                )
+                .reduce((sum, e) => sum + e.amount, 0),
+              activeFarm
+            )}
           </p>
         </div>
       </div>
 
       {/* Filters and Search */}
-      <div className="mb-8 flex flex-col sm:flex-row sm:items-center space-y-3 sm:space-y-0 sm:space-x-4">
+      <div className="flex flex-col sm:flex-row sm:items-center gap-3">
         <div className="relative flex-1">
           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-            <FiSearch className="text-gray-400" />
+            <FiSearch className="text-gray-400 text-sm" />
           </div>
           <input
             type="text"
-            placeholder="Search expenses..."
-            className="pl-10 input"
+            placeholder="Search expenses by description, vendor..."
+            className="pl-9 input text-xs sm:text-sm py-2"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
 
-        <div className="flex space-x-2 items-center">
-          <FiFilter className="text-gray-500" />
+        <div className="w-full sm:w-auto">
           <select
-            className="input max-w-xs"
+            className="input w-full sm:w-48 capitalize text-xs sm:text-sm py-2"
             value={filter}
             onChange={(e) => setFilter(e.target.value)}
           >
             <option value="all">All Categories</option>
-            <option value="Feed">Feed</option>
-            <option value="Labor">Labor</option>
-            <option value="Equipment">Equipment</option>
-            <option value="Utilities">Utilities</option>
-            <option value="Seeds">Seeds</option>
-            <option value="Veterinary">Veterinary</option>
-            <option value="Fuel">Fuel</option>
+            {Object.keys(expensesByCategory).map((cat) => (
+              <option key={cat} value={cat}>
+                {cat}
+              </option>
+            ))}
           </select>
         </div>
       </div>
 
-      {/* Expense List */}
+      {/* Expense Allocation Legend Banner */}
+      <div className="bg-white p-3 sm:p-4 rounded-xl sm:rounded-2xl border border-gray-100 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-2.5 text-xs">
+        <div className="flex items-center space-x-2">
+          <div className="p-1.5 bg-amber-100 text-amber-700 rounded-lg flex-shrink-0">
+            <FiInfo size={16} />
+          </div>
+          <div>
+            <span className="font-extrabold text-gray-900 text-xs">Expense Allocation Guide</span>
+            <p className="text-[11px] text-gray-500">Visual breakdown of flock-specific costs vs general farm overheads</p>
+          </div>
+        </div>
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+          <div className="flex items-center space-x-1.5 bg-amber-50 px-2.5 py-1.5 rounded-lg border border-amber-200/80 shadow-xs text-[11px]">
+            <span className="w-2.5 h-2.5 rounded-full bg-amber-400 inline-block shadow-sm ring-2 ring-amber-200 flex-shrink-0"></span>
+            <span className="font-bold text-amber-900">
+              🟡 Animal / Flock Expense
+            </span>
+          </div>
+          <div className="flex items-center space-x-1.5 bg-gray-50 px-2.5 py-1.5 rounded-lg border border-gray-200 shadow-xs text-[11px]">
+            <span className="w-2.5 h-2.5 rounded-full bg-white border border-gray-400 inline-block flex-shrink-0"></span>
+            <span className="font-semibold text-gray-700">
+              ⚪ General Farm Overhead
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {/* Expenses Table */}
       <div className="bg-white rounded-xl shadow-md overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
+          <table className="w-full min-w-[650px] text-xs sm:text-sm">
+            <thead className="bg-gray-50 border-b border-gray-200">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-3 sm:px-6 py-3 text-left font-semibold text-gray-600 uppercase tracking-wider text-[11px]">
                   Date
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Description
+                <th className="px-3 sm:px-6 py-3 text-left font-semibold text-gray-600 uppercase tracking-wider text-[11px]">
+                  Description & Allocation
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-3 sm:px-6 py-3 text-left font-semibold text-gray-600 uppercase tracking-wider text-[11px]">
                   Category
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-3 sm:px-6 py-3 text-left font-semibold text-gray-600 uppercase tracking-wider text-[11px]">
                   Amount
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-3 sm:px-6 py-3 text-left font-semibold text-gray-600 uppercase tracking-wider text-[11px]">
                   Vendor
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-3 sm:px-6 py-3 text-left font-semibold text-gray-600 uppercase tracking-wider text-[11px]">
                   Payment Method
                 </th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-3 sm:px-6 py-3 text-right font-semibold text-gray-600 uppercase tracking-wider text-[11px]">
                   Actions
                 </th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {filteredExpenses.map((expense) => (
-                <motion.tr
-                  key={expense.id}
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                >
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {new Date(expense.date).toLocaleDateString()}
-                  </td>
-                  <td className="px-6 py-4 text-sm text-gray-900">
-                    {expense.description}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">
-                      {expense.category}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    ${expense.amount.toLocaleString()}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {expense.vendor}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {expense.paymentMethod}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                    <button
-                      onClick={() => deleteExpense(expense.id)}
-                      className="text-error-600 hover:text-error-900"
-                    >
-                      Delete
-                    </button>
-                  </td>
-                </motion.tr>
-              ))}
+            <tbody className="divide-y divide-gray-200">
+              {filteredExpenses.map((expense) => {
+                const linkedAnimalName = getLinkedAnimalName(expense);
+                const isAnimalExpense = Boolean(linkedAnimalName);
+
+                return (
+                  <motion.tr
+                    key={expense.id}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className={
+                      isAnimalExpense
+                        ? "bg-amber-50/80 hover:bg-amber-100/80 transition-colors border-l-4 border-l-amber-400"
+                        : "bg-white hover:bg-gray-50 transition-colors border-l-4 border-l-transparent"
+                    }
+                  >
+                    <td className="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap font-medium text-gray-700">
+                      {new Date(expense.date).toLocaleDateString()}
+                    </td>
+                    <td className="px-3 sm:px-6 py-3 sm:py-4 text-gray-900">
+                      <div className="font-semibold text-gray-900">{expense.description}</div>
+                      {isAnimalExpense ? (
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] sm:text-[11px] font-bold bg-amber-200/90 text-amber-950 mt-0.5 shadow-xs border border-amber-300">
+                          🟡 {linkedAnimalName}
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-medium text-gray-500 bg-gray-100 mt-0.5">
+                          ⚪ General Farm Overhead
+                        </span>
+                      )}
+                    </td>
+                    <td className="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-gray-900">
+                      <span className="px-2 py-0.5 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800 capitalize">
+                        {expense.category}
+                      </span>
+                    </td>
+                    <td className="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap font-extrabold text-gray-900">
+                      {formatFarmCurrency(expense.amount, activeFarm)}
+                    </td>
+                    <td className="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-gray-600">
+                      {expense.vendor || "-"}
+                    </td>
+                    <td className="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-gray-600 capitalize">
+                      {(expense.paymentMethod || expense.payment_method || "cash").replace("_", " ")}
+                    </td>
+                    <td className="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-right font-medium">
+                      <button
+                        onClick={() => deleteExpense(expense.id)}
+                        className="text-error-600 hover:text-error-900 font-semibold text-xs sm:text-sm"
+                      >
+                        Delete
+                      </button>
+                    </td>
+                  </motion.tr>
+                );
+              })}
             </tbody>
           </table>
 
@@ -399,16 +507,26 @@ function ExpenseTracker() {
                   name="date"
                   errors={errors}
                   max={new Date().toISOString().split("T")[0]}
+                  helperText="Date when the expense was paid or incurred."
                   required
                 />
 
-                <SelectField
-                  label="Category"
-                  register={register}
+                <Controller
                   name="category"
-                  errors={errors}
-                  options={categoryOptions}
-                  required
+                  control={control}
+                  render={({ field }) => (
+                    <CategoryCombobox
+                      id="category"
+                      name="category"
+                      value={field.value || ""}
+                      onChange={field.onChange}
+                      suggestions={expenseCategorySuggestions}
+                      placeholder="Type custom or select from dropdown..."
+                      label="Category"
+                      helperText="Cost type (e.g. Feed, Labor, Vet). Type custom or select from list."
+                      required
+                    />
+                  )}
                 />
 
                 <FormField
@@ -418,6 +536,7 @@ function ExpenseTracker() {
                   name="description"
                   errors={errors}
                   placeholder="What was this expense for?"
+                  helperText="Short explanation of item or service purchased."
                   required
                 />
 
@@ -428,6 +547,7 @@ function ExpenseTracker() {
                   errors={errors}
                   min="0"
                   placeholder="0.00"
+                  helperText="Total cost paid in your farm currency."
                   required
                 />
 
@@ -438,6 +558,7 @@ function ExpenseTracker() {
                   name="vendor"
                   errors={errors}
                   placeholder="Where did you buy from?"
+                  helperText="Store, company, or individual paid."
                   required
                 />
 
@@ -447,8 +568,32 @@ function ExpenseTracker() {
                   name="payment_method"
                   errors={errors}
                   options={paymentOptions}
+                  helperText="Mode of payment (Cash, Card, Bank Transfer, Check)."
                   required
                 />
+
+                {/* Link Expense to Animal / Flock */}
+                <div>
+                  <label className="label flex items-center space-x-1">
+                    <span>Link to Animal / Flock</span>
+                    <span className="text-xs text-gray-400 font-normal">(optional)</span>
+                  </label>
+                  <select
+                    className="input"
+                    value={linkedAnimalId}
+                    onChange={(e) => setLinkedAnimalId(e.target.value)}
+                  >
+                    <option value="">🏠 General Farm Expense (not linked)</option>
+                    {(Array.isArray(animals) ? animals : []).map((a) => (
+                      <option key={a.id} value={a.id}>
+                        {a.name} {a.animal_type ? `(${a.animal_type})` : ""} {a.is_group ? `— ${a.count} head` : ""}
+                      </option>
+                    ))}
+                  </select>
+                  <p className="text-xs text-gray-400 mt-1">
+                    Link this expense to a specific animal or flock for accurate profit/loss (COGS) tracking. Leave empty for general farm costs.
+                  </p>
+                </div>
 
                 <div>
                   <label className="label">Notes</label>

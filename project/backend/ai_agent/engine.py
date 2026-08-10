@@ -27,6 +27,10 @@ class FarmAIEngine:
         self._analyze_revenue()
         self._analyze_animals()
         self._analyze_crops()
+        self._analyze_feed_and_inventory()
+        self._analyze_health_and_vaccinations()
+        self._analyze_breeding()
+        self._analyze_budget_and_debt()
         self._generate_forecast()
         self._identify_alerts()
         return self.insights
@@ -120,14 +124,14 @@ class FarmAIEngine:
                 if avg_production > 0:
                     high_performers.append({
                         'id': animal.id,
-                        'name': f"{animal.breed} #{animal.id}",
+                        'name': f"{animal.name} ({animal.breed})",
                         'production': avg_production,
                         'type': animal.animal_type
                     })
                 elif count > 0:
                     low_performers.append({
                         'id': animal.id,
-                        'name': f"{animal.breed} #{animal.id}",
+                        'name': f"{animal.name} ({animal.breed})",
                         'production': avg_production,
                         'type': animal.animal_type
                     })
@@ -174,7 +178,7 @@ class FarmAIEngine:
         self.insights['metrics']['crop_analysis'] = crop_analysis
         
         # Recommendation: Focus on high ROI crops
-        if high_roi and low_roi:
+        if high_roi and low_roi and len(crop_analysis) > 1:
             reduction = low_roi[0]['planted_area'] * 0.3
             self.insights['recommendations'].append({
                 'priority': 'medium',
@@ -183,6 +187,87 @@ class FarmAIEngine:
                 'action': f"Shift {reduction:.1f} acres from low to high ROI crops next season",
                 'impact': f"Potential ROI improvement from {low_roi[0]['roi']:.1f}% to {high_roi[0]['roi']:.1f}%"
             })
+
+    def _analyze_feed_and_inventory(self):
+        """Analyze feed consumption and inventory levels"""
+        from inventory.models import InventoryItem
+        from animals.models import FeedRecord
+        
+        items = InventoryItem.objects.filter(farm_id=self.farm_id)
+        low_stock = [item for item in items if item.is_low_stock]
+        
+        feed_records = FeedRecord.objects.filter(animal__farm_id=self.farm_id)
+        total_feed_consumed = float(feed_records.aggregate(Sum('amount'))['amount__sum'] or 0)
+        
+        self.insights['metrics']['low_stock_count'] = len(low_stock)
+        self.insights['metrics']['low_stock_items'] = [
+            {'id': i.id, 'name': i.name, 'quantity': float(i.quantity), 'unit': i.unit, 'min_quantity': float(i.min_quantity)}
+            for i in low_stock[:5]
+        ]
+        self.insights['metrics']['total_feed_consumed'] = total_feed_consumed
+
+        if low_stock:
+            item_names = ", ".join([i.name for i in low_stock[:3]])
+            self.insights['recommendations'].append({
+                'priority': 'high',
+                'title': '📦 Inventory Reorder Required',
+                'description': f"{len(low_stock)} items are below safety stock level ({item_names})",
+                'action': 'Restock low inventory items to avoid feeding/operational disruptions',
+                'impact': 'Prevents feed shortages and productivity drops'
+            })
+
+    def _analyze_health_and_vaccinations(self):
+        """Analyze animal health, medical costs, and vaccinations"""
+        from animals.models import Vaccination, MedicalRecord
+        
+        today = datetime.now().date()
+        overdue_vaccines = Vaccination.objects.filter(
+            animal__farm_id=self.farm_id,
+            status='scheduled',
+            scheduled_date__lt=today
+        )
+        upcoming_vaccines = Vaccination.objects.filter(
+            animal__farm_id=self.farm_id,
+            status='scheduled',
+            scheduled_date__range=[today, today + timedelta(days=14)]
+        )
+        medical_costs = MedicalRecord.objects.filter(animal__farm_id=self.farm_id)
+        total_med_cost = float(medical_costs.aggregate(Sum('cost'))['cost__sum'] or 0)
+
+        self.insights['metrics']['overdue_vaccines_count'] = overdue_vaccines.count()
+        self.insights['metrics']['upcoming_vaccines_count'] = upcoming_vaccines.count()
+        self.insights['metrics']['total_medical_cost'] = total_med_cost
+
+        if overdue_vaccines.exists():
+            self.insights['recommendations'].append({
+                'priority': 'high',
+                'title': '💉 Overdue Vaccinations',
+                'description': f"{overdue_vaccines.count()} vaccinations are past due date",
+                'action': 'Schedule veterinarian visit for overdue herd/flock vaccinations',
+                'impact': 'Mitigates disease risk and herd mortality'
+            })
+
+    def _analyze_breeding(self):
+        """Analyze breeding calendars and upcoming births"""
+        from animals.models import BreedingCalendar
+        
+        today = datetime.now().date()
+        upcoming_deliveries = BreedingCalendar.objects.filter(
+            animal__farm_id=self.farm_id,
+            status='confirmed',
+            expected_delivery_date__range=[today, today + timedelta(days=30)]
+        )
+        self.insights['metrics']['upcoming_deliveries_count'] = upcoming_deliveries.count()
+
+    def _analyze_budget_and_debt(self):
+        """Analyze budget status and upcoming debt commitments"""
+        from expenses.models import Budget, DebtManagement
+        
+        debts = DebtManagement.objects.filter(farm_id=self.farm_id, status='active')
+        total_debt_balance = float(debts.aggregate(Sum('remaining_balance'))['remaining_balance__sum'] or 0)
+        
+        self.insights['metrics']['active_debts_count'] = debts.count()
+        self.insights['metrics']['total_debt_balance'] = total_debt_balance
     
     def _generate_forecast(self):
         """Generate profitability forecast"""
@@ -217,22 +302,21 @@ class FarmAIEngine:
         from animals.models import Animal
         from crops.models import Crop
         
-        # Alert: High debt
         total_expenses = self.insights['metrics'].get('total_expenses', 0)
         total_revenue = self.insights['metrics'].get('total_revenue', 0)
         
-        if total_expenses > total_revenue * 1.2:
+        if total_expenses > total_revenue * 1.2 and total_revenue > 0:
             self.insights['alerts'].append({
                 'type': 'warning',
                 'emoji': '⚠️',
-                'message': f"Expenses ({total_expenses:.0f}) exceed revenue - unsustainable trajectory"
+                'message': f"Expenses (${total_expenses:,.0f}) exceed revenue — unsustainable trajectory"
             })
         
         if total_revenue == 0:
             self.insights['alerts'].append({
                 'type': 'warning',
                 'emoji': '⚠️',
-                'message': "No revenue recorded - check data or sales tracking"
+                'message': "No revenue recorded — check sales tracking"
             })
         
         # Alert: Good profit margin
@@ -241,13 +325,32 @@ class FarmAIEngine:
             self.insights['alerts'].append({
                 'type': 'success',
                 'emoji': '✅',
-                'message': f"Strong profit margin ({profit_margin:.1f}%) - farm is performing well!"
+                'message': f"Strong profit margin ({profit_margin:.1f}%) — farm is performing well!"
             })
         
+        # Alert: Low stock
+        low_stock_count = self.insights['metrics'].get('low_stock_count', 0)
+        if low_stock_count > 0:
+            self.insights['alerts'].append({
+                'type': 'warning',
+                'emoji': '📦',
+                'message': f"{low_stock_count} inventory item(s) below minimum stock levels"
+            })
+
+        # Alert: Overdue vaccinations
+        overdue_vax = self.insights['metrics'].get('overdue_vaccines_count', 0)
+        if overdue_vax > 0:
+            self.insights['alerts'].append({
+                'type': 'danger',
+                'emoji': '💉',
+                'message': f"{overdue_vax} animal vaccination(s) are overdue!"
+            })
+
         # Alert: Low performers
         if self.insights['metrics'].get('low_performers'):
             self.insights['alerts'].append({
                 'type': 'info',
                 'emoji': 'ℹ️',
-                'message': f"{len(self.insights['metrics']['low_performers'])} animals with low productivity - review herd health"
+                'message': f"{len(self.insights['metrics']['low_performers'])} animals with low productivity — review herd health"
             })
+

@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
-import { FiPlus, FiEdit2, FiTrash2, FiX, FiCheckCircle } from "react-icons/fi";
+import { FiPlus, FiEdit2, FiTrash2, FiX, FiCheckCircle, FiClipboard, FiCalendar } from "react-icons/fi";
 import { Dialog, Transition } from "@headlessui/react";
 import { Fragment } from "react";
 import { FormField, SelectField, DateField, TextAreaField } from "../../components/forms/FormComponents";
@@ -12,7 +12,8 @@ import { useFarmData } from "../../context/FarmDataContext";
 
 // Validation schema
 const auditSchema = yup.object().shape({
-  audit_date: yup.date().required("Audit date is required"),
+  audit_date: yup.date().required("Start date is required"),
+  end_date: yup.date().nullable(),
   status: yup.string().required("Status is required"),
   notes: yup.string().max(500, "Notes must be less than 500 characters"),
 });
@@ -57,25 +58,52 @@ const InventoryAudits = () => {
 
   const fetchData = async () => {
     setIsLoading(true);
+    setApiError("");
     try {
       const [auditRes, itemRes] = await Promise.all([
-        apiService.get("/api/inventory/audits/"),
-        apiService.get("/api/inventory/"),
+        apiService.get(`/inventory/audits/?farm=${activeFarm.id}`),
+        apiService.get(`/inventory/?farm=${activeFarm.id}`),
       ]);
 
-      setAudits(auditRes.data);
-      setItems(itemRes.data);
+      const auditList = Array.isArray(auditRes) ? auditRes : auditRes?.results || auditRes?.data || [];
+      const itemList = Array.isArray(itemRes) ? itemRes : itemRes?.results || itemRes?.data || [];
+
+      setAudits(auditList);
+      setItems(itemList);
     } catch (error) {
       setApiError("Failed to load audit data");
-      console.error("Error fetching data:", error);
+      console.error("Error fetching audit data:", error);
+      setAudits([]);
+      setItems([]);
     } finally {
       setIsLoading(false);
     }
   };
 
+  const formatDateVal = (d) => {
+    if (!d) return null;
+    if (typeof d === "string") return d.split("T")[0];
+    return new Date(d).toISOString().split("T")[0];
+  };
+
   const onCreateAudit = async (data) => {
     try {
-      await apiService.post("/api/inventory/audits/", data);
+      const startDate = formatDateVal(data.audit_date) || new Date().toISOString().split("T")[0];
+      const endDate = formatDateVal(data.end_date) || null;
+
+      const res = await apiService.post("/inventory/audits/", {
+        audit_date: startDate,
+        end_date: endDate,
+        status: data.status,
+        notes: data.notes || "",
+        farm: activeFarm?.id,
+      });
+
+      if (res?._error) {
+        setApiError(typeof res._error === 'object' ? JSON.stringify(res._error) : res._error);
+        return;
+      }
+
       setApiSuccess("Audit created successfully!");
       auditForm.reset();
       setIsAddAuditModalOpen(false);
@@ -90,7 +118,7 @@ const InventoryAudits = () => {
     if (!selectedAudit) return;
 
     try {
-      await apiService.post("/api/inventory/audits/", {
+      await apiService.post("/inventory/audits/", {
         ...data,
         audit_id: selectedAudit.id,
       });
@@ -106,7 +134,7 @@ const InventoryAudits = () => {
 
   const handleDeleteAudit = (auditId) => {
     if (window.confirm("Are you sure you want to delete this audit?")) {
-      apiService.delete(`/api/inventory/audits/${auditId}/`).then(() => {
+      apiService.delete(`/inventory/audits/${auditId}/`).then(() => {
         fetchData();
         setApiSuccess("Audit deleted!");
         setTimeout(() => setApiSuccess(""), 2000);
@@ -116,7 +144,7 @@ const InventoryAudits = () => {
 
   const handleUpdateAuditStatus = async (auditId, newStatus) => {
     try {
-      await apiService.patch(`/api/inventory/audits/${auditId}/`, {
+      await apiService.patch(`/inventory/audits/${auditId}/`, {
         status: newStatus,
       });
       setApiSuccess("Audit status updated!");
@@ -127,8 +155,12 @@ const InventoryAudits = () => {
     }
   };
 
+  // Safe Array References
+  const safeAudits = Array.isArray(audits) ? audits : [];
+  const safeItems = Array.isArray(items) ? items : [];
+
   // Filter audits
-  const filteredAudits = audits.filter((audit) => {
+  const filteredAudits = safeAudits.filter((audit) => {
     if (filterStatus !== "all") return audit.status === filterStatus;
     return true;
   });
@@ -140,9 +172,9 @@ const InventoryAudits = () => {
   };
 
   // Stats
-  const totalAudits = audits.length;
-  const completedAudits = audits.filter((a) => a.status === "completed").length;
-  const inProgressAudits = audits.filter((a) => a.status === "in_progress").length;
+  const totalAudits = safeAudits.length;
+  const completedAudits = safeAudits.filter((a) => a.status === "completed").length;
+  const inProgressAudits = safeAudits.filter((a) => a.status === "in_progress").length;
 
   const statusOptions = [
     { value: "draft", label: "Draft" },
@@ -150,7 +182,7 @@ const InventoryAudits = () => {
     { value: "completed", label: "Completed" },
   ];
 
-  const itemOptions = items.map((i) => ({
+  const itemOptions = safeItems.map((i) => ({
     value: i.id,
     label: `${i.name} (${i.unit})`,
   }));
@@ -218,6 +250,51 @@ const InventoryAudits = () => {
         </div>
       )}
 
+      {/* Audit Guide & Purpose Banner */}
+      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-100 rounded-2xl p-6 shadow-sm mb-6">
+        <div className="flex items-start space-x-4">
+          <div className="p-3 bg-blue-600 text-white rounded-xl shadow shrink-0">
+            <FiClipboard size={24} />
+          </div>
+          <div className="flex-1">
+            <h3 className="text-base font-bold text-gray-900">What is an Inventory Audit & How Does It Work?</h3>
+            <p className="text-xs text-gray-600 mt-1 leading-relaxed">
+              An <strong>Inventory Audit (Stocktake)</strong> reconciles your system inventory records with actual physical store stock on hand. Audits can be conducted on a single day or over a <strong>Date Range</strong> (e.g., Aug 1 – Aug 7) for multi-day farm stocktakes.
+            </p>
+
+            <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 mt-4">
+              <div className="bg-white p-3 rounded-xl border border-blue-100 shadow-sm">
+                <div className="text-xs font-bold text-blue-700 mb-1 flex items-center space-x-1">
+                  <span>1. Start Audit Period</span>
+                </div>
+                <p className="text-[11px] text-gray-600">Click <strong>"New Audit"</strong> and choose your audit start & end date range.</p>
+              </div>
+
+              <div className="bg-white p-3 rounded-xl border border-blue-100 shadow-sm">
+                <div className="text-xs font-bold text-blue-700 mb-1 flex items-center space-x-1">
+                  <span>2. Physical Stock Count</span>
+                </div>
+                <p className="text-[11px] text-gray-600">Walk through your feed shed, seed store & medicine room to count physical stock.</p>
+              </div>
+
+              <div className="bg-white p-3 rounded-xl border border-blue-100 shadow-sm">
+                <div className="text-xs font-bold text-blue-700 mb-1 flex items-center space-x-1">
+                  <span>3. Log Counted Stock</span>
+                </div>
+                <p className="text-[11px] text-gray-600">Add line items with physical <strong>Counted Quantity</strong> for each inventory item.</p>
+              </div>
+
+              <div className="bg-white p-3 rounded-xl border border-blue-100 shadow-sm">
+                <div className="text-xs font-bold text-blue-700 mb-1 flex items-center space-x-1">
+                  <span>4. Reconcile & Complete</span>
+                </div>
+                <p className="text-[11px] text-gray-600">The system calculates shrinkage/gain. Mark <strong>Completed</strong> to sync stock!</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className="bg-white rounded-lg shadow p-6 border-l-4 border-blue-500">
@@ -259,11 +336,18 @@ const InventoryAudits = () => {
               {/* Audit Header */}
               <div className="bg-gray-50 px-6 py-4 border-b border-gray-200 flex items-center justify-between">
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-900">
-                    Audit #{audit.id} - {new Date(audit.audit_date).toLocaleDateString()}
+                  <h3 className="text-lg font-semibold text-gray-900 flex items-center space-x-2">
+                    <span>Audit #{audit.id}</span>
+                    <span className="text-xs font-normal text-gray-500 flex items-center space-x-1 bg-white px-2.5 py-1 rounded-md border border-gray-200">
+                      <FiCalendar className="text-blue-500" />
+                      <span>
+                        {new Date(audit.audit_date).toLocaleDateString()}
+                        {audit.end_date ? ` – ${new Date(audit.end_date).toLocaleDateString()}` : ""}
+                      </span>
+                    </span>
                   </h3>
-                  <p className="text-sm text-gray-600">
-                    Created by: {audit.created_by_name || "Unknown"}
+                  <p className="text-xs text-gray-600 mt-1">
+                    Created by: {audit.created_by_name || audit.created_by || "Store Keeper"}
                   </p>
                 </div>
                 <div className="flex items-center gap-3">
@@ -392,12 +476,20 @@ const InventoryAudits = () => {
                   </Dialog.Title>
 
                   <form onSubmit={auditForm.handleSubmit(onCreateAudit)} className="space-y-4">
-                    <DateField
-                      register={auditForm.register}
-                      name="audit_date"
-                      label="Audit Date"
-                      errors={auditForm.formState.errors}
-                    />
+                    <div className="grid grid-cols-2 gap-3">
+                      <DateField
+                        register={auditForm.register}
+                        name="audit_date"
+                        label="Audit Start Date *"
+                        errors={auditForm.formState.errors}
+                      />
+                      <DateField
+                        register={auditForm.register}
+                        name="end_date"
+                        label="Audit End Date (Optional)"
+                        errors={auditForm.formState.errors}
+                      />
+                    </div>
 
                     <SelectField
                       register={auditForm.register}

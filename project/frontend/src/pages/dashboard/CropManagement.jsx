@@ -1,10 +1,12 @@
-import { useState } from "react";
-import { useForm } from "react-hook-form";
+import { useState, useEffect } from "react";
+import { useForm, Controller } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { FiPlus, FiSearch, FiCalendar, FiEdit2, FiTrash2 } from "react-icons/fi";
 import { useFarmData } from "../../context/FarmDataContext";
 import { Dialog } from "@headlessui/react";
 import { motion } from "framer-motion";
+import CategoryCombobox from "../../components/CategoryCombobox";
+import apiService from "../../services/api";
 import {
   FormField,
   SelectField,
@@ -14,16 +16,37 @@ import {
   SubmitButton,
 } from "../../components/forms/FormComponents";
 import { cropSchema } from "../../components/forms/validationSchemas";
+import RecordSaleModal from "../../components/forms/RecordSaleModal";
+import { useToast } from "../../context/ToastContext";
 
 function CropManagement() {
-  const { crops, addCrop, updateCrop, deleteCrop } = useFarmData();
+  const { activeFarm, crops, addCrop, updateCrop, deleteCrop } = useFarmData();
+  const { toast } = useToast();
 
   const [searchTerm, setSearchTerm] = useState("");
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isSaleModalOpen, setIsSaleModalOpen] = useState(false);
   const [currentCrop, setCurrentCrop] = useState(null);
   const [apiError, setApiError] = useState("");
   const [apiSuccess, setApiSuccess] = useState("");
+  const [cropStageSuggestions, setCropStageSuggestions] = useState([]);
+
+  useEffect(() => {
+    const loadCategories = async () => {
+      if (activeFarm?.id) {
+        try {
+          const cats = await apiService.getFarmCategories(activeFarm.id, 'crop_stage');
+          if (!cats._error) {
+            setCropStageSuggestions(cats);
+          }
+        } catch (error) {
+          console.error("Failed to load categories:", error);
+        }
+      }
+    };
+    loadCategories();
+  }, [activeFarm?.id]);
 
   const {
     register,
@@ -31,6 +54,7 @@ function CropManagement() {
     formState: { errors, isSubmitting },
     reset,
     setValue,
+    control,
   } = useForm({
     resolver: yupResolver(cropSchema),
     defaultValues: {
@@ -161,12 +185,16 @@ function CropManagement() {
 
       if (isEditModalOpen && currentCrop) {
         updateCrop(currentCrop.id, cropData);
-        setApiSuccess(`Crop "${data.name}" updated successfully!`);
+        const msg = `Crop "${data.name}" updated successfully!`;
+        toast.success(msg);
+        setApiSuccess(msg);
         setIsEditModalOpen(false);
         setCurrentCrop(null);
       } else {
         addCrop(cropData);
-        setApiSuccess(`Crop "${data.name}" added successfully!`);
+        const msg = `Crop "${data.name}" added successfully!`;
+        toast.success(msg);
+        setApiSuccess(msg);
         setIsAddModalOpen(false);
       }
 
@@ -242,18 +270,18 @@ function CropManagement() {
 
   return (
     <div>
-      <div className="mb-6 flex flex-col md:flex-row md:items-center md:justify-between">
+      <div className="mb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-display font-bold">Crop Management</h1>
-          <p className="text-gray-600">Plan and monitor your crops</p>
+          <h1 className="text-2xl sm:text-3xl font-display font-bold text-gray-900">Crop Management</h1>
+          <p className="text-xs sm:text-sm text-gray-600">Plan and monitor your crops</p>
         </div>
 
-        <div className="mt-4 md:mt-0">
+        <div className="flex items-center gap-2.5 w-full md:w-auto">
           <button
-            className="btn btn-primary flex items-center"
+            className="flex-1 sm:flex-none btn btn-primary flex items-center justify-center text-xs sm:text-sm py-2 px-3.5 shadow-xs"
             onClick={() => setIsAddModalOpen(true)}
           >
-            <FiPlus className="mr-2" />
+            <FiPlus className="mr-1.5" />
             Add Crop
           </button>
         </div>
@@ -481,7 +509,8 @@ function CropManagement() {
                     register={register}
                     name="name"
                     errors={errors}
-                    placeholder="e.g., Corn, Tomatoes"
+                    placeholder="e.g., Corn, Cassava, Tomatoes"
+                    helperText="Name or type of crop being cultivated."
                     required
                   />
 
@@ -492,7 +521,8 @@ function CropManagement() {
                     register={register}
                     name="field"
                     errors={errors}
-                    placeholder="e.g., Field A"
+                    placeholder="e.g., Field A, Greenhouse 2"
+                    helperText="Field plot, bed, or greenhouse location."
                     required
                   />
 
@@ -504,6 +534,7 @@ function CropManagement() {
                     errors={errors}
                     placeholder="e.g., 5.5"
                     min="0.01"
+                    helperText="Land area occupied by this crop batch in acres."
                     required
                   />
 
@@ -514,6 +545,7 @@ function CropManagement() {
                     name="status"
                     errors={errors}
                     options={statusOptions}
+                    helperText="Overall status (Planning, Growing, Harvesting, Completed)."
                     required
                   />
 
@@ -525,6 +557,7 @@ function CropManagement() {
                     name="planted_date"
                     errors={errors}
                     max={new Date().toISOString().split("T")[0]}
+                    helperText="Date when seeds or seedlings were planted."
                     required
                   />
 
@@ -535,17 +568,27 @@ function CropManagement() {
                     register={register}
                     name="expected_harvest_date"
                     errors={errors}
+                    helperText="Estimated harvest date based on crop maturity cycle."
                     required
                   />
 
                   {/* Current stage */}
-                  <SelectField
-                    label="Current Growth Stage"
-                    register={register}
+                  <Controller
                     name="stage"
-                    errors={errors}
-                    options={stageOptions}
-                    required
+                    control={control}
+                    render={({ field }) => (
+                      <CategoryCombobox
+                        id="stage"
+                        name="stage"
+                        value={field.value || ""}
+                        onChange={field.onChange}
+                        suggestions={cropStageSuggestions}
+                        placeholder="Type or select growth stage..."
+                        label="Current Growth Stage"
+                        helperText="Growth phase (e.g. Vegetative, Flowering, Harvesting)."
+                        required
+                      />
+                    )}
                   />
 
                   {/* Notes field - spans full width */}
@@ -587,6 +630,13 @@ function CropManagement() {
           </div>
         </Dialog>
       )}
+
+      <RecordSaleModal
+        isOpen={isSaleModalOpen}
+        onClose={() => setIsSaleModalOpen(false)}
+        initialType="crop_sales"
+        onSuccess={() => setApiSuccess("Crop sale recorded successfully!")}
+      />
     </div>
   );
 }

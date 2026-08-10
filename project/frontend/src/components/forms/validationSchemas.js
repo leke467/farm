@@ -1,5 +1,15 @@
 import * as yup from "yup";
 
+// Helper transformer for numeric fields that may contain comma formatting (e.g. "4,000")
+const commaNumber = () =>
+  yup.number().transform((value, originalValue) => {
+    if (typeof originalValue === "string") {
+      const cleaned = originalValue.replace(/,/g, "");
+      return cleaned === "" ? NaN : Number(cleaned);
+    }
+    return value;
+  });
+
 // Animal validation schema
 export const animalSchema = yup.object().shape({
   name: yup
@@ -14,15 +24,13 @@ export const animalSchema = yup.object().shape({
     .nullable()
     .optional(),
   gender: yup.string().required("Gender is required"),
-  weight: yup
-    .number()
+  weight: commaNumber()
     .positive("Weight must be greater than 0")
     .nullable()
     .optional(),
   status: yup.string().required("Status is required"),
   is_group: yup.boolean().optional(),
-  count: yup
-    .number()
+  count: commaNumber()
     .when("is_group", {
       is: true,
       then: (schema) =>
@@ -31,7 +39,8 @@ export const animalSchema = yup.object().shape({
           .min(2, "Group must have at least 2 animals"),
       otherwise: (schema) => schema.optional(),
     }),
-  avg_weight: yup.number().nullable().optional(),
+  avg_weight: commaNumber().nullable().optional(),
+  purchase_cost: commaNumber().nullable().optional(),
   notes: yup.string().optional(),
 });
 
@@ -102,8 +111,8 @@ export const expenseSchema = yup.object().shape({
     .string()
     .required("Description is required")
     .min(5, "Description must be at least 5 characters"),
-  amount: yup
-    .number()
+  amount: commaNumber()
+    .typeError("Amount must be a valid number")
     .required("Amount is required")
     .positive("Amount must be greater than 0"),
   vendor: yup
@@ -121,17 +130,17 @@ export const inventorySchema = yup.object().shape({
     .required("Item name is required")
     .min(2, "Name must be at least 2 characters"),
   category: yup.string().required("Category is required"),
-  quantity: yup
-    .number()
+  quantity: commaNumber()
+    .typeError("Quantity must be a valid number")
     .required("Quantity is required")
     .min(0, "Quantity cannot be negative"),
   unit: yup.string().required("Unit is required"),
-  min_quantity: yup
-    .number()
+  min_quantity: commaNumber()
+    .typeError("Minimum quantity must be a valid number")
     .required("Minimum quantity is required")
     .min(0, "Minimum cannot be negative"),
-  cost_per_unit: yup
-    .number()
+  cost_per_unit: commaNumber()
+    .typeError("Cost must be a valid number")
     .min(0, "Cost cannot be negative")
     .nullable()
     .optional(),

@@ -17,7 +17,7 @@ const AIAgentPanel = () => {
     setLoading(true);
     try {
       // Call backend AI service
-      const response = await apiService.get('/ai-agent/analyze/');
+      const response = await apiService.getAIAnalysis();
       
       if (!response || response._error || !response.recommendations) {
         console.error('API Response:', response);
@@ -88,9 +88,7 @@ const AIAgentPanel = () => {
       }]);
 
       // Call backend Gemini chat API
-      const response = await apiService.post('/ai-agent/chat/', {
-        message: userMessage.text,
-      }, { timeout: 30000 }); // 30 second timeout
+      const response = await apiService.chatWithAI(userMessage.text);
 
       if (response && response.response && !response._error) {
         // Remove thinking indicator and add response

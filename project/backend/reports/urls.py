@@ -5,6 +5,7 @@ urlpatterns = [
     path('', views.ReportListCreateView.as_view(), name='report-list-create'),
     path('<int:pk>/', views.ReportDetailView.as_view(), name='report-detail'),
     path('analytics/', views.dashboard_analytics_view, name='dashboard-analytics'),
+    path('analytics/dashboard/', views.dashboard_analytics_view, name='dashboard-analytics-slash'),
     path('analytics/animals/', views.animals_analytics_view, name='animals-analytics'),
     path('analytics/crops/', views.crops_analytics_view, name='crops-analytics'),
     path('analytics/expenses/', views.expenses_analytics_view, name='expenses-analytics'),

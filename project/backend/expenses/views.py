@@ -1,4 +1,5 @@
-from rest_framework import generics, permissions
+from rest_framework import generics, permissions, status
+from farms.permissions import FarmMenuPermission
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import SearchFilter, OrderingFilter
 from rest_framework.decorators import api_view, permission_classes
@@ -11,7 +12,8 @@ from farms.models import Farm
 
 class ExpenseListCreateView(generics.ListCreateAPIView):
     serializer_class = ExpenseSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, FarmMenuPermission]
+    farm_menu_key = 'expenses'
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     filterset_fields = ['category', 'payment_method']
     search_fields = ['description', 'vendor']
@@ -26,9 +28,33 @@ class ExpenseListCreateView(generics.ListCreateAPIView):
             return Expense.objects.none()
         return Expense.objects.filter(farm__in=user_farms)
 
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        if not serializer.is_valid():
+            print("=== EXPENSE VALIDATION ERROR ===", serializer.errors, "payload:", request.data)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+
+    def perform_create(self, serializer):
+        farm_id = self.request.data.get('farm') or self.request.query_params.get('farm')
+        farm = None
+        if farm_id:
+            try:
+                farm = Farm.objects.get(pk=farm_id)
+            except (Farm.DoesNotExist, ValueError):
+                pass
+        if not farm:
+            farm = Farm.objects.filter(
+                Q(owner=self.request.user) | Q(members__user=self.request.user)
+            ).first()
+        serializer.save(farm=farm)
+
 class ExpenseDetailView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = ExpenseSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, FarmMenuPermission]
+    farm_menu_key = 'expenses'
     
     def get_queryset(self):
         user_farms = Farm.objects.filter(
@@ -40,7 +66,8 @@ class ExpenseDetailView(generics.RetrieveUpdateDestroyAPIView):
 
 class BudgetListCreateView(generics.ListCreateAPIView):
     serializer_class = BudgetSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, FarmMenuPermission]
+    farm_menu_key = 'expenses'
     
     def get_queryset(self):
         user_farms = Farm.objects.filter(
@@ -50,7 +77,8 @@ class BudgetListCreateView(generics.ListCreateAPIView):
 
 class BudgetDetailView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = BudgetSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, FarmMenuPermission]
+    farm_menu_key = 'expenses'
     
     def get_queryset(self):
         user_farms = Farm.objects.filter(
@@ -60,7 +88,8 @@ class BudgetDetailView(generics.RetrieveUpdateDestroyAPIView):
 
 class RevenueListCreateView(generics.ListCreateAPIView):
     serializer_class = RevenueSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, FarmMenuPermission]
+    farm_menu_key = 'expenses'
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     filterset_fields = ['source', 'quality_grade']
     search_fields = ['item_sold', 'buyer']
@@ -75,7 +104,8 @@ class RevenueListCreateView(generics.ListCreateAPIView):
 
 class RevenueDetailView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = RevenueSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, FarmMenuPermission]
+    farm_menu_key = 'expenses'
 
     def get_queryset(self):
         user_farms = Farm.objects.filter(
@@ -85,7 +115,8 @@ class RevenueDetailView(generics.RetrieveUpdateDestroyAPIView):
 
 class FinancialAnalysisListCreateView(generics.ListCreateAPIView):
     serializer_class = FinancialAnalysisSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, FarmMenuPermission]
+    farm_menu_key = 'expenses'
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     filterset_fields = ['period_type', 'year', 'quarter']
     search_fields = ['farm__name']
@@ -100,7 +131,8 @@ class FinancialAnalysisListCreateView(generics.ListCreateAPIView):
 
 class FinancialAnalysisDetailView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = FinancialAnalysisSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, FarmMenuPermission]
+    farm_menu_key = 'expenses'
 
     def get_queryset(self):
         user_farms = Farm.objects.filter(
@@ -110,7 +142,8 @@ class FinancialAnalysisDetailView(generics.RetrieveUpdateDestroyAPIView):
 
 class DebtManagementListCreateView(generics.ListCreateAPIView):
     serializer_class = DebtManagementSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, FarmMenuPermission]
+    farm_menu_key = 'expenses'
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     filterset_fields = ['status', 'payment_frequency']
     search_fields = ['lender']
@@ -125,7 +158,8 @@ class DebtManagementListCreateView(generics.ListCreateAPIView):
 
 class DebtManagementDetailView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = DebtManagementSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, FarmMenuPermission]
+    farm_menu_key = 'expenses'
 
     def get_queryset(self):
         user_farms = Farm.objects.filter(

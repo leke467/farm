@@ -3,6 +3,7 @@ import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { FiPlus, FiSearch, FiEdit2, FiTrash2 } from "react-icons/fi";
 import { useFarmData } from "../../context/FarmDataContext";
+import { formatFarmCurrency } from "../../utils/formatters";
 import { Dialog } from "@headlessui/react";
 import { motion } from "framer-motion";
 import {
@@ -16,7 +17,7 @@ import {
 import { inventorySchema } from "../../components/forms/validationSchemas";
 
 function Inventory() {
-  const { inventory = [], addInventoryItem, updateInventoryItem, deleteInventoryItem } = useFarmData();
+  const { inventory = [], activeFarm, addInventoryItem, updateInventoryItem, deleteInventoryItem } = useFarmData();
   const [searchTerm, setSearchTerm] = useState("");
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -184,7 +185,7 @@ function Inventory() {
         </div>
         <div className="bg-white rounded-lg shadow p-6">
           <h3 className="text-gray-600 text-sm font-medium mb-2">Total Value</h3>
-          <p className="text-3xl font-bold text-success-600">${totalValue.toFixed(2)}</p>
+          <p className="text-3xl font-bold text-success-600">{formatFarmCurrency(totalValue, activeFarm)}</p>
         </div>
       </div>
 

@@ -1,4 +1,5 @@
 from rest_framework import generics, permissions
+from farms.permissions import FarmMenuPermission
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import SearchFilter, OrderingFilter
 from django.db.models import Q
@@ -8,7 +9,8 @@ from farms.models import Farm
 
 class CropListCreateView(generics.ListCreateAPIView):
     serializer_class = CropSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, FarmMenuPermission]
+    farm_menu_key = 'crops'
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     filterset_fields = ['status', 'stage']
     search_fields = ['name', 'field', 'variety']
@@ -25,7 +27,8 @@ class CropListCreateView(generics.ListCreateAPIView):
 
 class CropDetailView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = CropSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, FarmMenuPermission]
+    farm_menu_key = 'crops'
     
     def get_queryset(self):
         user_farms = Farm.objects.filter(
@@ -37,7 +40,8 @@ class CropDetailView(generics.RetrieveUpdateDestroyAPIView):
 
 class GrowthStageListCreateView(generics.ListCreateAPIView):
     serializer_class = GrowthStageSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, FarmMenuPermission]
+    farm_menu_key = 'crops'
     
     def get_queryset(self):
         crop_id = self.kwargs.get('crop_id')
@@ -49,7 +53,8 @@ class GrowthStageListCreateView(generics.ListCreateAPIView):
         )
 class CropYieldAnalysisListCreateView(generics.ListCreateAPIView):
     serializer_class = CropYieldAnalysisSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, FarmMenuPermission]
+    farm_menu_key = 'crops'
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     filterset_fields = ['yield_unit']
     search_fields = ['crop__name']
@@ -65,7 +70,8 @@ class CropYieldAnalysisListCreateView(generics.ListCreateAPIView):
 
 class CropYieldAnalysisDetailView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = CropYieldAnalysisSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, FarmMenuPermission]
+    farm_menu_key = 'crops'
 
     def get_queryset(self):
         return CropYieldAnalysis.objects.filter(
@@ -76,7 +82,8 @@ class CropYieldAnalysisDetailView(generics.RetrieveUpdateDestroyAPIView):
 
 class FertilizerRecommendationListCreateView(generics.ListCreateAPIView):
     serializer_class = FertilizerRecommendationSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, FarmMenuPermission]
+    farm_menu_key = 'crops'
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     filterset_fields = ['status']
     search_fields = ['crop__name', 'recommended_type']
@@ -92,7 +99,8 @@ class FertilizerRecommendationListCreateView(generics.ListCreateAPIView):
 
 class FertilizerRecommendationDetailView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = FertilizerRecommendationSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, FarmMenuPermission]
+    farm_menu_key = 'crops'
 
     def get_queryset(self):
         return FertilizerRecommendation.objects.filter(
@@ -103,7 +111,8 @@ class FertilizerRecommendationDetailView(generics.RetrieveUpdateDestroyAPIView):
 
 class WeatherImpactRecordListCreateView(generics.ListCreateAPIView):
     serializer_class = WeatherImpactRecordSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, FarmMenuPermission]
+    farm_menu_key = 'crops'
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     filterset_fields = ['impact_type', 'severity']
     search_fields = ['crop__name', 'recovery_actions']
@@ -119,7 +128,8 @@ class WeatherImpactRecordListCreateView(generics.ListCreateAPIView):
 
 class WeatherImpactRecordDetailView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = WeatherImpactRecordSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, FarmMenuPermission]
+    farm_menu_key = 'crops'
 
     def get_queryset(self):
         return WeatherImpactRecord.objects.filter(
@@ -129,7 +139,8 @@ class WeatherImpactRecordDetailView(generics.RetrieveUpdateDestroyAPIView):
         )
 class CropActivityListCreateView(generics.ListCreateAPIView):
     serializer_class = CropActivitySerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, FarmMenuPermission]
+    farm_menu_key = 'crops'
     
     def get_queryset(self):
         crop_id = self.kwargs.get('crop_id')
@@ -142,7 +153,8 @@ class CropActivityListCreateView(generics.ListCreateAPIView):
 
 class HarvestListCreateView(generics.ListCreateAPIView):
     serializer_class = HarvestSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, FarmMenuPermission]
+    farm_menu_key = 'crops'
     
     def get_queryset(self):
         crop_id = self.kwargs.get('crop_id')

@@ -29,8 +29,9 @@ class Crop(models.Model):
     expected_harvest_date = models.DateField()
     actual_harvest_date = models.DateField(null=True, blank=True)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='planning')
-    stage = models.CharField(max_length=20, choices=STAGE_CHOICES, default='planning')
+    stage = models.CharField(max_length=50, default='planning')
     variety = models.CharField(max_length=100, blank=True)
+    crop_lifecycle = models.CharField(max_length=20, choices=[('annual', 'Annual'), ('perennial', 'Perennial'), ('biennial', 'Biennial')], default='annual')
     notes = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -40,7 +41,7 @@ class Crop(models.Model):
 
 class GrowthStage(models.Model):
     crop = models.ForeignKey(Crop, on_delete=models.CASCADE, related_name='growth_stages')
-    stage = models.CharField(max_length=20, choices=Crop.STAGE_CHOICES)
+    stage = models.CharField(max_length=50)
     date = models.DateField()
     completed = models.BooleanField(default=False)
     notes = models.TextField(blank=True)
@@ -63,7 +64,7 @@ class CropActivity(models.Model):
     ]
     
     crop = models.ForeignKey(Crop, on_delete=models.CASCADE, related_name='activities')
-    activity_type = models.CharField(max_length=20, choices=ACTIVITY_TYPE_CHOICES)
+    activity_type = models.CharField(max_length=50)
     date = models.DateField()
     description = models.TextField()
     cost = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
@@ -77,7 +78,7 @@ class Harvest(models.Model):
     crop = models.ForeignKey(Crop, on_delete=models.CASCADE, related_name='harvests')
     date = models.DateField()
     quantity = models.DecimalField(max_digits=10, decimal_places=2)
-    unit = models.CharField(max_length=20, default='lbs')
+    unit = models.CharField(max_length=50, blank=True, default='')
     quality_grade = models.CharField(max_length=10, blank=True, choices=[('A', 'Grade A'), ('B', 'Grade B'), ('C', 'Grade C')])
     created_at = models.DateTimeField(auto_now_add=True)
     
@@ -92,7 +93,7 @@ class CropYieldAnalysis(models.Model):
     previous_yield = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     expected_yield = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     actual_yield = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
-    yield_unit = models.CharField(max_length=50, default='lbs/acre')
+    yield_unit = models.CharField(max_length=50, blank=True, default='')
     
     # Factors affecting yield
     water_provided = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True, help_text="Inches or mm")

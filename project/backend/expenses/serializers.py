@@ -1,14 +1,50 @@
 from rest_framework import serializers
 from django.utils import timezone
 from .models import Expense, Budget, Revenue, FinancialAnalysis, DebtManagement
+from farms.models import Farm
 from terra_track.validators import ExpenseValidator, NumberValidator
 
 class ExpenseSerializer(serializers.ModelSerializer):
+    farm = serializers.PrimaryKeyRelatedField(queryset=Farm.objects.all(), required=False, allow_null=True)
+    vendor = serializers.CharField(required=False, allow_blank=True, default='')
+    description = serializers.CharField(required=False, allow_blank=True, default='Farm Expense')
+    notes = serializers.CharField(required=False, allow_blank=True, default='')
+    category = serializers.CharField(required=False, allow_blank=True, default='other')
+    payment_method = serializers.CharField(required=False, allow_blank=True, default='cash')
+    receipt = serializers.FileField(required=False, allow_null=True)
+
     class Meta:
         model = Expense
         fields = '__all__'
         read_only_fields = ['created_at', 'updated_at']
     
+    def to_internal_value(self, data):
+        if isinstance(data, dict):
+            data = data.copy()
+            if 'date' in data and data['date']:
+                val_str = str(data['date']).strip()
+                import re
+                from datetime import datetime
+                match = re.search(r'(\d{4})[-/](\d{1,2})[-/](\d{1,2})', val_str)
+                if match:
+                    y, m, d = match.groups()
+                    data['date'] = f"{int(y):04d}-{int(m):02d}-{int(d):02d}"
+                else:
+                    clean_str = val_str.split(" GMT")[0].split(" GM")[0].strip()
+                    parsed_date = None
+                    for fmt in ["%a %b %d %Y %H:%M:%S", "%a %b %d %Y", "%b %d %Y", "%Y-%m-%d", "%d/%m/%Y"]:
+                        try:
+                            dt = datetime.strptime(clean_str, fmt)
+                            parsed_date = dt.strftime("%Y-%m-%d")
+                            break
+                        except ValueError:
+                            continue
+                    if parsed_date:
+                        data['date'] = parsed_date
+                    else:
+                        data['date'] = timezone.now().strftime("%Y-%m-%d")
+        return super().to_internal_value(data)
+
     def validate_amount(self, value):
         """Amount must be positive"""
         ExpenseValidator.validate_expense_amount(value)
@@ -20,11 +56,16 @@ class ExpenseSerializer(serializers.ModelSerializer):
         return value
     
     def validate_payment_method(self, value):
-        """Payment method must be valid"""
+        """Payment method must be valid model choice"""
+        if not value:
+            return 'cash'
+        normalized = str(value).lower().replace(' ', '_')
         valid_methods = ['cash', 'credit_card', 'bank_transfer', 'check']
-        if value not in valid_methods:
-            raise serializers.ValidationError(f"Payment method must be one of: {', '.join(valid_methods)}")
-        return value
+        if normalized not in valid_methods:
+            if 'debit' in normalized or 'card' in normalized:
+                return 'credit_card'
+            return 'cash'
+        return normalized
 
 class BudgetSerializer(serializers.ModelSerializer):
     actual_amount = serializers.ReadOnlyField()

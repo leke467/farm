@@ -1,4 +1,5 @@
 from rest_framework import generics, permissions
+from farms.permissions import FarmMenuPermission
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import SearchFilter, OrderingFilter
 from django.utils import timezone
@@ -9,7 +10,8 @@ from farms.models import Farm
 
 class TaskListCreateView(generics.ListCreateAPIView):
     serializer_class = TaskSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, FarmMenuPermission]
+    farm_menu_key = 'tasks'
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     filterset_fields = ['status', 'priority', 'category', 'assigned_to']
     search_fields = ['title', 'description']
@@ -26,7 +28,8 @@ class TaskListCreateView(generics.ListCreateAPIView):
 
 class TaskDetailView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = TaskSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, FarmMenuPermission]
+    farm_menu_key = 'tasks'
     
     def get_queryset(self):
         user_farms = Farm.objects.filter(
@@ -44,7 +47,8 @@ class TaskDetailView(generics.RetrieveUpdateDestroyAPIView):
 
 class TaskCommentListCreateView(generics.ListCreateAPIView):
     serializer_class = TaskCommentSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, FarmMenuPermission]
+    farm_menu_key = 'tasks'
     
     def get_queryset(self):
         task_id = self.kwargs.get('task_id')

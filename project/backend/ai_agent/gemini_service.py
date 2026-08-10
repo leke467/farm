@@ -2,7 +2,13 @@
 Gemini AI Service - Intelligent farm conversation and analysis
 Uses Google Gemini with round-robin key rotation for optimal rate limits
 """
-import google.generativeai as genai
+try:
+    import google.generativeai as genai
+    HAS_GENAI = True
+except ImportError:
+    genai = None
+    HAS_GENAI = False
+
 import logging
 from typing import Optional, Dict, Any
 from decouple import config
@@ -28,59 +34,74 @@ class GeminiAIService:
     _key_index = 0  # Class variable for round-robin rotation
     
     def __init__(self):
-        # Get next API key using round-robin rotation
-        api_key = self.get_gemini_api_key()
-        genai.configure(api_key=api_key)
-        self.model = genai.GenerativeModel('gemini-1.5-flash')
+        # Get API key if available
+        if HAS_GENAI and self.GEMINI_API_KEYS:
+            try:
+                api_key = self.get_gemini_api_key()
+                genai.configure(api_key=api_key)
+                self.model = genai.GenerativeModel('gemini-1.5-flash')
+            except Exception as e:
+                logger.warning(f"Could not configure Gemini: {e}")
+                self.model = None
+        else:
+            self.model = None
         self.conversation_history = []
     
     @classmethod
     def get_gemini_api_key(cls):
         """Get next API key in round-robin rotation"""
         if not cls.GEMINI_API_KEYS:
-            raise ValueError("No Gemini API keys configured. Please add GEMINI_API_KEYS to your .env file.")
-            
+            return None
         key = cls.GEMINI_API_KEYS[cls._key_index]
         cls._key_index = (cls._key_index + 1) % len(cls.GEMINI_API_KEYS)
         return key
     
     def create_farm_context(self, farm_data: Dict[str, Any]) -> str:
-        """Create system prompt with farm context"""
+        """Create system prompt with rich farm context"""
         metrics = farm_data.get('metrics', {})
         recommendations = farm_data.get('recommendations', [])
+        alerts = farm_data.get('alerts', [])
+        
+        low_stock_items = [f"{i['name']} ({i['quantity']} {i['unit']})" for i in metrics.get('low_stock_items', [])]
+        high_cost_cats = [f"{c['category']}: ${c['amount']:,.2f} ({c['percentage']}%)" for c in metrics.get('high_cost_categories', [])]
         
         context = f"""You are an expert agricultural AI advisor for TerraTrack Farm Management System.
-You have access to this farm's data:
+You have access to real-time, comprehensive data for this farm:
 
-FARM METRICS:
+FARM FINANCIAL METRICS:
 - Total Expenses: ${metrics.get('total_expenses', 0):,.2f}
 - Total Revenue: ${metrics.get('total_revenue', 0):,.2f}
-- Profit: ${metrics.get('profit', 0):,.2f}
+- Net Profit: ${metrics.get('profit', 0):,.2f}
 - Profit Margin: {metrics.get('profit_margin_percent', 0):.1f}%
+- High Cost Categories: {', '.join(high_cost_cats) if high_cost_cats else 'None'}
+- Active Debt Balance: ${metrics.get('total_debt_balance', 0):,.2f} ({metrics.get('active_debts_count', 0)} active loans)
+
+HERD & PRODUCTION METRICS:
 - Total Animals: {metrics.get('total_animals', 0)}
-- High Cost Categories: {', '.join([c.get('category', 'Unknown') for c in metrics.get('high_cost_categories', [])])}
+- Total Feed Consumed: {metrics.get('total_feed_consumed', 0):,.2f} units
+- Overdue Vaccinations: {metrics.get('overdue_vaccines_count', 0)}
+- Upcoming Vaccinations (14 days): {metrics.get('upcoming_vaccines_count', 0)}
+- Total Medical Cost: ${metrics.get('total_medical_cost', 0):,.2f}
+- Upcoming Deliveries (30 days): {metrics.get('upcoming_deliveries_count', 0)}
 
-AI RECOMMENDATIONS IDENTIFIED:
-{chr(10).join([f"• {r.get('title', '')}: {r.get('description', '')} (Priority: {r.get('priority', '')}) - {r.get('savings', r.get('impact', ''))}" for r in recommendations[:5]])}
+INVENTORY & SUPPLY CHAIN:
+- Items Below Minimum Stock: {metrics.get('low_stock_count', 0)} ({', '.join(low_stock_items) if low_stock_items else 'All stocked'})
 
-You are helpful, knowledgeable, and provide specific, actionable advice based on the farm's data.
-When answering questions about costs, profitability, or optimization, reference the actual farm metrics.
-Be conversational and ask clarifying questions when needed.
-Provide detailed explanations for all recommendations.
-Focus on practical, immediately implementable solutions."""
+ACTIVE SYSTEM ALERTS:
+{chr(10).join([f"{a.get('emoji', '•')} {a.get('message', '')}" for a in alerts[:5]]) if alerts else 'No critical alerts.'}
+
+AI RECOMMENDATIONS GENERATED:
+{chr(10).join([f"• [{r.get('priority', 'medium').upper()}] {r.get('title', '')}: {r.get('description', '')} -> Action: {r.get('action', '')} (Impact: {r.get('impact', '')})" for r in recommendations[:5]]) if recommendations else 'No pending recommendations.'}
+
+You are helpful, knowledgeable, and provide specific, actionable advice based on exact farm metrics.
+When answering questions about costs, profitability, feed, health, or optimization, reference actual farm metrics.
+Be conversational, concise, professional, and practical."""
         
         return context
     
     def chat(self, user_message: str, farm_data: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
         """
         Send a message and get AI response with farm context
-        
-        Args:
-            user_message: User's question or message
-            farm_data: Optional farm metrics and recommendations for context
-        
-        Returns:
-            Dict with 'response' text and 'status' code
         """
         try:
             # Build context if farm data provided
@@ -104,25 +125,19 @@ Provide helpful, practical advice about farm management, profitability, and opti
                 else:
                     full_prompt += f"Assistant: {msg['parts'][0]}\n"
             
-            logger.info(f"Sending prompt to Gemini (length: {len(full_prompt)})")
+            logger.info(f"Sending prompt to AI engine (length: {len(full_prompt)})")
             
-            # Get response using new google.genai API
-            try:
-                response = self.client.models.generate_content(
-                    model='gemini-2.0-flash',
-                    contents=full_prompt
-                )
-                ai_response = response.text
-            except AttributeError as e:
-                # Try alternative API format
-                logger.warning(f"AttributeError with models API, trying alternative: {str(e)}")
-                response = self.client.models.generate_content(
-                    model='gemini-2.0-flash',
-                    contents=[{'text': full_prompt}]
-                )
-                ai_response = response.text
+            if self.model:
+                try:
+                    response = self.model.generate_content(full_prompt)
+                    ai_response = response.text
+                except Exception as genai_err:
+                    logger.warning(f"Gemini API call failed, generating fallback: {genai_err}")
+                    ai_response = self._generate_fallback(user_message, farm_data)
+            else:
+                ai_response = self._generate_fallback(user_message, farm_data)
             
-            logger.info(f"Got response from Gemini: {len(ai_response)} chars")
+            logger.info(f"Got response from AI: {len(ai_response)} chars")
             
             # Add to history
             self.conversation_history.append({
@@ -144,6 +159,28 @@ Provide helpful, practical advice about farm management, profitability, and opti
                 'response': None,
                 'error': error_msg
             }
+
+    def _generate_fallback(self, user_message: str, farm_data: Optional[Dict[str, Any]] = None) -> str:
+        """Intelligent rule-based fallback response when Gemini key is unconfigured or rate limited."""
+        if farm_data:
+            metrics = farm_data.get('metrics', {})
+            recs = farm_data.get('recommendations', [])
+            rev = metrics.get('total_revenue', 0)
+            exp = metrics.get('total_expenses', 0)
+            margin = metrics.get('profit_margin_percent', 0)
+            
+            rec_text = ""
+            if recs:
+                rec_text = f"\n\nTop Recommendation: {recs[0]['title']} — {recs[0]['description']}. Action: {recs[0]['action']}"
+            
+            return (
+                f"Here is your farm performance breakdown:\n"
+                f"• Total Revenue: {rev:,.2f}\n"
+                f"• Total Expenses: {exp:,.2f}\n"
+                f"• Profit Margin: {margin:.1f}%{rec_text}\n\n"
+                f"Regarding your query ('{user_message}'): We advise focusing on reducing costs in high-expense categories and ensuring prompt sales tracking to maintain target profit margins."
+            )
+        return f"Regarding '{user_message}': Efficient farm management requires regular monitoring of feed, crop yields, inventory levels, and financial records."
     
     def analyze_recommendation(self, recommendation_title: str, farm_data: Dict[str, Any]) -> str:
         """

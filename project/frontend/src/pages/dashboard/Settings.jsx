@@ -8,9 +8,13 @@ import {
   FiUser,
   FiUserPlus,
   FiUsers,
+  FiUpload,
+  FiImage,
 } from "react-icons/fi";
+import { useNavigate } from "react-router-dom";
 import { useUser } from "../../context/UserContext";
 import { useFarmData } from "../../context/FarmDataContext";
+import { toFarmSlug } from "../../utils/formatters";
 import apiService from "../../services/api";
 
 const createEmptyMemberPagination = () => ({
@@ -93,10 +97,13 @@ function SettingsAccordionSection({
 }
 
 function Settings() {
+  const navigate = useNavigate();
   const { user, updateUserProfile } = useUser();
   const { farmSettings, updateFarmSettings, activeFarm, setActiveFarm } = useFarmData();
 
-  const isAdmin = Boolean(user?.isAdmin ?? user?.is_admin);
+  const isFarmOwner = activeFarm?.is_owner === true || activeFarm?.user_role === 'owner';
+  const isFarmManager = activeFarm?.user_role === 'manager';
+  const isAdmin = Boolean(user?.isAdmin ?? user?.is_admin) || isFarmOwner || isFarmManager;
 
   const [openSection, setOpenSection] = useState("profile");
 
@@ -116,6 +123,9 @@ function Settings() {
     totalArea: "1",
     address: "",
     description: "",
+    currency: "NGN",
+    currencySymbol: "₦",
+    logo: "",
   });
 
   const [passwordData, setPasswordData] = useState({
@@ -360,6 +370,9 @@ function Settings() {
       totalArea: String(activeFarm?.total_area ?? "1"),
       address: activeFarm?.address ?? "",
       description: activeFarm?.description ?? "",
+      currency: activeFarm?.currency ?? "NGN",
+      currencySymbol: activeFarm?.currency_symbol ?? "₦",
+      logo: activeFarm?.logo ?? farmSettings?.logo ?? "",
     });
   }, [activeFarm, farmSettings]);
 
@@ -425,10 +438,26 @@ function Settings() {
     setProfileLoading(false);
   };
 
+  const handleLogoFileChange = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 5 * 1024 * 1024) {
+      setFarmStatus({ type: "error", message: "Logo image must be under 5MB" });
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setFarmData((prev) => ({ ...prev, logo: reader.result }));
+      setFarmStatus({ type: "success", message: "New logo selected! Click 'Update Farm Settings' below to save." });
+    };
+    reader.readAsDataURL(file);
+  };
+
   const handleFarmUpdate = async (e) => {
     e.preventDefault();
     setFarmStatus({ type: "", message: "" });
-    setFarmLoading(true);
 
     if (!activeFarm?.id) {
       updateFarmSettings({
@@ -436,20 +465,29 @@ function Settings() {
         type: farmData.type,
         size: farmData.size,
         location: farmData.location,
+        logo: farmData.logo,
       });
       setFarmStatus({ type: "success", message: "Farm settings updated locally" });
       setFarmLoading(false);
       return;
     }
 
+    setFarmLoading(true);
+
+    const totalAreaVal = parseFloat(farmData.totalArea);
+    const validTotalArea = !isNaN(totalAreaVal) && totalAreaVal > 0 ? totalAreaVal : 1.0;
+
     const response = await apiService.updateFarm(activeFarm.id, {
       name: farmData.name,
       farm_type: farmData.type,
       size: farmData.size,
-      location: farmData.location,
-      total_area: farmData.totalArea || "1",
-      address: farmData.address,
-      description: farmData.description,
+      location: farmData.location || "Main Location",
+      total_area: validTotalArea,
+      address: farmData.address || "",
+      description: farmData.description || "",
+      currency: farmData.currency || "NGN",
+      currency_symbol: farmData.currencySymbol || "₦",
+      logo: farmData.logo || "",
       established_date: activeFarm.established_date || null,
     });
 
@@ -462,14 +500,20 @@ function Settings() {
       return;
     }
 
-    setActiveFarm(response);
-    updateFarmSettings({
-      name: response.name,
-      type: response.farm_type,
-      size: response.size,
-      location: response.location,
-    });
-    setFarmStatus({ type: "success", message: "Farm settings updated successfully" });
+    if (response) {
+      setActiveFarm((prev) => ({ ...prev, ...response, logo: farmData.logo }));
+      updateFarmSettings({
+        name: response.name,
+        type: response.farm_type,
+        size: response.size,
+        location: response.location,
+        logo: farmData.logo,
+      });
+      if (response.name && toFarmSlug(response.name) !== toFarmSlug(activeFarm?.name || "")) {
+        navigate(`/${toFarmSlug(response.name)}/settings`, { replace: true });
+      }
+    }
+    setFarmStatus({ type: "success", message: "Farm settings & logo updated successfully!" });
     setFarmLoading(false);
   };
 
@@ -740,6 +784,7 @@ function Settings() {
           </form>
         </SettingsAccordionSection>
 
+        {isAdmin && (
         <SettingsAccordionSection
           id="farm"
           title="Farm Settings"
@@ -756,6 +801,60 @@ function Settings() {
 
           <form onSubmit={handleFarmUpdate}>
             <div className="space-y-4">
+              {/* Farm Logo Upload */}
+              <div className="p-4 bg-gray-50/80 rounded-2xl border border-gray-200/80 space-y-3">
+                <label className="label font-bold text-gray-900 flex items-center gap-2">
+                  <FiImage className="text-emerald-600" />
+                  <span>Farm Logo</span>
+                </label>
+                <div className="flex flex-col sm:flex-row items-center gap-4">
+                  <div className="relative group flex-shrink-0">
+                    {farmData.logo ? (
+                      <img
+                        src={farmData.logo}
+                        alt="Farm Logo Preview"
+                        className="w-20 h-20 rounded-2xl object-cover border-2 border-emerald-500 shadow-sm p-1 bg-white"
+                      />
+                    ) : (
+                      <div className="w-20 h-20 rounded-2xl bg-emerald-100/70 border-2 border-dashed border-emerald-400 text-emerald-800 font-black text-2xl flex items-center justify-center shadow-inner">
+                        {farmData.name ? farmData.name[0].toUpperCase() : "F"}
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="space-y-2 text-center sm:text-left flex-1 min-w-0">
+                    <div className="flex flex-wrap items-center gap-2 justify-center sm:justify-start">
+                      <label
+                        htmlFor="farm-logo-upload"
+                        className="btn btn-outline py-2 px-3.5 text-xs font-bold border-emerald-600 text-emerald-700 hover:bg-emerald-50 cursor-pointer inline-flex items-center gap-1.5 shadow-xs"
+                      >
+                        <FiUpload size={14} />
+                        <span>{farmData.logo ? "Change Logo" : "Upload Farm Logo"}</span>
+                      </label>
+                      {farmData.logo && (
+                        <button
+                          type="button"
+                          onClick={() => setFarmData((prev) => ({ ...prev, logo: "" }))}
+                          className="btn py-2 px-3 text-xs font-bold text-rose-600 bg-rose-50 hover:bg-rose-100 border-none"
+                        >
+                          Remove Logo
+                        </button>
+                      )}
+                    </div>
+                    <input
+                      id="farm-logo-upload"
+                      type="file"
+                      accept="image/*"
+                      onChange={handleLogoFileChange}
+                      className="hidden"
+                    />
+                    <p className="text-[11px] text-gray-500">
+                      Upload your farm's brand logo (PNG, JPG, WEBP, or SVG). Max 5MB.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
               <div>
                 <label className="label">Farm Name</label>
                 <input
@@ -808,6 +907,52 @@ function Settings() {
                 />
               </div>
 
+              <div>
+                <label className="label">Farm Currency</label>
+                <div className="space-y-2">
+                  <select
+                    value={farmData.currency}
+                    onChange={(e) => {
+                      const curr = e.target.value;
+                      let sym = "₦";
+                      if (curr === "USD") sym = "$";
+                      else if (curr === "EUR") sym = "€";
+                      else if (curr === "GBP") sym = "£";
+                      else if (curr === "GHS") sym = "GH₵";
+                      else if (curr === "ZAR") sym = "R";
+                      else if (curr === "KES") sym = "KSh";
+                      else if (curr === "INR") sym = "₹";
+                      else if (curr === "custom") sym = farmData.currencySymbol || "₦";
+                      setFarmData((prev) => ({ ...prev, currency: curr, currencySymbol: sym }));
+                    }}
+                    className="input w-full"
+                  >
+                    <option value="NGN">🇳🇬 Nigerian Naira (NGN - ₦)</option>
+                    <option value="USD">🇺🇸 US Dollar (USD - $)</option>
+                    <option value="EUR">🇪🇺 Euro (EUR - €)</option>
+                    <option value="GBP">🇬🇧 British Pound (GBP - £)</option>
+                    <option value="GHS">🇬🇭 Ghanaian Cedi (GHS - GH₵)</option>
+                    <option value="ZAR">🇿🇦 South African Rand (ZAR - R)</option>
+                    <option value="KES">🇰🇪 Kenyan Shilling (KES - KSh)</option>
+                    <option value="INR">🇮🇳 Indian Rupee (INR - ₹)</option>
+                    <option value="custom">✨ Custom Currency Symbol</option>
+                  </select>
+
+                  {farmData.currency === "custom" && (
+                    <input
+                      type="text"
+                      value={farmData.currencySymbol}
+                      onChange={(e) => setFarmData((prev) => ({ ...prev, currencySymbol: e.target.value }))}
+                      className="input font-bold w-full"
+                      placeholder="Enter custom symbol (e.g. ₦, $, €)"
+                    />
+                  )}
+                </div>
+                <p className="text-xs text-gray-500 mt-1">
+                  Applies currency formatting & thousand separators (e.g. {farmData.currencySymbol || "₦"}4,500,000.00) across all dashboards.
+                </p>
+              </div>
+
               <button
                 type="submit"
                 className={`btn btn-primary w-full ${
@@ -820,6 +965,7 @@ function Settings() {
             </div>
           </form>
         </SettingsAccordionSection>
+        )}
 
         {isAdmin && (
           <SettingsAccordionSection
@@ -1012,8 +1158,8 @@ function Settings() {
                   </div>
                 ) : (
                   <>
-                    <div className="overflow-x-auto">
-                      <table className="w-full">
+                    <div className="overflow-x-auto -mx-2 sm:mx-0">
+                      <table className="w-full min-w-[550px] text-sm whitespace-nowrap">
                         <thead>
                           <tr className="border-b border-gray-200 bg-gray-50">
                             <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">
@@ -1051,7 +1197,7 @@ function Settings() {
 
                             return (
                               <tr
-                                key={member.id}
+                                key={`member-row-${member.id || index}`}
                                 className="border-b border-gray-200 hover:bg-gray-50"
                               >
                                 <td className="px-4 py-3 text-sm text-gray-900">{fullName}</td>
@@ -1168,8 +1314,8 @@ function Settings() {
                   <p className="text-gray-500">Loading permissions...</p>
                 ) : (
                   <>
-                    <div className="overflow-x-auto">
-                      <table className="w-full">
+                    <div className="overflow-x-auto -mx-2 sm:mx-0">
+                      <table className="w-full min-w-[500px] text-sm whitespace-nowrap">
                         <thead>
                           <tr className="border-b border-gray-200 bg-gray-50">
                             <th className="px-3 py-2 text-left text-sm font-semibold text-gray-700">Menu</th>
@@ -1242,11 +1388,11 @@ function Settings() {
                     value={selectedMemberId}
                     onChange={(e) => setSelectedMemberId(e.target.value)}
                   >
-                    {permissionsCatalog.members.map((member) => {
+                    {permissionsCatalog.members.map((member, index) => {
                       const fullName = [member.first_name, member.last_name].filter(Boolean).join(" ");
                       const displayName = fullName || member.username;
                       return (
-                        <option key={member.id} value={member.id}>
+                        <option key={`member-opt-${member.id || index}`} value={member.id}>
                           {displayName} ({member.role})
                         </option>
                       );
@@ -1258,8 +1404,8 @@ function Settings() {
                   Toggle behavior cycles: inherit role - force allow - force deny.
                 </p>
 
-                <div className="overflow-x-auto">
-                  <table className="w-full">
+                <div className="overflow-x-auto -mx-2 sm:mx-0">
+                  <table className="w-full min-w-[500px] text-sm whitespace-nowrap">
                     <thead>
                       <tr className="border-b border-gray-200 bg-gray-50">
                         <th className="px-3 py-2 text-left text-sm font-semibold text-gray-700">Menu</th>

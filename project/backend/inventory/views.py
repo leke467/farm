@@ -1,4 +1,6 @@
+from decimal import Decimal
 from rest_framework import generics, permissions, status
+from farms.permissions import FarmMenuPermission
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
@@ -17,7 +19,8 @@ from farms.models import Farm
 
 class InventoryItemListCreateView(generics.ListCreateAPIView):
     serializer_class = InventoryItemDetailedSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, FarmMenuPermission]
+    farm_menu_key = 'inventory'
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     filterset_fields = ['category']
     search_fields = ['name', 'supplier', 'location']
@@ -32,9 +35,24 @@ class InventoryItemListCreateView(generics.ListCreateAPIView):
             return InventoryItem.objects.none()
         return InventoryItem.objects.filter(farm__in=user_farms)
 
+    def perform_create(self, serializer):
+        farm_id = self.request.data.get('farm') or self.request.query_params.get('farm')
+        farm = None
+        if farm_id:
+            try:
+                farm = Farm.objects.get(pk=farm_id)
+            except (Farm.DoesNotExist, ValueError):
+                pass
+        if not farm:
+            farm = Farm.objects.filter(
+                Q(owner=self.request.user) | Q(members__user=self.request.user)
+            ).first()
+        serializer.save(farm=farm)
+
 class InventoryItemDetailView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = InventoryItemDetailedSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, FarmMenuPermission]
+    farm_menu_key = 'inventory'
     
     def get_queryset(self):
         user_farms = Farm.objects.filter(
@@ -46,7 +64,8 @@ class InventoryItemDetailView(generics.RetrieveUpdateDestroyAPIView):
 
 class InventoryTransactionListCreateView(generics.ListCreateAPIView):
     serializer_class = InventoryTransactionSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, FarmMenuPermission]
+    farm_menu_key = 'inventory'
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     filterset_fields = ['transaction_type', 'status']
     search_fields = ['item__name', 'reference']
@@ -54,15 +73,31 @@ class InventoryTransactionListCreateView(generics.ListCreateAPIView):
     ordering = ['-transaction_date']
     
     def get_queryset(self):
-        return InventoryTransaction.objects.filter(
-            item__farm__in=Farm.objects.filter(
-                Q(owner=self.request.user) | Q(members__user=self.request.user)
-            )
-        )
+        user_farms = Farm.objects.filter(
+            Q(owner=self.request.user) | Q(members__user=self.request.user)
+        ).distinct()
+        farm_id = self.request.query_params.get('farm')
+        if farm_id:
+            return InventoryTransaction.objects.filter(item__farm_id=farm_id, item__farm__in=user_farms)
+        return InventoryTransaction.objects.filter(item__farm__in=user_farms)
+    
+    def perform_create(self, serializer):
+        transaction = serializer.save(created_by=self.request.user.username or self.request.user.email)
+        item = transaction.item
+        if item:
+            qty = Decimal(str(transaction.quantity or 0))
+            if transaction.transaction_type == 'in':
+                item.quantity += qty
+            elif transaction.transaction_type == 'out':
+                item.quantity = max(Decimal('0'), item.quantity - qty)
+            elif transaction.transaction_type == 'adjustment':
+                item.quantity = qty
+            item.save()
 
 class InventoryTransactionDetailView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = InventoryTransactionSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, FarmMenuPermission]
+    farm_menu_key = 'inventory'
     
     def get_queryset(self):
         return InventoryTransaction.objects.filter(
@@ -73,7 +108,8 @@ class InventoryTransactionDetailView(generics.RetrieveUpdateDestroyAPIView):
 
 class StockMovementListCreateView(generics.ListCreateAPIView):
     serializer_class = StockMovementSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, FarmMenuPermission]
+    farm_menu_key = 'inventory'
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     filterset_fields = ['movement_type']
     search_fields = ['item__name', 'batch_number']
@@ -89,7 +125,8 @@ class StockMovementListCreateView(generics.ListCreateAPIView):
 
 class InventoryAuditListCreateView(generics.ListCreateAPIView):
     serializer_class = InventoryAuditSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, FarmMenuPermission]
+    farm_menu_key = 'inventory'
     filter_backends = [DjangoFilterBackend, OrderingFilter]
     filterset_fields = ['status']
     ordering_fields = ['audit_date', 'created_at']
@@ -101,18 +138,29 @@ class InventoryAuditListCreateView(generics.ListCreateAPIView):
         ).distinct()
         if not user_farms.exists():
             return InventoryAudit.objects.none()
+        farm_id = self.request.query_params.get('farm')
+        if farm_id:
+            return InventoryAudit.objects.filter(farm_id=farm_id, farm__in=user_farms)
         return InventoryAudit.objects.filter(farm__in=user_farms)
     
     def perform_create(self, serializer):
-        """Associate audit with active farm"""
-        # Get farm from request context
-        farm_id = self.request.data.get('farm')
+        farm_id = self.request.data.get('farm') or self.request.query_params.get('farm')
+        farm = None
         if farm_id:
-            serializer.save(farm_id=farm_id)
+            try:
+                farm = Farm.objects.get(pk=farm_id)
+            except (Farm.DoesNotExist, ValueError):
+                pass
+        if not farm:
+            farm = Farm.objects.filter(
+                Q(owner=self.request.user) | Q(members__user=self.request.user)
+            ).first()
+        serializer.save(farm=farm, created_by=self.request.user.username or self.request.user.email)
 
 class InventoryAuditDetailView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = InventoryAuditSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, FarmMenuPermission]
+    farm_menu_key = 'inventory'
     
     def get_queryset(self):
         user_farms = Farm.objects.filter(
@@ -158,7 +206,8 @@ def inventory_dashboard_view(request):
 class DemandForecastListView(generics.ListAPIView):
     """List demand forecasts with filtering and search"""
     serializer_class = DemandForecastSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, FarmMenuPermission]
+    farm_menu_key = 'inventory'
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     filterset_fields = ['farm', 'usage_trend']
     search_fields = ['item__name', 'item__category']
@@ -175,7 +224,8 @@ class DemandForecastListView(generics.ListAPIView):
 class DemandForecastDetailView(generics.RetrieveUpdateAPIView):
     """Get or update demand forecast details"""
     serializer_class = DemandForecastSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, FarmMenuPermission]
+    farm_menu_key = 'inventory'
     
     def get_queryset(self):
         user_farms = Farm.objects.filter(
@@ -238,7 +288,8 @@ def forecast_optimization_view(request):
 class SupplierPerformanceListCreateView(generics.ListCreateAPIView):
     """List or create supplier performance records"""
     serializer_class = SupplierPerformanceSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, FarmMenuPermission]
+    farm_menu_key = 'inventory'
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     filterset_fields = ['farm', 'reliability_grade']
     search_fields = ['supplier_name', 'item__name']
@@ -255,7 +306,8 @@ class SupplierPerformanceListCreateView(generics.ListCreateAPIView):
 class SupplierPerformanceDetailView(generics.RetrieveUpdateDestroyAPIView):
     """Get, update, or delete supplier performance record"""
     serializer_class = SupplierPerformanceSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, FarmMenuPermission]
+    farm_menu_key = 'inventory'
     
     def get_queryset(self):
         user_farms = Farm.objects.filter(

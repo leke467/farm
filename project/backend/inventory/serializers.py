@@ -5,6 +5,8 @@ from .models import (InventoryItem, InventoryTransaction, StockMovement,
                      DemandForecast, SupplierPerformance)
 from terra_track.validators import InventoryValidator, NumberValidator
 
+from farms.models import Farm
+
 class InventoryTransactionSerializer(serializers.ModelSerializer):
     class Meta:
         model = InventoryTransaction
@@ -18,6 +20,7 @@ class InventoryTransactionSerializer(serializers.ModelSerializer):
         return value
 
 class InventoryItemSerializer(serializers.ModelSerializer):
+    farm = serializers.PrimaryKeyRelatedField(queryset=Farm.objects.all(), required=False, allow_null=True)
     transactions = InventoryTransactionSerializer(many=True, read_only=True)
     is_low_stock = serializers.ReadOnlyField()
     total_value = serializers.ReadOnlyField()
@@ -106,6 +109,9 @@ class AuditLineItemSerializer(serializers.ModelSerializer):
 
 class InventoryAuditSerializer(serializers.ModelSerializer):
     line_items = AuditLineItemSerializer(many=True, read_only=True)
+    farm = serializers.PrimaryKeyRelatedField(queryset=Farm.objects.all(), required=False, allow_null=True)
+    audit_date = serializers.DateField(required=False, allow_null=True)
+    end_date = serializers.DateField(required=False, allow_null=True)
     
     class Meta:
         model = InventoryAudit
@@ -113,10 +119,20 @@ class InventoryAuditSerializer(serializers.ModelSerializer):
         read_only_fields = ['created_at', 'updated_at']
 
 class InventoryTransactionSerializer(serializers.ModelSerializer):
+    item = serializers.PrimaryKeyRelatedField(queryset=InventoryItem.objects.all(), required=False, allow_null=True)
+    item_id = serializers.PrimaryKeyRelatedField(queryset=InventoryItem.objects.all(), source='item', required=False, allow_null=True)
+    item_name = serializers.CharField(source='item.name', read_only=True)
+    transaction_date = serializers.DateField(required=False, allow_null=True)
+    
     class Meta:
         model = InventoryTransaction
         fields = '__all__'
         read_only_fields = ['date', 'created_at']
+    
+    def validate_transaction_date(self, value):
+        if not value:
+            return timezone.now().date()
+        return value
     
     def validate_quantity(self, value):
         """Quantity must be positive"""
@@ -143,6 +159,7 @@ class InventoryTransactionSerializer(serializers.ModelSerializer):
 
 class InventoryItemDetailedSerializer(serializers.ModelSerializer):
     """Detailed inventory item with all related data"""
+    farm = serializers.PrimaryKeyRelatedField(queryset=Farm.objects.all(), required=False, allow_null=True)
     transactions = InventoryTransactionSerializer(many=True, read_only=True)
     movements = StockMovementSerializer(many=True, read_only=True)
     cost_tracking = InventoryCostTrackingSerializer(read_only=True)

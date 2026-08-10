@@ -1,21 +1,26 @@
-import { useState } from "react";
-import { useForm } from "react-hook-form";
+import { useState, useEffect } from "react";
+import { useForm, Controller } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { FiPlus, FiFilter, FiSearch, FiCalendar, FiTrash2 } from "react-icons/fi";
 import { useFarmData } from "../../context/FarmDataContext";
 import { Dialog } from "@headlessui/react";
 import { motion } from "framer-motion";
+import CategoryCombobox from "../../components/CategoryCombobox";
+import apiService from "../../services/api";
 import {
   FormField,
   SelectField,
+  TextAreaField,
   FormError,
   FormSuccess,
   SubmitButton,
 } from "../../components/forms/FormComponents";
 import { taskSchema } from "../../components/forms/validationSchemas";
+import { useToast } from "../../context/ToastContext";
 
 function TaskScheduler() {
-  const { tasks, addTask, updateTask, deleteTask } = useFarmData();
+  const { activeFarm, tasks, addTask, updateTask, deleteTask } = useFarmData();
+  const { toast } = useToast();
   const [filter, setFilter] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -23,6 +28,23 @@ function TaskScheduler() {
   const [currentTask, setCurrentTask] = useState(null);
   const [apiError, setApiError] = useState("");
   const [apiSuccess, setApiSuccess] = useState("");
+  const [taskCategorySuggestions, setTaskCategorySuggestions] = useState([]);
+
+  useEffect(() => {
+    const loadCategories = async () => {
+      if (activeFarm?.id) {
+        try {
+          const cats = await apiService.getFarmCategories(activeFarm.id, 'task_category');
+          if (!cats._error) {
+            setTaskCategorySuggestions(cats);
+          }
+        } catch (error) {
+          console.error("Failed to load categories:", error);
+        }
+      }
+    };
+    loadCategories();
+  }, [activeFarm?.id]);
 
   const {
     register,
@@ -30,6 +52,7 @@ function TaskScheduler() {
     formState: { errors, isSubmitting },
     reset,
     setValue,
+    control,
   } = useForm({
     resolver: yupResolver(taskSchema),
     defaultValues: {
@@ -59,12 +82,16 @@ function TaskScheduler() {
 
       if (isEditModalOpen && currentTask) {
         updateTask(currentTask.id, taskData);
-        setApiSuccess(`Task "${data.title}" updated successfully!`);
+        const msg = `Task "${data.title}" updated successfully!`;
+        toast.success(msg);
+        setApiSuccess(msg);
         setIsEditModalOpen(false);
         setCurrentTask(null);
       } else {
         addTask(taskData);
-        setApiSuccess(`Task "${data.title}" created successfully!`);
+        const msg = `Task "${data.title}" created successfully!`;
+        toast.success(msg);
+        setApiSuccess(msg);
         setIsAddModalOpen(false);
       }
       reset();
@@ -347,22 +374,20 @@ function TaskScheduler() {
                   register={register}
                   name="title"
                   errors={errors}
+                  placeholder="e.g., Clean Barn 2 & Refill Water"
+                  helperText="Short summary of the task to be performed."
                   required
                 />
 
-                <div>
-                  <label className="label">Description</label>
-                  <textarea
-                    {...register("description")}
-                    className="input h-24"
-                    placeholder="Task description"
-                  />
-                  {errors.description && (
-                    <span className="text-error-500 text-sm">
-                      {errors.description.message}
-                    </span>
-                  )}
-                </div>
+                <TextAreaField
+                  label="Description"
+                  register={register}
+                  name="description"
+                  errors={errors}
+                  placeholder="Step-by-step instructions or notes..."
+                  helperText="Detailed instructions or notes for completing this task."
+                  rows={3}
+                />
 
                 <FormField
                   label="Due Date"
@@ -370,6 +395,7 @@ function TaskScheduler() {
                   register={register}
                   name="due_date"
                   errors={errors}
+                  helperText="Date and time when this task should be completed."
                   required
                 />
 
@@ -379,6 +405,7 @@ function TaskScheduler() {
                   name="priority"
                   errors={errors}
                   options={priorityOptions}
+                  helperText="Urgency level (Low, Medium, High)."
                 />
 
                 <FormField
@@ -387,15 +414,25 @@ function TaskScheduler() {
                   register={register}
                   name="assigned_to"
                   errors={errors}
-                  placeholder="Enter name or ID"
+                  placeholder="Enter worker name or ID"
+                  helperText="Farm worker or team member responsible."
                 />
 
-                <SelectField
-                  label="Category"
-                  register={register}
+                <Controller
                   name="category"
-                  errors={errors}
-                  options={categoryOptions}
+                  control={control}
+                  render={({ field }) => (
+                    <CategoryCombobox
+                      id="category"
+                      name="category"
+                      value={field.value || ""}
+                      onChange={field.onChange}
+                      suggestions={taskCategorySuggestions}
+                      placeholder="Type custom or select from dropdown..."
+                      label="Category"
+                      helperText="Task type (Daily Care, Health, Maintenance, Crop Care)."
+                    />
+                  )}
                 />
 
                 <SelectField
@@ -404,6 +441,7 @@ function TaskScheduler() {
                   name="status"
                   errors={errors}
                   options={statusOptions}
+                  helperText="Current task status (Pending, In Progress, Completed)."
                 />
               </div>
 

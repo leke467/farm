@@ -42,6 +42,7 @@ const normalizeFarm = (farm) => {
     ...farm,
     type: farm.type ?? farm.farm_type ?? "",
     farm_type: farm.farm_type ?? farm.type ?? "",
+    logo: farm.logo ?? "",
   };
 };
 
@@ -61,6 +62,8 @@ const normalizeAnimal = (animal) => {
     avg_weight: normalizeOptionalNumber(animal.avg_weight ?? animal.avgWeight),
     establishedDate: animal.establishedDate ?? animal.established_date ?? null,
     established_date: animal.established_date ?? animal.establishedDate ?? null,
+    purchase_cost: normalizeOptionalNumber(animal.purchase_cost ?? animal.purchasePrice),
+    purchasePrice: normalizeOptionalNumber(animal.purchasePrice ?? animal.purchase_cost),
     weightHistory: ensureArray(animal.weightHistory ?? animal.weight_history),
     weight_history: ensureArray(animal.weight_history ?? animal.weightHistory),
     medicalHistory: ensureArray(animal.medicalHistory ?? animal.medical_history),
@@ -194,6 +197,13 @@ const toExpensePayload = (expense) => {
     ...expense,
   };
 
+  if (payload.date) {
+    const dStr = String(payload.date);
+    if (dStr.includes("T")) {
+      payload.date = dStr.split("T")[0];
+    }
+  }
+
   if (payload.paymentMethod !== undefined) {
     payload.payment_method = toSnakeEnum(payload.paymentMethod, "cash");
     delete payload.paymentMethod;
@@ -220,6 +230,7 @@ export function FarmDataProvider({ children }) {
   const [tasks, setTasks] = useState([]);
   const [inventory, setInventory] = useState([]);
   const [expenses, setExpenses] = useState([]);
+  const [revenues, setRevenues] = useState([]);
   const [farms, setFarms] = useState([]);
   const [activeFarm, setActiveFarm] = useState(null);
   const [farmSettings, setFarmSettings] = useState({
@@ -299,45 +310,40 @@ export function FarmDataProvider({ children }) {
     // eslint-disable-next-line
   }, [user]);
 
+  // Standalone data fetch function — callable from anywhere via refreshData()
+  const refreshData = async () => {
+    if (!user || user.isDemo || !activeFarm) return;
+    setLoading(true);
+    setError(null);
+    try {
+      const [a, c, t, i, e, r] = await Promise.all([
+        apiService.getAnimals({ farm: activeFarm.id }),
+        apiService.getCrops({ farm: activeFarm.id }),
+        apiService.getTasks({ farm: activeFarm.id }),
+        apiService.getInventory({ farm: activeFarm.id }),
+        apiService.getExpenses({ farm: activeFarm.id }),
+        apiService.getRevenues({ farm: activeFarm.id }).catch(() => []),
+      ]);
+
+      const rawAnimalsList = getResultsArray(a).map(normalizeAnimal);
+      const rawRevenuesList = getResultsArray(r);
+
+      setAnimals(rawAnimalsList);
+      setCrops(getResultsArray(c).map(normalizeCrop));
+      setTasks(getResultsArray(t).map(normalizeTask));
+      setInventory(getResultsArray(i).map(normalizeInventoryItem));
+      setExpenses(getResultsArray(e).map(normalizeExpense));
+      setRevenues(rawRevenuesList);
+    } catch (err) {
+      console.error("Error fetching farm data:", err);
+      setError("Failed to load farm data: " + (err.message || "Unknown error"));
+    }
+    setLoading(false);
+  };
+
   // Fetch farm data when activeFarm changes
   useEffect(() => {
-    let cancelled = false;
-    
-    async function fetchFarmData() {
-      if (!user || user.isDemo || !activeFarm) return;
-      setLoading(true);
-      setError(null);
-      try {
-        const [a, c, t, i, e] = await Promise.all([
-          apiService.getAnimals({ farm: activeFarm.id }),
-          apiService.getCrops({ farm: activeFarm.id }),
-          apiService.getTasks({ farm: activeFarm.id }),
-          apiService.getInventory({ farm: activeFarm.id }),
-          apiService.getExpenses({ farm: activeFarm.id }),
-        ]);
-        
-        if (!cancelled) {
-          setAnimals(getResultsArray(a).map(normalizeAnimal));
-          setCrops(getResultsArray(c).map(normalizeCrop));
-          setTasks(getResultsArray(t).map(normalizeTask));
-          setInventory(getResultsArray(i).map(normalizeInventoryItem));
-          setExpenses(getResultsArray(e).map(normalizeExpense));
-        }
-      } catch (err) {
-        if (!cancelled) {
-          console.error("Error fetching farm data:", err);
-          setError("Failed to load farm data: " + (err.message || "Unknown error"));
-        }
-      }
-      if (!cancelled) {
-        setLoading(false);
-      }
-    }
-    fetchFarmData();
-    
-    return () => {
-      cancelled = true;
-    };
+    refreshData();
     // eslint-disable-next-line
   }, [activeFarm]);
 
@@ -744,6 +750,8 @@ export function FarmDataProvider({ children }) {
         addExpense,
         updateExpense,
         deleteExpense,
+        revenues,
+        refreshData,
         farmSettings,
         updateFarmSettings,
         farmType,

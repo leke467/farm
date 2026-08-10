@@ -3,6 +3,7 @@ import { FiTrendingUp, FiBarChart2, FiUsers, FiDollarSign, FiPlus, FiDownload } 
 import apiService from "../../services/api";
 import { useUser } from "../../context/UserContext";
 import { useFarmData } from "../../context/FarmDataContext";
+import { formatFarmCurrency, getFarmCurrencySymbol } from "../../utils/formatters";
 import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import ProductionRecordForm from "../../components/forms/ProductionRecordForm";
 import BreedingRecordForm from "../../components/forms/BreedingRecordForm";
@@ -130,7 +131,7 @@ const AnimalProductivityDashboard = () => {
             <div className="flex justify-between items-start">
               <div>
                 <p className="text-xs sm:text-sm text-slate-600 mb-1">Total Revenue</p>
-                <p className="text-xl sm:text-3xl font-bold text-slate-800">₹{(totalRevenue / 100000).toFixed(1)}L</p>
+                <p className="text-xl sm:text-3xl font-bold text-slate-800">{formatFarmCurrency(totalRevenue, activeFarm)}</p>
               </div>
               <FiDollarSign className="text-green-500 text-lg sm:text-2xl flex-shrink-0" />
             </div>
@@ -140,7 +141,7 @@ const AnimalProductivityDashboard = () => {
             <div className="flex justify-between items-start">
               <div>
                 <p className="text-xs sm:text-sm text-slate-600 mb-1">Total Costs</p>
-                <p className="text-xl sm:text-3xl font-bold text-slate-800">₹{(totalCosts / 100000).toFixed(1)}L</p>
+                <p className="text-xl sm:text-3xl font-bold text-slate-800">{formatFarmCurrency(totalCosts, activeFarm)}</p>
               </div>
               <div className="text-orange-500 text-lg sm:text-2xl flex-shrink-0">📊</div>
             </div>
@@ -151,7 +152,7 @@ const AnimalProductivityDashboard = () => {
               <div>
                 <p className="text-xs sm:text-sm text-slate-600 mb-1">Net Profit</p>
                 <p className={`text-xl sm:text-3xl font-bold ${totalProfit >= 0 ? "text-green-600" : "text-red-600"}`}>
-                  ₹{(totalProfit / 100000).toFixed(1)}L
+                  {formatFarmCurrency(totalProfit, activeFarm)}
                 </p>
               </div>
               <FiTrendingUp className="text-blue-500 text-lg sm:text-2xl flex-shrink-0" />

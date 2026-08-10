@@ -3,6 +3,7 @@ import { FiDollarSign, FiPieChart, FiTrendingUp, FiAlertCircle, FiPlus, FiDownlo
 import apiService from "../../services/api";
 import { useUser } from "../../context/UserContext";
 import { useFarmData } from "../../context/FarmDataContext";
+import { formatFarmCurrency, getFarmCurrencySymbol } from "../../utils/formatters";
 import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import FinancialEntryForm from "../../components/forms/FinancialEntryForm";
 import Toast from "../../components/Toast";
@@ -130,7 +131,7 @@ const FinancialOverviewDashboard = () => {
             <div className="flex justify-between items-start">
               <div>
                 <p className="text-xs sm:text-sm text-slate-600 mb-1">Total Revenue</p>
-                <p className="text-xl sm:text-3xl font-bold text-slate-800">₹{(totalRevenue / 100000).toFixed(1)}L</p>
+                <p className="text-xl sm:text-3xl font-bold text-slate-800">{formatFarmCurrency(totalRevenue, activeFarm)}</p>
               </div>
               <FiDollarSign className="text-green-500 text-lg sm:text-2xl flex-shrink-0" />
             </div>
@@ -141,7 +142,7 @@ const FinancialOverviewDashboard = () => {
               <div>
                 <p className="text-xs sm:text-sm text-slate-600 mb-1">Net Profit</p>
                 <p className={`text-xl sm:text-3xl font-bold ${totalProfit >= 0 ? "text-green-600" : "text-red-600"}`}>
-                  ₹{(totalProfit / 100000).toFixed(1)}L
+                  {formatFarmCurrency(totalProfit, activeFarm)}
                 </p>
               </div>
               <FiTrendingUp className="text-blue-500 text-lg sm:text-2xl flex-shrink-0" />
@@ -163,7 +164,7 @@ const FinancialOverviewDashboard = () => {
               <div>
                 <p className="text-xs sm:text-sm text-slate-600 mb-1">Active Debts</p>
                 <p className="text-xl sm:text-3xl font-bold text-slate-800">{activeDebts}</p>
-                <p className="text-xs text-slate-500 mt-1">Out: ₹{(totalDebt / 100000).toFixed(1)}L</p>
+                <p className="text-xs text-slate-500 mt-1">Out: {formatFarmCurrency(totalDebt, activeFarm)}</p>
               </div>
               <FiAlertCircle className="text-orange-500 text-lg sm:text-2xl flex-shrink-0" />
             </div>
@@ -299,7 +300,7 @@ const FinancialOverviewDashboard = () => {
                         {payment.creditor}
                       </td>
                       <td className="px-3 sm:px-6 py-4 text-xs sm:text-sm font-semibold text-blue-600 whitespace-nowrap">
-                        ₹{payment.amount.toFixed(0)}
+                        {formatFarmCurrency(payment.amount, activeFarm)}
                       </td>
                       <td className="px-3 sm:px-6 py-4 text-xs sm:text-sm text-slate-700 whitespace-nowrap">
                         {payment.frequency.charAt(0).toUpperCase()}
@@ -361,10 +362,10 @@ const FinancialOverviewDashboard = () => {
                         {revenue.quantity || 0}
                       </td>
                       <td className="px-3 sm:px-6 py-4 text-xs sm:text-sm text-slate-700 whitespace-nowrap">
-                        ₹{(revenue.unit_price || 0).toFixed(2)}
+                        {formatFarmCurrency(revenue.unit_price || 0, activeFarm)}
                       </td>
                       <td className="px-3 sm:px-6 py-4 text-xs sm:text-sm font-semibold text-green-600 whitespace-nowrap">
-                        ₹{(revenue.amount || 0).toFixed(2)}
+                        {formatFarmCurrency(revenue.amount || 0, activeFarm)}
                       </td>
                     </tr>
                   ))

@@ -7,12 +7,29 @@ User = get_user_model()
 
 class FarmSerializer(serializers.ModelSerializer):
     owner = UserSerializer(read_only=True)
+    user_role = serializers.SerializerMethodField()
+    is_owner = serializers.SerializerMethodField()
     
     class Meta:
         model = Farm
         fields = '__all__'
         read_only_fields = ['owner', 'created_at', 'updated_at']
     
+    def get_user_role(self, obj):
+        request = self.context.get('request')
+        if not request or not request.user or not request.user.is_authenticated:
+            return 'viewer'
+        if obj.owner_id == request.user.id:
+            return 'owner'
+        membership = FarmMember.objects.filter(farm=obj, user=request.user).first()
+        return membership.role if membership else 'viewer'
+
+    def get_is_owner(self, obj):
+        request = self.context.get('request')
+        if not request or not request.user or not request.user.is_authenticated:
+            return False
+        return obj.owner_id == request.user.id
+
     def create(self, validated_data):
         validated_data['owner'] = self.context['request'].user
         return super().create(validated_data)
@@ -35,7 +52,6 @@ class FarmMemberCreateSerializer(serializers.Serializer):
     phone = serializers.CharField(max_length=20, required=False, allow_blank=True)
     role = serializers.ChoiceField(choices=FarmMember.ROLE_CHOICES, default='worker')
     password = serializers.CharField(write_only=True, min_length=8)
-    is_admin = serializers.BooleanField(required=False, default=False)
 
     def validate_username(self, value):
         if User.objects.filter(username=value).exists():
@@ -51,11 +67,9 @@ class FarmMemberCreateSerializer(serializers.Serializer):
         farm = self.context['farm']
         role = validated_data.pop('role', 'worker')
         raw_password = validated_data.pop('password')
-        is_admin = validated_data.pop('is_admin', False)
 
         user = User.objects.create_user(
             password=raw_password,
-            is_admin=is_admin,
             **validated_data,
         )
         user.must_change_password = True

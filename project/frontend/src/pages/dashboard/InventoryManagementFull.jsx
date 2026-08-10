@@ -1,17 +1,21 @@
 import { useState, useEffect } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { FiPlus, FiEdit2, FiTrash2, FiSearch, FiFilter, FiX, FiDownload, FiTrendingDown } from "react-icons/fi";
 import { Dialog, Transition } from "@headlessui/react";
 import { Fragment } from "react";
 import { FormField, SelectField, DateField, NumberField, TextAreaField } from "../../components/forms/FormComponents";
+import CategoryCombobox from "../../components/CategoryCombobox";
 import apiService from "../../services/api";
 import { useUser } from "../../context/UserContext";
 import { useFarmData } from "../../context/FarmDataContext";
+import { formatFarmCurrency, getFarmCurrencySymbol } from "../../utils/formatters";
+import { useToast } from "../../context/ToastContext";
 
 const InventoryManagement = () => {
   const { token } = useUser();
   const { activeFarm } = useFarmData();
+  const { toast } = useToast();
   
   const [items, setItems] = useState([]);
   const [transactions, setTransactions] = useState([]);
@@ -20,10 +24,12 @@ const InventoryManagement = () => {
   const [isTransactionModalOpen, setIsTransactionModalOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
   const [filterCategory, setFilterCategory] = useState("all");
+  const [filterStock, setFilterStock] = useState("all");
   const [filterLowStock, setFilterLowStock] = useState(false);
   const [apiError, setApiError] = useState("");
   const [apiSuccess, setApiSuccess] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
+  const [inventoryCategorySuggestions, setInventoryCategorySuggestions] = useState([]);
 
   const {
     register: registerItem,
@@ -31,6 +37,7 @@ const InventoryManagement = () => {
     formState: { errors: itemErrors, isSubmitting: isItemSubmitting },
     reset: resetItem,
     setValue: setItemValue,
+    control: itemControl,
   } = useForm({
     defaultValues: {
       name: "",
@@ -67,6 +74,17 @@ const InventoryManagement = () => {
   useEffect(() => {
     if (activeFarm?.id) {
       fetchData();
+      const loadCategories = async () => {
+        try {
+          const cats = await apiService.getFarmCategories(activeFarm.id, 'inventory_category');
+          if (!cats._error) {
+            setInventoryCategorySuggestions(cats);
+          }
+        } catch (error) {
+          console.error("Failed to load categories:", error);
+        }
+      };
+      loadCategories();
     }
   }, [activeFarm?.id, token]);
 
@@ -74,13 +92,21 @@ const InventoryManagement = () => {
     setIsLoading(true);
     try {
       const [itemsRes, transRes] = await Promise.all([
-        apiService.get("/api/inventory/"),
-        apiService.get("/api/inventory/transactions/"),
+        apiService.get("/inventory/"),
+        apiService.get("/inventory/transactions/"),
       ]);
-      setItems(itemsRes.data);
-      setTransactions(transRes.data);
+      const itemList = Array.isArray(itemsRes)
+        ? itemsRes
+        : itemsRes?.results || itemsRes?.data || [];
+      const transList = Array.isArray(transRes)
+        ? transRes
+        : transRes?.results || transRes?.data || [];
+      setItems(Array.isArray(itemList) ? itemList : []);
+      setTransactions(Array.isArray(transList) ? transList : []);
     } catch (error) {
       setApiError("Failed to load inventory data");
+      setItems([]);
+      setTransactions([]);
       console.error("Error:", error);
     } finally {
       setIsLoading(false);
@@ -89,12 +115,26 @@ const InventoryManagement = () => {
 
   const onItemSubmit = async (data) => {
     try {
+      const payload = {
+        ...data,
+        farm: activeFarm?.id,
+        purchase_date: data.purchase_date && data.purchase_date.trim() ? data.purchase_date : null,
+        expiry_date: data.expiry_date && data.expiry_date.trim() ? data.expiry_date : null,
+        cost_per_unit: data.cost_per_unit !== "" && data.cost_per_unit !== null && !isNaN(parseFloat(data.cost_per_unit)) ? parseFloat(data.cost_per_unit) : 0,
+        quantity: data.quantity !== "" && data.quantity !== null && !isNaN(parseFloat(data.quantity)) ? parseFloat(data.quantity) : 0,
+        min_quantity: data.min_quantity !== "" && data.min_quantity !== null && !isNaN(parseFloat(data.min_quantity)) ? parseFloat(data.min_quantity) : 0,
+      };
+
       if (selectedItem) {
-        await apiService.patch(`/api/inventory/${selectedItem.id}/`, data);
-        setApiSuccess("Item updated successfully!");
+        await apiService.patch(`/api/inventory/${selectedItem.id}/`, payload);
+        const msg = "Item updated successfully!";
+        toast.success(msg);
+        setApiSuccess(msg);
       } else {
-        await apiService.post("/api/inventory/", data);
-        setApiSuccess("Item added successfully!");
+        await apiService.post("/api/inventory/", payload);
+        const msg = "Item added successfully!";
+        toast.success(msg);
+        setApiSuccess(msg);
       }
       resetItem();
       setIsAddModalOpen(false);
@@ -102,7 +142,8 @@ const InventoryManagement = () => {
       fetchData();
       setTimeout(() => setApiSuccess(""), 3000);
     } catch (error) {
-      setApiError(error.response?.data?.detail || "Failed to save item");
+      const errDetail = error.response?.data ? JSON.stringify(error.response.data) : "Failed to save item";
+      setApiError(errDetail);
     }
   };
 
@@ -112,19 +153,32 @@ const InventoryManagement = () => {
       return;
     }
 
+    const payload = {
+      item: selectedItem.id,
+      item_id: selectedItem.id,
+      transaction_type: data.transaction_type || "in",
+      quantity: Number(data.quantity || 0),
+      cost_per_unit: data.cost_per_unit ? Number(data.cost_per_unit) : null,
+      transaction_date: data.transaction_date || new Date().toISOString().split("T")[0],
+      reason: data.reason || "",
+      reference: data.reference || "",
+      notes: data.notes || "",
+    };
+
     try {
-      await apiService.post("/api/inventory/transactions/", {
-        ...data,
-        item: selectedItem.id,
-      });
-      setApiSuccess("Transaction recorded successfully!");
+      await apiService.post("/inventory/transactions/", payload);
+      const msg = "Transaction recorded successfully!";
+      toast.success(msg);
+      setApiSuccess(msg);
       resetTransaction();
       setIsTransactionModalOpen(false);
       setSelectedItem(null);
       fetchData();
       setTimeout(() => setApiSuccess(""), 3000);
     } catch (error) {
-      setApiError(error.response?.data?.detail || "Failed to record transaction");
+      const errRes = error.response?.data;
+      const errMsg = typeof errRes === "object" ? Object.values(errRes).flat().join(" ") : "Failed to record transaction";
+      setApiError(errMsg || "Failed to record transaction");
     }
   };
 
@@ -161,27 +215,37 @@ const InventoryManagement = () => {
   };
 
   // Filter and search logic
-  let filteredItems = items.filter((item) => {
+  const safeItems = Array.isArray(items) ? items : [];
+  let filteredItems = safeItems.filter((item) => {
+    if (!item) return false;
     let matches = true;
     if (filterCategory !== "all") matches = matches && item.category === filterCategory;
-    if (filterLowStock) matches = matches && item.quantity <= item.min_quantity;
+    if (filterStock === "low") matches = matches && Number(item.quantity || 0) <= Number(item.min_quantity || 0);
+    if (filterStock === "expiring") {
+      matches = matches && item.expiry_date && new Date(item.expiry_date) <= new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+    }
+    if (filterLowStock) matches = matches && Number(item.quantity || 0) <= Number(item.min_quantity || 0);
     if (searchQuery) {
       matches = matches && (
-        item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        item.supplier.toLowerCase().includes(searchQuery.toLowerCase())
+        (item.name || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (item.supplier || "").toLowerCase().includes(searchQuery.toLowerCase())
       );
     }
     return matches;
   });
 
   // Calculate totals
-  const totalValue = filteredItems.reduce((sum, item) => sum + item.total_value, 0);
-  const lowStockCount = items.filter((item) => item.quantity <= item.min_quantity).length;
-  const expiringCount = items.filter((item) => 
-    item.expiry_date && new Date(item.expiry_date) <= new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
+  const totalValue = filteredItems.reduce((sum, item) => {
+    const val = item.total_value != null ? Number(item.total_value) : (Number(item.quantity || 0) * Number(item.cost_per_unit || 0));
+    return sum + (isNaN(val) ? 0 : val);
+  }, 0);
+  const lowStockCount = safeItems.filter((item) => item && Number(item.quantity || 0) <= Number(item.min_quantity || 0)).length;
+  const expiringCount = safeItems.filter((item) => 
+    item && item.expiry_date && new Date(item.expiry_date) <= new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
   ).length;
 
   const categoryOptions = [
+    { value: "production", label: "Production / Yield 🥛" },
     { value: "feed", label: "Feed" },
     { value: "fertilizer", label: "Fertilizer" },
     { value: "medical", label: "Medical" },
@@ -270,7 +334,7 @@ const InventoryManagement = () => {
         </div>
         <div className="bg-white rounded-lg shadow p-6 border-l-4 border-primary-500">
           <p className="text-gray-600 text-sm font-medium">Total Value</p>
-          <p className="text-3xl font-bold text-primary-600">${totalValue.toFixed(2)}</p>
+          <p className="text-3xl font-bold text-primary-600">{formatFarmCurrency(totalValue, activeFarm)}</p>
           <p className="text-xs text-gray-500 mt-2">Inventory value</p>
         </div>
       </div>
@@ -293,31 +357,37 @@ const InventoryManagement = () => {
           className="px-3 py-2 border border-gray-300 rounded-lg"
         >
           <option value="all">All Categories</option>
-          {categoryOptions.map((opt) => (
-            <option key={opt.value} value={opt.value}>{opt.label}</option>
-          ))}
+          <option value="feed">Feed</option>
+          <option value="fertilizer">Fertilizer</option>
+          <option value="medical">Medical</option>
+          <option value="infrastructure">Infrastructure</option>
+          <option value="fuel">Fuel</option>
+          <option value="tools">Tools</option>
+          <option value="seeds">Seeds</option>
+          <option value="other">Other</option>
         </select>
-        <button
-          onClick={() => setFilterLowStock(!filterLowStock)}
-          className={`px-4 py-2 rounded-lg font-medium flex items-center gap-2 ${
-            filterLowStock ? "bg-orange-500 text-white" : "bg-gray-200 text-gray-700"
-          }`}
+        <select
+          value={filterStock}
+          onChange={(e) => setFilterStock(e.target.value)}
+          className="px-3 py-2 border border-gray-300 rounded-lg"
         >
-          <FiTrendingDown /> Low Stock Only
-        </button>
+          <option value="all">All Stock Status</option>
+          <option value="low">Low Stock</option>
+          <option value="expiring">Expiring Soon</option>
+        </select>
       </div>
 
-      {/* Inventory Table */}
+      {/* Items Table */}
       <div className="bg-white rounded-lg shadow overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead className="bg-gray-50 border-b border-gray-200">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">Name</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">Item Name</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">Category</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">Quantity</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">Min Level</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">Cost/Unit</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">Min Quantity</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">Cost Per Unit</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">Total Value</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">Supplier</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">Location</th>
@@ -327,17 +397,26 @@ const InventoryManagement = () => {
             <tbody className="divide-y divide-gray-200">
               {filteredItems.length > 0 ? (
                 filteredItems.map((item) => (
-                  <tr key={item.id} className={`hover:bg-gray-50 ${item.quantity <= item.min_quantity ? "bg-orange-50" : ""}`}>
+                  <tr key={item.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 text-sm font-medium text-gray-900">{item.name}</td>
-                    <td className="px-6 py-4 text-sm text-gray-700 capitalize">{item.category}</td>
                     <td className="px-6 py-4 text-sm text-gray-700">
-                      <span className={item.quantity <= item.min_quantity ? "text-orange-600 font-bold" : ""}>
+                      {item.category?.toLowerCase() === "production" || item.category?.toLowerCase().includes("yield") ? (
+                        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black bg-emerald-100 text-emerald-800 border border-emerald-300 shadow-2xs">
+                          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                          <span>{item.category === "production" ? "Production / Yield" : item.category}</span>
+                        </span>
+                      ) : (
+                        <span className="capitalize text-gray-800 font-medium">{item.category}</span>
+                      )}
+                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-700">
+                      <span className={Number(item.quantity || 0) <= Number(item.min_quantity || 0) ? "text-orange-600 font-bold" : ""}>
                         {item.quantity} {item.unit}
                       </span>
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-700">{item.min_quantity} {item.unit}</td>
-                    <td className="px-6 py-4 text-sm text-gray-700">${item.cost_per_unit?.toFixed(2) || "N/A"}</td>
-                    <td className="px-6 py-4 text-sm font-medium text-gray-900">${item.total_value?.toFixed(2) || "0.00"}</td>
+                    <td className="px-6 py-4 text-sm text-gray-700">{formatFarmCurrency(item.cost_per_unit || 0, activeFarm)}</td>
+                    <td className="px-6 py-4 text-sm font-medium text-gray-900">{formatFarmCurrency(item.total_value != null ? item.total_value : (Number(item.quantity || 0) * Number(item.cost_per_unit || 0)), activeFarm)}</td>
                     <td className="px-6 py-4 text-sm text-gray-700">{item.supplier || "N/A"}</td>
                     <td className="px-6 py-4 text-sm text-gray-700">{item.location || "N/A"}</td>
                     <td className="px-6 py-4 text-sm space-x-2">
@@ -412,25 +491,38 @@ const InventoryManagement = () => {
                         name="name"
                         label="Item Name"
                         type="text"
+                        placeholder="e.g. Layer Mash Feed"
+                        helperText="Name or description of the supply item."
                         errors={itemErrors}
                       />
-                      <SelectField
-                        register={registerItem}
+                      <Controller
                         name="category"
-                        label="Category"
-                        options={categoryOptions}
-                        errors={itemErrors}
+                        control={itemControl}
+                        render={({ field }) => (
+                          <CategoryCombobox
+                            id="category"
+                            name="category"
+                            value={field.value || ""}
+                            onChange={field.onChange}
+                            suggestions={inventoryCategorySuggestions}
+                            placeholder="Type custom or select from dropdown..."
+                            label="Category"
+                            helperText="Type custom category or select preset suggestion."
+                          />
+                        )}
                       />
                       <NumberField
                         register={registerItem}
                         name="quantity"
                         label="Current Quantity"
+                        helperText="Amount currently in stock on the farm."
                         errors={itemErrors}
                       />
                       <SelectField
                         register={registerItem}
                         name="unit"
                         label="Unit"
+                        helperText="Unit of measurement (e.g. kg, Bags)."
                         options={unitOptions}
                         errors={itemErrors}
                       />
@@ -438,12 +530,14 @@ const InventoryManagement = () => {
                         register={registerItem}
                         name="min_quantity"
                         label="Minimum Quantity"
+                        helperText="Safety stock level. Triggers Low Stock alert when reached."
                         errors={itemErrors}
                       />
                       <NumberField
                         register={registerItem}
                         name="cost_per_unit"
-                        label="Cost Per Unit ($)"
+                        label={`Cost Per Unit (${getFarmCurrencySymbol(activeFarm)})`}
+                        helperText="Purchase price paid per single unit."
                         errors={itemErrors}
                       />
                       <FormField
@@ -451,6 +545,8 @@ const InventoryManagement = () => {
                         name="supplier"
                         label="Supplier (Optional)"
                         type="text"
+                        placeholder="e.g. AgriSupply Co."
+                        helperText="Vendor or dealer where item was bought."
                         errors={itemErrors}
                       />
                       <FormField
@@ -458,18 +554,22 @@ const InventoryManagement = () => {
                         name="location"
                         label="Location (Optional)"
                         type="text"
+                        placeholder="e.g. Barn A / Shed 2"
+                        helperText="Storage location on the farm."
                         errors={itemErrors}
                       />
                       <DateField
                         register={registerItem}
                         name="purchase_date"
                         label="Purchase Date (Optional)"
+                        helperText="Date stock batch was acquired."
                         errors={itemErrors}
                       />
                       <DateField
                         register={registerItem}
                         name="expiry_date"
                         label="Expiry Date (Optional)"
+                        helperText="Expiration date for perishable goods."
                         errors={itemErrors}
                       />
                     </div>
@@ -478,6 +578,8 @@ const InventoryManagement = () => {
                       register={registerItem}
                       name="notes"
                       label="Notes (Optional)"
+                      placeholder="Special storage instructions or details..."
+                      helperText="Additional storage instructions or notes."
                       errors={itemErrors}
                       rows={3}
                     />
@@ -560,7 +662,7 @@ const InventoryManagement = () => {
                     <NumberField
                       register={registerTransaction}
                       name="cost_per_unit"
-                      label="Cost Per Unit ($)"
+                      label={`Cost Per Unit (${getFarmCurrencySymbol(activeFarm)})`}
                       errors={transErrors}
                     />
 

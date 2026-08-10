@@ -2,7 +2,6 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useUser } from "../../context/UserContext";
 import apiService from "../../services/api";
-import { users } from "../../data/mockData";
 
 function Register() {
   const [formData, setFormData] = useState({
@@ -12,7 +11,7 @@ function Register() {
     username: "",
     password: "",
     confirmPassword: "",
-    role: "admin", // default to admin for farm creation
+    role: "owner",
     phone: "", // added phone field
     farmName: "",
     farmLocation: "",
@@ -44,23 +43,6 @@ function Register() {
       return;
     }
     setLoading(true);
-
-    // Demo registration (mock data)
-    if (
-      (formData.username === "demo" && formData.password === "demo123") ||
-      (formData.username === "admin" && formData.password === "admin123")
-    ) {
-      const demoUser = users.find(
-        (u) =>
-          u.username === formData.username && u.password === formData.password
-      );
-      if (demoUser) {
-        handleLogin(demoUser);
-        navigate("/dashboard");
-        setLoading(false);
-        return;
-      }
-    }
 
     // Real backend registration
     try {
@@ -182,9 +164,9 @@ function Register() {
                   onChange={handleChange}
                   className="input text-base"
                 >
-                  <option value="small">Small (&lt; 50 acres)</option>
-                  <option value="medium">Medium (50-500 acres)</option>
-                  <option value="large">Large (&gt; 500 acres)</option>
+                  <option value="small">Small</option>
+                  <option value="medium">Medium</option>
+                  <option value="large">Large</option>
                 </select>
               </div>
               <div>
@@ -219,6 +201,18 @@ function Register() {
                 <option value="crop">Crop</option>
                 <option value="dairy">Dairy</option>
                 <option value="poultry">Poultry</option>
+                <option value="aquaculture">Aquaculture</option>
+                <option value="orchard">Orchard</option>
+                <option value="vineyard">Vineyard</option>
+                <option value="apiary">Apiary / Beekeeping</option>
+                <option value="greenhouse">Greenhouse</option>
+                <option value="hydroponics">Hydroponics</option>
+                <option value="nursery">Nursery</option>
+                <option value="forestry">Forestry</option>
+                <option value="horticulture">Horticulture</option>
+                <option value="pastoral">Pastoral</option>
+                <option value="agroforestry">Agroforestry</option>
+                <option value="other">Other</option>
               </select>
             </div>
             <div>

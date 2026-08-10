@@ -31,15 +31,24 @@ class ReportDetailView(generics.RetrieveDestroyAPIView):
         ).distinct()
         return Report.objects.filter(farm__in=user_farms)
 
+def get_user_farms_for_request(request):
+    user_farms = Farm.objects.filter(
+        Q(owner=request.user) | Q(members__user=request.user)
+    ).distinct()
+    farm_id = request.GET.get('farm') or request.query_params.get('farm')
+    if farm_id:
+        try:
+            filtered = user_farms.filter(id=farm_id)
+            if filtered.exists():
+                return filtered
+        except (ValueError, TypeError):
+            pass
+    return user_farms
+
 @api_view(['GET'])
 @permission_classes([permissions.IsAuthenticated])
 def dashboard_analytics_view(request):
-    user = request.user
-    
-    # Get user's farms (owned or member of)
-    user_farms = Farm.objects.filter(
-        Q(owner=user) | Q(members__user=user)
-    ).distinct()
+    user_farms = get_user_farms_for_request(request)
     
     # Animal statistics
     total_animals = Animal.objects.filter(farm__in=user_farms).aggregate(
@@ -140,13 +149,8 @@ def dashboard_analytics_view(request):
 @api_view(['GET'])
 @permission_classes([permissions.IsAuthenticated])
 def production_report_view(request):
-    user = request.user
     year = request.GET.get('year', datetime.now().year)
-    
-    # Get user's farms (owned or member of)
-    user_farms = Farm.objects.filter(
-        Q(owner=user) | Q(members__user=user)
-    ).distinct()
+    user_farms = get_user_farms_for_request(request)
     
     # Crop production data
     crops = Crop.objects.filter(
@@ -200,28 +204,43 @@ def production_report_view(request):
 @permission_classes([permissions.IsAuthenticated])
 def animals_analytics_view(request):
     """Detailed animal analytics"""
-    user = request.user
-    
-    user_farms = Farm.objects.filter(
-        Q(owner=user) | Q(members__user=user)
-    ).distinct()
-    
+    user_farms = get_user_farms_for_request(request)
     animals = Animal.objects.filter(farm__in=user_farms)
     
     # By type breakdown
     by_type = animals.values('animal_type').annotate(
-        count=Sum('count'),
+        total_count=Sum('count'),
         healthy=Sum('count', filter=Q(status='healthy')),
         sick=Sum('count', filter=Q(status='sick')),
         injured=Sum('count', filter=Q(status='injured')),
         avg_weight=Avg('weight')
-    ).order_by('-count')
+    ).order_by('-total_count')
     
+    by_type_list = [
+        {
+            'animal_type': item['animal_type'],
+            'count': item['total_count'] or 0,
+            'healthy': item['healthy'] or 0,
+            'sick': item['sick'] or 0,
+            'injured': item['injured'] or 0,
+            'avg_weight': float(item['avg_weight'] or 0),
+        }
+        for item in by_type
+    ]
+
     # By status breakdown
     by_status = animals.values('status').annotate(
-        count=Sum('count')
-    ).order_by('-count')
-    
+        total_count=Sum('count')
+    ).order_by('-total_count')
+
+    by_status_list = [
+        {
+            'status': item['status'],
+            'count': item['total_count'] or 0,
+        }
+        for item in by_status
+    ]
+
     # Health metrics
     total_animals = animals.aggregate(total=Sum('count'))['total'] or 0
     healthy_count = animals.filter(status='healthy').aggregate(total=Sum('count'))['total'] or 0
@@ -236,20 +255,15 @@ def animals_analytics_view(request):
             'injured': injured_count,
             'health_percentage': round((healthy_count / total_animals * 100), 2) if total_animals > 0 else 0
         },
-        'by_type': list(by_type),
-        'by_status': list(by_status)
+        'by_type': by_type_list,
+        'by_status': by_status_list
     })
 
 @api_view(['GET'])
 @permission_classes([permissions.IsAuthenticated])
 def crops_analytics_view(request):
     """Detailed crop analytics"""
-    user = request.user
-    
-    user_farms = Farm.objects.filter(
-        Q(owner=user) | Q(members__user=user)
-    ).distinct()
-    
+    user_farms = get_user_farms_for_request(request)
     crops = Crop.objects.filter(farm__in=user_farms)
     
     # By status breakdown
@@ -292,13 +306,9 @@ def crops_analytics_view(request):
 @permission_classes([permissions.IsAuthenticated])
 def expenses_analytics_view(request):
     """Detailed expense analytics"""
-    user = request.user
     year = request.GET.get('year', datetime.now().year)
     month = request.GET.get('month')
-    
-    user_farms = Farm.objects.filter(
-        Q(owner=user) | Q(members__user=user)
-    ).distinct()
+    user_farms = get_user_farms_for_request(request)
     
     expenses_qs = Expense.objects.filter(
         farm__in=user_farms,
@@ -354,11 +364,8 @@ def expenses_analytics_view(request):
 @permission_classes([permissions.IsAuthenticated])
 def inventory_analytics_view(request):
     """Detailed inventory analytics"""
-    user = request.user
-    
-    user_farms = Farm.objects.filter(
-        Q(owner=user) | Q(members__user=user)
-    ).distinct()
+    user_farms = get_user_farms_for_request(request)
+    inventory_items = InventoryItem.objects.filter(farm__in=user_farms)
     
     inventory_items = InventoryItem.objects.filter(farm__in=user_farms)
     

@@ -25,13 +25,15 @@ class Expense(models.Model):
     
     farm = models.ForeignKey(Farm, on_delete=models.CASCADE, related_name='expenses')
     date = models.DateField()
-    category = models.CharField(max_length=20, choices=CATEGORY_CHOICES)
+    category = models.CharField(max_length=50)
     description = models.CharField(max_length=200)
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     vendor = models.CharField(max_length=200)
     payment_method = models.CharField(max_length=20, choices=PAYMENT_METHOD_CHOICES)
     receipt = models.FileField(upload_to='receipts/', blank=True)
     notes = models.TextField(blank=True)
+    linked_animal = models.ForeignKey('animals.Animal', on_delete=models.SET_NULL, null=True, blank=True, related_name='linked_expenses')
+    linked_crop = models.ForeignKey('crops.Crop', on_delete=models.SET_NULL, null=True, blank=True, related_name='linked_expenses')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     
@@ -43,7 +45,7 @@ class Expense(models.Model):
 
 class Budget(models.Model):
     farm = models.ForeignKey(Farm, on_delete=models.CASCADE, related_name='budgets')
-    category = models.CharField(max_length=20, choices=Expense.CATEGORY_CHOICES)
+    category = models.CharField(max_length=50)
     year = models.PositiveIntegerField()
     month = models.PositiveIntegerField(null=True, blank=True)  # If null, it's yearly budget
     budgeted_amount = models.DecimalField(max_digits=10, decimal_places=2)
@@ -94,7 +96,7 @@ class Revenue(models.Model):
     
     farm = models.ForeignKey(Farm, on_delete=models.CASCADE, related_name='revenues')
     date = models.DateField()
-    source = models.CharField(max_length=30, choices=REVENUE_SOURCE_CHOICES)
+    source = models.CharField(max_length=50)
     item_sold = models.CharField(max_length=200, help_text="e.g., Milk, Corn, Eggs")
     quantity = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     unit = models.CharField(max_length=50, blank=True)
