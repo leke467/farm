@@ -130,6 +130,32 @@ cd farm
 
 ---
 
+### 💾 Database Seed Data & Fixtures (`datadump.json`)
+
+A complete database dump containing initial demo data, default permission catalogs, user accounts, livestock, crops, inventory items, expense logs, sales records, and subscription plans is included in the project repository.
+
+* **File Locations**:
+  * Root Directory: `datadump.json`
+  * Backend Directory: `project/backend/datadump.json`
+
+* **What the Data Contains**:
+  1. **Farms & Settings**: Default farm profile (`Adehi Farm`), currency setup (`NGN / ₦`), and farm branding metadata.
+  2. **Users & Credentials**: Owner, manager, and worker test accounts with initial password change flags.
+  3. **Role & Menu Permissions**: System menu catalog (`MENU_CHOICES`), role permission matrices (`Owner`, `Manager`, `Worker`, `Viewer`), and user-specific permission overrides.
+  4. **Livestock & Production**: Herd registries (Cattle, Layers, Broilers, Goats, Pigs), daily feed logs, feed mix recipes, medical/vaccination records, breeding calendars, and multi-product harvest records (Eggs, Milk, Wool, Honey, Meat).
+  5. **Crops & Yields**: Active crop cycles, planting dates, harvest logs, and growth stage metrics.
+  6. **Inventory & Compound Units**: Stock inventory items (Crates & Loose Units), stock movement logs, low-stock thresholds, auto-stock-in records, and audit logs.
+  7. **Financials & Sales Tracker**: Expense records allocated per flock vs general overheads, active debts/loans, customer orders, sales revenue entries, and auto-deducted animal sales.
+  8. **Subscription Plans**: Monnify subscription plans (Free Trial, Pro Monthly, Pro Yearly) and active farm subscription state.
+
+* **How to Load Seed Data into Database**:
+  ```bash
+  cd project/backend
+  python manage.py loaddata datadump.json
+  ```
+
+---
+
 ### 3️⃣ Frontend Setup (React 18 + Vite)
 
 1. **Open a new terminal and navigate to the frontend directory**:
