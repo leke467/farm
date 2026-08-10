@@ -88,7 +88,7 @@ const Pricing = () => {
     },
     {
       q: "Is there a money-back guarantee?",
-      a: "Absolutely! We offer a 14-day hassle-free money-back guarantee if you are not completely satisfied with TerraTrack.",
+      a: "Absolutely! We offer a 14-day hassle-free money-back guarantee if you are not completely satisfied with Livesteads.",
     },
   ];
 
@@ -102,7 +102,7 @@ const Pricing = () => {
         >
           <Logo size={34} />
           <span className="font-bold text-xl tracking-tight text-white group-hover:text-emerald-400 transition">
-            TerraTrack
+            Livesteads
           </span>
         </div>
         <div className="flex items-center gap-4">

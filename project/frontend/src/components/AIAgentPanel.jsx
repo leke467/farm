@@ -152,7 +152,7 @@ const AIAgentPanel = () => {
               <div className="flex items-center gap-2 pb-2 border-b-2 border-green-300">
                 <div className="text-2xl">🤖</div>
                 <div>
-                  <div className="font-bold text-green-700">Terra AI Suggests</div>
+                  <div className="font-bold text-green-700">Livesteads AI Suggests</div>
                   <div className="text-xs text-gray-600">Personalized recommendations for your farm</div>
                 </div>
               </div>

@@ -224,7 +224,7 @@ function DashboardLayout() {
             <Link to={`/${currentSlug}/dashboard`} className="flex items-center">
               <Logo size={36} />
               <span className="ml-3 text-xl font-display font-bold text-primary-500">
-                Terra Track
+                Livesteads
               </span>
             </Link>
             <button

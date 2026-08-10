@@ -1,6 +1,6 @@
-# 🌾 TerraTrack — Smart Farm Management System
+# 🌾 Livesteads (livesteads.com) — Smart Farm Management System
 
-**TerraTrack** is a modern, comprehensive, full-stack farm management application designed to empower farm owners, managers, and workers to efficiently track livestock, crop lifecycles, inventory stock, farm financial transactions, sales & income, and automated health alerts.
+**Livesteads** is a modern, comprehensive, full-stack farm management application designed to empower farm owners, managers, and workers to efficiently track livestock, crop lifecycles, inventory stock, farm financial transactions, sales & income, and automated health alerts.
 
 ---
 
@@ -19,7 +19,7 @@
 
 ## 📋 Prerequisites & System Requirements
 
-Ensure you have the following installed on your machine before setting up TerraTrack:
+Ensure you have the following installed on your machine before setting up Livesteads:
 
 | Tool | Recommended Version | Note |
 | :--- | :--- | :--- |

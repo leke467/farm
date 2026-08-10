@@ -23,7 +23,7 @@ function Landing() {
           <div className="flex items-center gap-2 md:gap-3">
             <Logo size={36} />
             <span className="text-lg md:text-xl font-display font-bold text-green-700">
-              Terra Track
+              Livesteads
             </span>
           </div>
 
@@ -192,7 +192,7 @@ function Landing() {
               Ready to transform your farm management?
             </h2>
             <p className="mt-4 text-lg sm:text-xl text-green-100">
-              Join thousands of farmers who are already using Terra Track
+              Join thousands of farmers who are already using Livesteads (livesteads.com)
             </p>
             <div className="mt-8">
               <Link
@@ -301,7 +301,7 @@ function Landing() {
           </div>
           <div className="mt-12 border-t border-green-800 pt-8">
             <p className="text-sm sm:text-base text-green-400 text-center">
-              © 2024 Terra Track. All rights reserved.
+              © {new Date().getFullYear()} Livesteads.com. All rights reserved.
             </p>
           </div>
         </div>

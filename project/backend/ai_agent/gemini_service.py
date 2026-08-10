@@ -65,7 +65,7 @@ class GeminiAIService:
         low_stock_items = [f"{i['name']} ({i['quantity']} {i['unit']})" for i in metrics.get('low_stock_items', [])]
         high_cost_cats = [f"{c['category']}: ${c['amount']:,.2f} ({c['percentage']}%)" for c in metrics.get('high_cost_categories', [])]
         
-        context = f"""You are an expert agricultural AI advisor for TerraTrack Farm Management System.
+        context = f"""You are an expert agricultural AI advisor for Livesteads (livesteads.com) Farm Management System.
 You have access to real-time, comprehensive data for this farm:
 
 FARM FINANCIAL METRICS:
@@ -108,7 +108,7 @@ Be conversational, concise, professional, and practical."""
             if farm_data:
                 system_prompt = self.create_farm_context(farm_data)
             else:
-                system_prompt = """You are an expert agricultural AI advisor for TerraTrack Farm Management System.
+                system_prompt = """You are an expert agricultural AI advisor for Livesteads (livesteads.com) Farm Management System.
 Provide helpful, practical advice about farm management, profitability, and optimization."""
             
             # Add user message to history
