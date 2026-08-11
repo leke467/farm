@@ -4,7 +4,7 @@ import { FiEdit2, FiTrash2, FiChevronUp, FiChevronDown } from 'react-icons/fi';
 import { useFarmData } from '../../context/FarmDataContext';
 import { formatFarmCurrency } from '../../utils/formatters';
 
-function AnimalCard({ animal, onEdit, onDelete, onLogFeed, onRecordProduction }) {
+function AnimalCard({ animal, onEdit, onDelete, onLogFeed, onRecordProduction, onAddBreeding }) {
   const { activeFarm } = useFarmData();
   const [expanded, setExpanded] = useState(false);
   const feedRecords = animal.food_consumption || animal.foodConsumption || animal.feed_records || [];
@@ -78,6 +78,15 @@ function AnimalCard({ animal, onEdit, onDelete, onLogFeed, onRecordProduction })
                 title="Record Milk, Eggs, Wool, or Yield from this animal"
               >
                 <span>🥛 Yield</span>
+              </button>
+            )}
+            {onAddBreeding && (
+              <button
+                onClick={() => onAddBreeding(animal)}
+                className="px-2.5 py-1 text-xs font-bold text-indigo-800 bg-indigo-50 hover:bg-indigo-100 border border-indigo-300 rounded-lg flex items-center gap-1 transition-colors shadow-2xs"
+                title="Record breeding event or mating log for this animal"
+              >
+                <span>🧬 Breeding</span>
               </button>
             )}
             <button 

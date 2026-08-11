@@ -17,6 +17,7 @@ import FeedRecordForm from "../../components/forms/FeedRecordForm";
 import FeedMixModal from "../../components/animals/FeedMixModal";
 import RecordSaleModal from "../../components/forms/RecordSaleModal";
 import ProductionRecordForm from "../../components/forms/ProductionRecordForm";
+import BreedingRecordForm from "../../components/forms/BreedingRecordForm";
 import {
   FormField,
   SelectField,
@@ -63,6 +64,8 @@ function AnimalManagement() {
   const [isSaleModalOpen, setIsSaleModalOpen] = useState(false);
   const [isProductionModalOpen, setIsProductionModalOpen] = useState(false);
   const [selectedProductionAnimal, setSelectedProductionAnimal] = useState(null);
+  const [isBreedingModalOpen, setIsBreedingModalOpen] = useState(false);
+  const [selectedBreedingAnimal, setSelectedBreedingAnimal] = useState(null);
 
   const fetchFeedRecords = async () => {
     if (activeFarm?.id) {
@@ -432,6 +435,16 @@ function AnimalManagement() {
             </button>
 
             <button
+              className="btn bg-indigo-600 hover:bg-indigo-700 text-white font-medium flex items-center justify-center text-xs sm:text-sm py-2 px-3 shadow-xs"
+              onClick={() => {
+                setSelectedBreedingAnimal(null);
+                setIsBreedingModalOpen(true);
+              }}
+            >
+              🧬 Add Breeding
+            </button>
+
+            <button
               className="btn bg-amber-600 hover:bg-amber-700 text-white font-medium flex items-center justify-center text-xs sm:text-sm py-2 px-3 shadow-xs"
               onClick={() => setIsFeedMixModalOpen(true)}
             >
@@ -518,6 +531,10 @@ function AnimalManagement() {
                 onRecordProduction={(anim) => {
                   setSelectedProductionAnimal(anim);
                   setIsProductionModalOpen(true);
+                }}
+                onAddBreeding={(anim) => {
+                  setSelectedBreedingAnimal(anim);
+                  setIsBreedingModalOpen(true);
                 }}
               />
             ))}
@@ -866,6 +883,21 @@ function AnimalManagement() {
           }}
           onSuccess={() => {
             setApiSuccess("Animal production recorded & synced to Farm Inventory!");
+            if (refreshData) refreshData();
+          }}
+        />
+      )}
+
+      {isBreedingModalOpen && (
+        <BreedingRecordForm
+          animalId={selectedBreedingAnimal?.id || ""}
+          animals={animals}
+          onClose={() => {
+            setIsBreedingModalOpen(false);
+            setSelectedBreedingAnimal(null);
+          }}
+          onSuccess={() => {
+            setApiSuccess("Animal breeding record added successfully!");
             if (refreshData) refreshData();
           }}
         />
