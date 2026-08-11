@@ -13,7 +13,7 @@ function AuthLayout() {
             </div>
           </div>
           <h2 className="text-center text-2xl sm:text-3xl font-display font-bold text-emerald-800 tracking-tight">
-            Farm Manager
+            Livestead Farm Manager
           </h2>
         </Link>
         <p className="mt-2 text-center text-xs sm:text-sm text-gray-600">
