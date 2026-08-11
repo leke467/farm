@@ -43,30 +43,30 @@ const DemandForecastingDashboard = () => {
 
   // Prepare data for trends chart
   const trendData = forecasts.slice(0, 12).map((f) => ({
-    item: f.item_name?.substring(0, 10) || "Item",
-    predicted: f.forecasted_demand || 0,
-    reorder: f.reorder_point || 0,
-    safety: f.safety_stock || 0,
+    item: (f.item_name || f.item?.name || "Item").substring(0, 10),
+    predicted: Number(f.forecasted_demand || f.forecasted_monthly_demand || 0),
+    reorder: Number(f.reorder_point || f.optimal_reorder_point || 0),
+    safety: Number(f.safety_stock || 0),
   }));
 
   // Prepare data for supply comparison
   const supplierScores = suppliers.map((s) => ({
-    name: s.supplier_name?.substring(0, 12) || "Supplier",
-    quality: s.quality_rating || 0,
-    reliability: s.on_time_delivery_percentage || 0,
-    price_index: (s.average_unit_price || 0) / 100,
+    name: (s.supplier_name || s.name || "Supplier").substring(0, 12),
+    quality: Number(s.quality_rating || 0),
+    reliability: Number(s.on_time_delivery_percentage || s.on_time_delivery_rate || 0),
+    price_index: Number(s.average_unit_price || s.avg_unit_price || 0) / 100,
   }));
 
   // Count critical reorder points
   const criticalItems = forecasts.filter(
-    (f) => f.current_inventory <= (f.reorder_point || 0)
+    (f) => Number(f.current_inventory || 0) <= Number(f.reorder_point || f.optimal_reorder_point || 0)
   ).length;
 
   // Average supplier performance
   const avgQuality =
     suppliers.length > 0
       ? (
-          suppliers.reduce((sum, s) => sum + (s.quality_rating || 0), 0) /
+          suppliers.reduce((sum, s) => sum + Number(s.quality_rating || 0), 0) /
           suppliers.length
         ).toFixed(1)
       : 0;

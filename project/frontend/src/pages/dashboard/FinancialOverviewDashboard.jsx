@@ -52,44 +52,54 @@ const FinancialOverviewDashboard = () => {
   };
 
   // Calculate KPIs
-  const totalRevenue = revenues.reduce((sum, r) => sum + (r.amount || 0), 0);
-  const totalProfit = analysis.reduce((sum, a) => sum + (a.profit_loss || 0), 0);
+  const totalRevenue = revenues.reduce(
+    (sum, r) => sum + Number(r.amount || r.total_amount || 0),
+    0
+  );
+  const totalProfit = analysis.reduce(
+    (sum, a) => sum + Number(a.profit_loss || a.net_profit || (Number(a.total_revenue || 0) - Number(a.total_expenses || 0)) || 0),
+    0
+  );
   const avgROI =
     analysis.length > 0
-      ? (analysis.reduce((sum, a) => sum + (a.roi_percentage || 0), 0) / analysis.length).toFixed(2)
+      ? (
+          analysis.reduce((sum, a) => sum + Number(a.roi_percentage || a.roi || 0), 0) /
+          analysis.length
+        ).toFixed(2)
       : 0;
 
   // Total debt
-  const totalDebt = debts.reduce((sum, d) => sum + (d.remaining_balance || 0), 0);
-  const activeDebts = debts.filter((d) => d.payment_status === "pending").length;
+  const totalDebt = debts.reduce((sum, d) => sum + Number(d.remaining_balance || d.principal_amount || 0), 0);
+  const activeDebts = debts.filter((d) => (d.payment_status === "pending" || d.status === "active" || Number(d.remaining_balance || 0) > 0)).length;
 
   // Prepare monthly profit/loss data
   const monthlyData = analysis.slice(0, 12).map((a) => ({
-    month: a.period_type === "monthly" ? `Month ${a.month || ""}` : `Q${a.quarter || ""} ${a.year || ""}`,
-    revenue: a.total_revenue || 0,
-    expenses: a.total_expenses || 0,
-    profit: a.profit_loss || 0,
+    month: a.month ? `Month ${a.month}` : (a.period_type || "Period"),
+    revenue: Number(a.total_revenue || 0),
+    expenses: Number(a.total_expenses || 0),
+    profit: Number(a.profit_loss || a.net_profit || (Number(a.total_revenue || 0) - Number(a.total_expenses || 0)) || 0),
   }));
 
   // Revenue source breakdown
   const sourceBreakdown = {};
   revenues.forEach((r) => {
-    const source = r.source || "Other";
-    sourceBreakdown[source] = (sourceBreakdown[source] || 0) + (r.amount || 0);
+    const source = r.source || r.category || "Other";
+    const val = Number(r.amount || r.total_amount || 0);
+    sourceBreakdown[source] = (sourceBreakdown[source] || 0) + val;
   });
 
   const sourceData = Object.entries(sourceBreakdown).map(([source, value]) => ({
     name: source.substring(0, 15),
-    value: value,
+    value: Number(value),
   }));
 
   // Debt payment schedule
   const upcomingPayments = debts
-    .filter((d) => d.payment_status === "pending")
+    .filter((d) => d.payment_status === "pending" || d.status === "active" || Number(d.remaining_balance || 0) > 0)
     .map((d) => ({
-      creditor: d.creditor_name?.substring(0, 15) || "Creditor",
-      amount: d.monthly_payment || d.remaining_balance || 0,
-      dueDate: new Date(d.due_date).toLocaleDateString(),
+      creditor: d.creditor_name || d.creditor || "Creditor",
+      amount: Number(d.monthly_payment || d.remaining_balance || d.principal_amount || 0),
+      dueDate: d.due_date ? new Date(d.due_date).toLocaleDateString() : "N/A",
       frequency: d.payment_frequency || "monthly",
     }))
     .slice(0, 5);

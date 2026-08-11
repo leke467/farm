@@ -57,36 +57,41 @@ const CropAnalyticsDashboard = () => {
   const avgYieldPerformance =
     yieldAnalysis.length > 0
       ? (
-          (yieldAnalysis.reduce((sum, y) => sum + ((y.actual_yield || 0) / (y.expected_yield || 1)), 0) /
+          (yieldAnalysis.reduce((sum, y) => {
+            const actual = Number(y.actual_yield || 0);
+            const expected = Number(y.expected_yield || 1);
+            return sum + (expected > 0 ? actual / expected : 0);
+          }, 0) /
             yieldAnalysis.length) *
           100
         ).toFixed(1)
       : 0;
 
-  const totalROI = yieldAnalysis.reduce((sum, y) => sum + (y.roi_percentage || 0), 0);
+  const totalROI = yieldAnalysis.reduce((sum, y) => sum + Number(y.roi_percentage || y.roi || 0), 0);
   const avgROI = yieldAnalysis.length > 0 ? (totalROI / yieldAnalysis.length).toFixed(2) : 0;
 
-  const totalYieldLoss = weatherImpacts.reduce((sum, w) => sum + (w.estimated_yield_loss || 0), 0);
-  const pendingRecommendations = recommendations.filter((r) => r.status === "pending").length;
+  const totalYieldLoss = weatherImpacts.reduce((sum, w) => sum + Number(w.estimated_yield_loss || w.yield_loss || 0), 0);
+  const pendingRecommendations = recommendations.filter((r) => r.status === "pending" || r.status === "active" || r.status === "new").length;
 
   // Prepare yield vs expected chart
   const yieldData = yieldAnalysis.slice(0, 10).map((y) => ({
-    crop: y.crop_name?.substring(0, 8) || "Crop",
-    expected: y.expected_yield || 0,
-    actual: y.actual_yield || 0,
-    roi: y.roi_percentage || 0,
+    crop: (y.crop_name || y.crop?.name || "Crop").substring(0, 8),
+    expected: Number(y.expected_yield || 0),
+    actual: Number(y.actual_yield || 0),
+    roi: Number(y.roi_percentage || y.roi || 0),
   }));
 
   // Weather impact summary
   const weatherSummary = {};
   weatherImpacts.forEach((w) => {
-    const type = w.impact_type || "Other";
-    weatherSummary[type] = (weatherSummary[type] || 0) + (w.estimated_yield_loss || 0);
+    const type = w.impact_type || w.weather_event || "Other";
+    const loss = Number(w.estimated_yield_loss || w.yield_loss || 0);
+    weatherSummary[type] = (weatherSummary[type] || 0) + loss;
   });
 
   const weatherData = Object.entries(weatherSummary).map(([type, loss]) => ({
     name: type.substring(0, 12),
-    loss: loss,
+    loss: Number(loss),
   }));
 
   // Fertilizer recommendation effectiveness

@@ -216,11 +216,11 @@ class InventoryItemDetailedSerializer(serializers.ModelSerializer):
 
 class DemandForecastSerializer(serializers.ModelSerializer):
     """Serializer for demand forecasting data"""
-    item_name = serializers.CharField(source='item.name', read_only=True)
-    item_category = serializers.CharField(source='item.category', read_only=True)
-    reorder_point = serializers.DecimalField(source='optimal_reorder_point', max_digits=10, decimal_places=2, read_only=True)
-    forecasted_demand = serializers.DecimalField(source='forecasted_monthly_demand', max_digits=10, decimal_places=2, read_only=True)
-    current_inventory = serializers.DecimalField(source='item.quantity', max_digits=10, decimal_places=2, read_only=True)
+    item_name = serializers.SerializerMethodField()
+    item_category = serializers.SerializerMethodField()
+    reorder_point = serializers.SerializerMethodField()
+    forecasted_demand = serializers.SerializerMethodField()
+    current_inventory = serializers.SerializerMethodField()
     
     class Meta:
         model = DemandForecast
@@ -232,15 +232,30 @@ class DemandForecastSerializer(serializers.ModelSerializer):
             'reorder_point', 'optimal_order_quantity', 'safety_stock', 'current_inventory',
             'forecast_accuracy', 'data_points', 'last_updated'
         ]
-        read_only_fields = ['last_updated', 'item_name', 'item_category']
+        read_only_fields = ['last_updated']
+
+    def get_item_name(self, obj):
+        return obj.item.name if obj.item else "Inventory Item"
+
+    def get_item_category(self, obj):
+        return obj.item.category if obj.item else "general"
+
+    def get_reorder_point(self, obj):
+        return float(obj.optimal_reorder_point or 0)
+
+    def get_forecasted_demand(self, obj):
+        return float(obj.forecasted_monthly_demand or 0)
+
+    def get_current_inventory(self, obj):
+        return float(obj.item.quantity if (obj.item and obj.item.quantity is not None) else 0)
 
 
 class SupplierPerformanceSerializer(serializers.ModelSerializer):
     """Serializer for supplier performance tracking"""
     supplier_performance_summary = serializers.SerializerMethodField()
-    item_name = serializers.CharField(source='item.name', read_only=True)
-    on_time_delivery_percentage = serializers.DecimalField(source='on_time_delivery_rate', max_digits=5, decimal_places=2, read_only=True)
-    average_unit_price = serializers.DecimalField(source='avg_unit_price', max_digits=10, decimal_places=2, read_only=True)
+    item_name = serializers.SerializerMethodField()
+    on_time_delivery_percentage = serializers.SerializerMethodField()
+    average_unit_price = serializers.SerializerMethodField()
     
     class Meta:
         model = SupplierPerformance
@@ -252,7 +267,16 @@ class SupplierPerformanceSerializer(serializers.ModelSerializer):
             'total_orders', 'contact_person', 'phone', 'email', 'notes',
             'supplier_performance_summary', 'created_at', 'updated_at'
         ]
-        read_only_fields = ['created_at', 'updated_at', 'item_name', 'supplier_performance_summary']
+        read_only_fields = ['created_at', 'updated_at', 'supplier_performance_summary']
+    
+    def get_item_name(self, obj):
+        return obj.item.name if obj.item else "Item"
+
+    def get_on_time_delivery_percentage(self, obj):
+        return float(obj.on_time_delivery_rate or 0)
+
+    def get_average_unit_price(self, obj):
+        return float(obj.avg_unit_price or 0)
     
     def get_supplier_performance_summary(self, obj):
         """Generate performance summary"""
