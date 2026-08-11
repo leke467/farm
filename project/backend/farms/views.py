@@ -148,7 +148,9 @@ class FarmListCreateView(generics.ListCreateAPIView):
         return Farm.objects.filter(
             models.Q(owner=self.request.user) | 
             models.Q(members__user=self.request.user)
-        ).distinct()
+        ).annotate(
+            num_animals=models.Count('animals', distinct=True)
+        ).order_by('-num_animals', 'id').distinct()
 
 class FarmDetailView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = FarmSerializer
@@ -166,8 +168,10 @@ def user_farms_view(request):
     farms = Farm.objects.filter(
         models.Q(owner=request.user) | 
         models.Q(members__user=request.user)
-    ).distinct()
-    serializer = FarmSerializer(farms, many=True)
+    ).annotate(
+        num_animals=models.Count('animals', distinct=True)
+    ).order_by('-num_animals', 'id').distinct()
+    serializer = FarmSerializer(farms, many=True, context={'request': request})
     return Response(serializer.data)
 
 

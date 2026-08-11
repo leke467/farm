@@ -9,6 +9,8 @@ class FarmSerializer(serializers.ModelSerializer):
     owner = UserSerializer(read_only=True)
     user_role = serializers.SerializerMethodField()
     is_owner = serializers.SerializerMethodField()
+    has_data = serializers.SerializerMethodField()
+    animals_count = serializers.SerializerMethodField()
     
     class Meta:
         model = Farm
@@ -29,6 +31,12 @@ class FarmSerializer(serializers.ModelSerializer):
         if not request or not request.user or not request.user.is_authenticated:
             return False
         return obj.owner_id == request.user.id
+
+    def get_has_data(self, obj):
+        return obj.animals.exists() or obj.crops.exists() or obj.inventory.exists() or obj.expenses.exists()
+
+    def get_animals_count(self, obj):
+        return obj.animals.count()
 
     def create(self, validated_data):
         validated_data['owner'] = self.context['request'].user

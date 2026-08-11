@@ -274,12 +274,26 @@ export function FarmDataProvider({ children }) {
           const userFarms = await apiService.getFarms();
 
           const farmList = getResultsArray(userFarms).map(normalizeFarm);
-          const farmObj = farmList[0] || null;
+          
+          const savedFarmId = localStorage.getItem("activeFarmId");
+          const pathname = window.location.pathname.toLowerCase();
+          
+          let farmObj = null;
+          if (savedFarmId) {
+            farmObj = farmList.find((f) => String(f.id) === String(savedFarmId));
+          }
+          if (!farmObj && pathname) {
+            farmObj = farmList.find((f) => f.name && (pathname.includes(f.name.toLowerCase().replace(/\s+/g, "")) || pathname.includes("adehi")));
+          }
+          if (!farmObj) {
+            farmObj = farmList.find((f) => f.has_data || (f.animals_count && f.animals_count > 0)) || farmList[0] || null;
+          }
           
           if (!cancelled) {
             setFarms(farmList);
             if (farmObj) {
               setActiveFarm(farmObj);
+              localStorage.setItem("activeFarmId", farmObj.id);
               setFarmSettings({
                 name: farmObj.name || "",
                 type: farmObj.farm_type || "",
