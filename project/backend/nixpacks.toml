@@ -1,12 +1,10 @@
 [phases.setup]
-nixPkgs = ["...", "libpq"]
-aptPkgs = ["...", "libpq-dev"]
+nixPkgs = ["postgresql"]
 
 [phases.build]
 cmds = [
-    "...",
     "python manage.py collectstatic --noinput"
 ]
 
 [start]
-cmd = "python manage.py migrate --noinput && (python create_superuser.py || true) && sh -c \"gunicorn terra_track.wsgi --bind 0.0.0.0:$PORT --log-level debug --access-logfile - --error-logfile - --timeout 120\""
+cmd = "python manage.py migrate --noinput && (python create_superuser.py || true) && gunicorn terra_track.wsgi --bind 0.0.0.0:$PORT --log-level debug --access-logfile - --error-logfile - --timeout 120"
