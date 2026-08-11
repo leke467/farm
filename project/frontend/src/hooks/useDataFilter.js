@@ -37,7 +37,12 @@ export const useDataFilter = (data, filters) => {
     }
 
     // Status filter
-    if (filters.status) {
+    if (
+      filters.status &&
+      filters.status !== "all" &&
+      filters.status !== "All" &&
+      !filters.status.toString().toLowerCase().includes("all")
+    ) {
       filtered = filtered.filter(
         (item) =>
           item.status === filters.status ||
@@ -50,13 +55,20 @@ export const useDataFilter = (data, filters) => {
     Object.entries(filters).forEach(([key, value]) => {
       if (
         value &&
+        value !== "all" &&
+        value !== "All" &&
+        !value.toString().toLowerCase().includes("all") &&
         key !== "search" &&
         key !== "dateFrom" &&
         key !== "dateTo" &&
         key !== "status"
       ) {
         filtered = filtered.filter(
-          (item) => item[key] === value || item[`${key}_id`] === value
+          (item) =>
+            item[key] === value ||
+            item[`${key}_id`] === value ||
+            item[`${key}_name`] === value ||
+            (item.animal && (item.animal === value || item.animal.id === value || item.animal.name === value))
         );
       }
     });
