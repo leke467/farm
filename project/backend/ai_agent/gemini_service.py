@@ -119,19 +119,23 @@ Provide helpful, practical advice about farm management, profitability, and opti
             
             ai_response = None
             if HAS_GENAI and self.GEMINI_API_KEYS:
+                target_models = ['gemini-2.5-flash', 'gemini-flash-latest', 'gemini-3.5-flash']
                 max_attempts = len(self.GEMINI_API_KEYS)
                 for attempt in range(max_attempts):
                     api_key = self.get_gemini_api_key()
-                    try:
-                        genai.configure(api_key=api_key)
-                        model = genai.GenerativeModel('gemini-1.5-flash')
-                        response = model.generate_content(full_prompt)
-                        if response and response.text:
-                            ai_response = response.text
-                            logger.info(f"Successfully generated response with key index {self._key_index}")
-                            break
-                    except Exception as genai_err:
-                        logger.warning(f"Gemini API call failed with key attempt {attempt + 1}/{max_attempts}: {genai_err}")
+                    genai.configure(api_key=api_key)
+                    for model_name in target_models:
+                        try:
+                            model = genai.GenerativeModel(model_name)
+                            response = model.generate_content(full_prompt)
+                            if response and response.text:
+                                ai_response = response.text
+                                logger.info(f"Successfully generated response with model {model_name} and key index {self._key_index}")
+                                break
+                        except Exception as genai_err:
+                            logger.warning(f"Gemini API model {model_name} call failed with key attempt {attempt + 1}/{max_attempts}: {genai_err}")
+                    if ai_response:
+                        break
 
             if not ai_response:
                 ai_response = self._generate_fallback(user_message, farm_data)
@@ -204,5 +208,19 @@ Provide a detailed, actionable explanation of:
 4. Potential challenges and how to overcome them
 5. Resources or tools needed"""
         
-        response = self.model.generate_content(prompt)
-        return response.text
+        if HAS_GENAI and self.GEMINI_API_KEYS:
+            target_models = ['gemini-2.5-flash', 'gemini-flash-latest', 'gemini-3.5-flash']
+            max_attempts = len(self.GEMINI_API_KEYS)
+            for attempt in range(max_attempts):
+                api_key = self.get_gemini_api_key()
+                genai.configure(api_key=api_key)
+                for model_name in target_models:
+                    try:
+                        model = genai.GenerativeModel(model_name)
+                        response = model.generate_content(prompt)
+                        if response and response.text:
+                            return response.text
+                    except Exception as genai_err:
+                        logger.warning(f"Gemini API recommendation analysis failed: {genai_err}")
+
+        return self._generate_fallback(f"Recommendation: {recommendation_title}", farm_data)
