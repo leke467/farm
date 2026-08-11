@@ -6,7 +6,7 @@ import { useFarmData } from "../context/FarmDataContext";
 const AIChartInsight = ({ chartTitle, chartType, data, contextSummary }) => {
   const [insight, setInsight] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [expanded, setExpanded] = useState(true);
+  const [expanded, setExpanded] = useState(false);
   const [error, setError] = useState(null);
   const { activeFarm } = useFarmData();
 
