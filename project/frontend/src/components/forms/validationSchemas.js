@@ -3,9 +3,14 @@ import * as yup from "yup";
 // Helper transformer for numeric fields that may contain comma formatting (e.g. "4,000")
 const commaNumber = () =>
   yup.number().transform((value, originalValue) => {
+    if (originalValue === "" || originalValue === null || originalValue === undefined) {
+      return null;
+    }
     if (typeof originalValue === "string") {
-      const cleaned = originalValue.replace(/,/g, "");
-      return cleaned === "" ? NaN : Number(cleaned);
+      const cleaned = originalValue.replace(/,/g, "").trim();
+      if (cleaned === "") return null;
+      const num = Number(cleaned);
+      return isNaN(num) ? null : num;
     }
     return value;
   });
@@ -25,9 +30,12 @@ export const animalSchema = yup.object().shape({
     .optional(),
   gender: yup.string().required("Gender is required"),
   weight: commaNumber()
-    .positive("Weight must be greater than 0")
     .nullable()
-    .optional(),
+    .optional()
+    .test("positive-if-present", "Weight must be greater than 0", (val) => {
+      if (val === null || val === undefined) return true;
+      return val > 0;
+    }),
   status: yup.string().required("Status is required"),
   is_group: yup.boolean().optional(),
   count: commaNumber()
