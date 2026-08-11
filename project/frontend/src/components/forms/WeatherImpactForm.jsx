@@ -2,9 +2,9 @@ import { useState } from "react";
 import { FiPlus, FiX } from "react-icons/fi";
 import apiService from "../../services/api";
 
-const WeatherImpactForm = ({ onClose, onSuccess, crops = [] }) => {
+const WeatherImpactForm = ({ onClose, onSuccess, crops = [], cropId = "" }) => {
   const [formData, setFormData] = useState({
-    crop: "",
+    crop: cropId || "",
     impact_date: new Date().toISOString().split("T")[0],
     impact_type: "drought",
     severity: "low",

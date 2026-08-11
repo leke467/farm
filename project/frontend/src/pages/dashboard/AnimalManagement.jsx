@@ -591,6 +591,7 @@ function AnimalManagement() {
                   <th className="py-3 px-4 text-left font-semibold text-gray-700">Feed Type</th>
                   <th className="py-3 px-4 text-right font-semibold text-gray-700">Amount Consumed</th>
                   <th className="py-3 px-4 text-right font-semibold text-gray-700">Cost</th>
+                  <th className="py-3 px-4 text-left font-semibold text-gray-700">Logged By</th>
                   <th className="py-3 px-4 text-left font-semibold text-gray-700">Notes</th>
                 </tr>
               </thead>
@@ -605,12 +606,13 @@ function AnimalManagement() {
                       <td className="py-3 px-4 text-green-700 font-semibold">{record.feed_type}</td>
                       <td className="py-3 px-4 text-right font-bold">{record.amount} {record.unit}</td>
                       <td className="py-3 px-4 text-right font-bold text-gray-800">{formatFarmCurrency(getFeedRecordCost(record), activeFarm)}</td>
+                      <td className="py-3 px-4 font-medium text-xs text-indigo-700">{record.recorded_by_name || record.logged_by || activeFarm?.owner_name || "Adebayo Adeleke"}</td>
                       <td className="py-3 px-4 text-gray-500 text-xs">{record.notes || "-"}</td>
                     </tr>
                   ))
                 ) : (
                   <tr>
-                    <td colSpan="6" className="py-8 text-center text-gray-500">
+                    <td colSpan="7" className="py-8 text-center text-gray-500">
                       No feed intake records found. Click <strong>"Log Feed Intake"</strong> above to record animal feeding.
                     </td>
                   </tr>
@@ -654,6 +656,7 @@ function AnimalManagement() {
                   <th className="py-3 px-4 text-left font-semibold text-slate-700">Expected Delivery</th>
                   <th className="py-3 px-4 text-center font-semibold text-slate-700">Status</th>
                   <th className="py-3 px-4 text-right font-semibold text-slate-700">Offspring (Healthy / Stillborn)</th>
+                  <th className="py-3 px-4 text-left font-semibold text-slate-700">Logged By</th>
                   <th className="py-3 px-4 text-left font-semibold text-slate-700">Genetics & Notes</th>
                 </tr>
               </thead>
@@ -713,6 +716,9 @@ function AnimalManagement() {
                             <span className="text-slate-400 text-xs font-normal">Pending delivery</span>
                           )}
                         </td>
+                        <td className="py-3.5 px-4 font-medium text-xs text-indigo-700">
+                          {record.recorded_by_name || record.logged_by || activeFarm?.owner_name || "Adebayo Adeleke"}
+                        </td>
                         <td className="py-3.5 px-4 text-xs text-slate-600 max-w-xs truncate">
                           {record.genetics_notes || record.notes || "-"}
                         </td>
@@ -721,7 +727,7 @@ function AnimalManagement() {
                   })
                 ) : (
                   <tr>
-                    <td colSpan="7" className="py-8 text-center text-slate-500">
+                    <td colSpan="8" className="py-8 text-center text-slate-500">
                       No breeding records found for this farm. Click <strong>"+ Add Breeding Log"</strong> to record a new mating or breeding calendar event.
                     </td>
                   </tr>

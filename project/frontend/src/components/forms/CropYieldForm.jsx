@@ -2,9 +2,9 @@ import { useState } from "react";
 import { FiPlus, FiX } from "react-icons/fi";
 import apiService from "../../services/api";
 
-const CropYieldForm = ({ onClose, onSuccess, crops = [] }) => {
+const CropYieldForm = ({ onClose, onSuccess, crops = [], cropId = "" }) => {
   const [formData, setFormData] = useState({
-    crop: "",
+    crop: cropId || "",
     season: new Date().getFullYear(),
     expected_yield: "",
     actual_yield: "",

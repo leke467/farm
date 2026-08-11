@@ -17,6 +17,9 @@ import {
 } from "../../components/forms/FormComponents";
 import { cropSchema } from "../../components/forms/validationSchemas";
 import RecordSaleModal from "../../components/forms/RecordSaleModal";
+import WeatherImpactForm from "../../components/forms/WeatherImpactForm";
+import FertilizerRecommendationForm from "../../components/forms/FertilizerRecommendationForm";
+import CropYieldForm from "../../components/forms/CropYieldForm";
 import { useToast } from "../../context/ToastContext";
 
 function CropManagement() {
@@ -32,6 +35,34 @@ function CropManagement() {
   const [apiSuccess, setApiSuccess] = useState("");
   const [cropStageSuggestions, setCropStageSuggestions] = useState([]);
 
+  const [yieldAnalysis, setYieldAnalysis] = useState([]);
+  const [recommendations, setRecommendations] = useState([]);
+  const [weatherImpacts, setWeatherImpacts] = useState([]);
+  const [showWeatherForm, setShowWeatherForm] = useState(false);
+  const [showFertilizerForm, setShowFertilizerForm] = useState(false);
+  const [showYieldForm, setShowYieldForm] = useState(false);
+  const [selectedCropForModal, setSelectedCropForModal] = useState(null);
+  const [viewTab, setViewTab] = useState("crops"); // "crops" | "harvest_logs" | "fertilizer_logs" | "weather_logs"
+
+  const fetchCropLogs = async () => {
+    if (activeFarm?.id) {
+      try {
+        const farmParams = { farm: activeFarm.id };
+        const [yieldRes, recommendRes, weatherRes] = await Promise.all([
+          apiService.getCropYieldAnalysis(farmParams).catch(() => []),
+          apiService.getFertilizerRecommendations(farmParams).catch(() => []),
+          apiService.getWeatherImpactRecords(farmParams).catch(() => []),
+        ]);
+
+        setYieldAnalysis(Array.isArray(yieldRes) ? yieldRes : yieldRes?.results || []);
+        setRecommendations(Array.isArray(recommendRes) ? recommendRes : recommendRes?.results || []);
+        setWeatherImpacts(Array.isArray(weatherRes) ? weatherRes : weatherRes?.results || []);
+      } catch (err) {
+        console.error("Failed to load crop logs:", err);
+      }
+    }
+  };
+
   useEffect(() => {
     const loadCategories = async () => {
       if (activeFarm?.id) {
@@ -43,6 +74,7 @@ function CropManagement() {
         } catch (error) {
           console.error("Failed to load categories:", error);
         }
+        fetchCropLogs();
       }
     };
     loadCategories();
@@ -276,14 +308,81 @@ function CropManagement() {
           <p className="text-xs sm:text-sm text-gray-600">Plan and monitor your crops</p>
         </div>
 
-        <div className="flex items-center gap-2.5 w-full md:w-auto">
-          <button
-            className="flex-1 sm:flex-none btn btn-primary flex items-center justify-center text-xs sm:text-sm py-2 px-3.5 shadow-xs"
-            onClick={() => setIsAddModalOpen(true)}
-          >
-            <FiPlus className="mr-1.5" />
-            Add Crop
-          </button>
+        <div className="flex flex-col sm:flex-row flex-wrap gap-2.5 items-stretch sm:items-center w-full md:w-auto">
+          <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-2 w-full sm:w-auto">
+            <button
+              className="btn bg-amber-600 hover:bg-amber-700 text-white font-medium flex items-center justify-center text-xs sm:text-sm py-2 px-3 shadow-xs"
+              onClick={() => {
+                setSelectedCropForModal(null);
+                setShowWeatherForm(true);
+              }}
+            >
+              ⛅ Weather
+            </button>
+
+            <button
+              className="btn bg-emerald-600 hover:bg-emerald-700 text-white font-medium flex items-center justify-center text-xs sm:text-sm py-2 px-3 shadow-xs"
+              onClick={() => {
+                setSelectedCropForModal(null);
+                setShowFertilizerForm(true);
+              }}
+            >
+              🌱 Fert Rec
+            </button>
+
+            <button
+              className="btn bg-sky-600 hover:bg-sky-700 text-white font-medium flex items-center justify-center text-xs sm:text-sm py-2 px-3 shadow-xs"
+              onClick={() => {
+                setSelectedCropForModal(null);
+                setShowYieldForm(true);
+              }}
+            >
+              🌾 Record Yield
+            </button>
+
+            <button
+              className="btn btn-primary flex items-center justify-center text-xs sm:text-sm py-2 px-3 shadow-xs"
+              onClick={() => setIsAddModalOpen(true)}
+            >
+              <FiPlus className="mr-1.5" />
+              Add Crop
+            </button>
+          </div>
+
+          <div className="flex space-x-1 items-center bg-gray-200/70 p-1 rounded-xl w-full sm:w-auto justify-center">
+            <button
+              className={`flex-1 sm:flex-none px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors ${
+                viewTab === "crops" ? "bg-white text-gray-900 shadow-xs" : "text-gray-600 hover:text-gray-900"
+              }`}
+              onClick={() => setViewTab("crops")}
+            >
+              Crops ({safeCrops.length})
+            </button>
+            <button
+              className={`flex-1 sm:flex-none px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors ${
+                viewTab === "harvest_logs" ? "bg-white text-gray-900 shadow-xs" : "text-gray-600 hover:text-gray-900"
+              }`}
+              onClick={() => setViewTab("harvest_logs")}
+            >
+              🌾 Yield Logs ({yieldAnalysis.length})
+            </button>
+            <button
+              className={`flex-1 sm:flex-none px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors ${
+                viewTab === "fertilizer_logs" ? "bg-white text-gray-900 shadow-xs" : "text-gray-600 hover:text-gray-900"
+              }`}
+              onClick={() => setViewTab("fertilizer_logs")}
+            >
+              🌱 Fert ({recommendations.length})
+            </button>
+            <button
+              className={`flex-1 sm:flex-none px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors ${
+                viewTab === "weather_logs" ? "bg-white text-gray-900 shadow-xs" : "text-gray-600 hover:text-gray-900"
+              }`}
+              onClick={() => setViewTab("weather_logs")}
+            >
+              ⛅ Weather ({weatherImpacts.length})
+            </button>
+          </div>
         </div>
       </div>
 
@@ -303,163 +402,423 @@ function CropManagement() {
         </div>
       </div>
 
-      {/* Crop List */}
-      {filteredCrops.length === 0 ? (
-        <div className="text-gray-500">No crops to display.</div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredCrops.map((crop) => (
-            <motion.div
-              key={crop.id}
-              className="bg-white rounded-xl shadow-md overflow-hidden"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3 }}
-            >
-              <div className="p-6">
-                <div className="flex justify-between items-start">
-                  <div>
-                    <div className="flex items-center">
-                      <h3 className="text-xl font-bold">{crop.name}</h3>
-                      <span
-                        className={`ml-3 badge ${getStatusColor(crop.status)}`}
+      {/* Crop List View */}
+      {viewTab === "crops" && (
+        filteredCrops.length === 0 ? (
+          <div className="text-gray-500 bg-white p-8 rounded-xl text-center shadow-sm">No crops to display.</div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredCrops.map((crop) => (
+              <motion.div
+                key={crop.id}
+                className="bg-white rounded-xl shadow-md overflow-hidden"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3 }}
+              >
+                <div className="p-6">
+                  <div className="flex justify-between items-start gap-2">
+                    <div>
+                      <div className="flex items-center">
+                        <h3 className="text-xl font-bold">{crop.name}</h3>
+                        <span
+                          className={`ml-3 badge ${getStatusColor(crop.status)}`}
+                        >
+                          {crop.status}
+                        </span>
+                      </div>
+                      <div className="mt-1 text-gray-600">
+                        {crop.field} ({crop.area} acres)
+                      </div>
+                    </div>
+                    <div className="flex items-center space-x-1">
+                      <button
+                        onClick={() => {
+                          setSelectedCropForModal(crop);
+                          setShowYieldForm(true);
+                        }}
+                        className="px-2 py-1 text-xs font-bold text-sky-800 bg-sky-50 hover:bg-sky-100 border border-sky-300 rounded-lg flex items-center gap-0.5 transition-colors shadow-2xs"
+                        title="Record harvest yield for this crop"
                       >
-                        {crop.status}
-                      </span>
+                        <span>🌾 Yield</span>
+                      </button>
+                      <button
+                        onClick={() => {
+                          setSelectedCropForModal(crop);
+                          setShowFertilizerForm(true);
+                        }}
+                        className="px-2 py-1 text-xs font-bold text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border border-emerald-300 rounded-lg flex items-center gap-0.5 transition-colors shadow-2xs"
+                        title="Log fertilizer recommendation"
+                      >
+                        <span>🌱 Fert</span>
+                      </button>
+                      <button
+                        onClick={() => {
+                          setSelectedCropForModal(crop);
+                          setShowWeatherForm(true);
+                        }}
+                        className="px-2 py-1 text-xs font-bold text-amber-800 bg-amber-50 hover:bg-amber-100 border border-amber-300 rounded-lg flex items-center gap-0.5 transition-colors shadow-2xs"
+                        title="Record weather impact"
+                      >
+                        <span>⛅ Weather</span>
+                      </button>
+                      <button
+                        onClick={() => handleEdit(crop)}
+                        className="p-1.5 text-gray-500 hover:text-primary-500 hover:bg-primary-50 rounded-full"
+                        aria-label="Edit crop"
+                        title="Edit crop"
+                      >
+                        <FiEdit2 size={16} />
+                      </button>
+                      <button
+                        onClick={() => handleDelete(crop.id)}
+                        className="p-1.5 text-gray-500 hover:text-error-500 hover:bg-error-50 rounded-full"
+                        aria-label="Delete crop"
+                        title="Delete crop"
+                      >
+                        <FiTrash2 size={16} />
+                      </button>
                     </div>
-                    <div className="mt-1 text-gray-600">
-                      {crop.field} ({crop.area} acres)
+                  </div>
+
+                  <div className="mt-4 grid grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <p className="text-gray-500 mb-1">Planted</p>
+                      <p className="font-medium">
+                        {formatDate(crop.plantedDate)}
+                      </p>
                     </div>
-                  </div>
-                  <div className="flex space-x-2">
-                    <button
-                      onClick={() => handleEdit(crop)}
-                      className="p-2 text-gray-500 hover:text-primary-500 hover:bg-primary-50 rounded-full"
-                      aria-label="Edit crop"
-                      title="Edit crop"
-                    >
-                      <FiEdit2 size={18} />
-                    </button>
-                    <button
-                      onClick={() => handleDelete(crop.id)}
-                      className="p-2 text-gray-500 hover:text-error-500 hover:bg-error-50 rounded-full"
-                      aria-label="Delete crop"
-                      title="Delete crop"
-                    >
-                      <FiTrash2 size={18} />
-                    </button>
-                  </div>
-                </div>
-
-                <div className="mt-4 grid grid-cols-2 gap-4 text-sm">
-                  <div>
-                    <p className="text-gray-500 mb-1">Planted</p>
-                    <p className="font-medium">
-                      {formatDate(crop.plantedDate)}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-gray-500 mb-1">Expected Harvest</p>
-                    <p className="font-medium">
-                      {formatDate(crop.expectedHarvestDate)}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-gray-500 mb-1">Current Stage</p>
-                    <p className="font-medium">{crop.stage}</p>
-                  </div>
-                  <div>
-                    <p className="text-gray-500 mb-1">Days to Harvest</p>
-                    <p className="font-medium">
-                      {typeof daysUntilHarvest(
-                        crop.plantedDate,
-                        crop.expectedHarvestDate
-                      ) === "number"
-                        ? `${daysUntilHarvest(
-                            crop.plantedDate,
-                            crop.expectedHarvestDate
-                          )} days`
-                        : daysUntilHarvest(
-                            crop.plantedDate,
-                            crop.expectedHarvestDate
-                          )}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="mt-4">
-                  <div className="flex justify-between text-xs mb-1">
-                    <span>Progress</span>
-                    <span>
-                      {calculateProgress(
-                        crop.plantedDate,
-                        crop.expectedHarvestDate
-                      )}
-                      %
-                    </span>
-                  </div>
-                  <div className="bg-gray-200 rounded-full h-2 overflow-hidden">
-                    <div
-                      className="bg-primary-500 h-2"
-                      style={{
-                        width: `${calculateProgress(
+                    <div>
+                      <p className="text-gray-500 mb-1">Expected Harvest</p>
+                      <p className="font-medium">
+                        {formatDate(crop.expectedHarvestDate)}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-gray-500 mb-1">Current Stage</p>
+                      <p className="font-medium">{crop.stage}</p>
+                    </div>
+                    <div>
+                      <p className="text-gray-500 mb-1">Days to Harvest</p>
+                      <p className="font-medium">
+                        {typeof daysUntilHarvest(
                           crop.plantedDate,
                           crop.expectedHarvestDate
-                        )}%`,
-                      }}
-                    ></div>
-                  </div>
-                </div>
-
-                {/* Growth Stage Timeline */}
-                <div className="mt-6">
-                  <h4 className="font-medium text-sm mb-3">Growth Timeline</h4>
-                  <div className="relative">
-                    <div className="absolute top-3 left-3 h-full w-0.5 bg-gray-200 -z-10"></div>
-                    <div className="space-y-4">
-                      {(Array.isArray(crop.growthStages)
-                        ? crop.growthStages
-                        : []
-                      ).map((stage, index) => (
-                        <div key={index} className="flex">
-                          <div
-                            className={`h-6 w-6 rounded-full flex-shrink-0 flex items-center justify-center ${
-                              stage.completed
-                                ? "bg-primary-500 text-white"
-                                : "bg-gray-200"
-                            }`}
-                          >
-                            {stage.completed ? "✓" : ""}
-                          </div>
-                          <div className="ml-3">
-                            <div className="flex justify-between">
-                              <p className="font-medium">{stage.stage}</p>
-                              <p className="text-xs text-gray-500">
-                                {formatDate(stage.date)}
-                              </p>
-                            </div>
-                            {stage.notes && (
-                              <p className="text-sm text-gray-600 mt-1">
-                                {stage.notes}
-                              </p>
+                        ) === "number"
+                          ? `${daysUntilHarvest(
+                              crop.plantedDate,
+                              crop.expectedHarvestDate
+                            )} days`
+                          : daysUntilHarvest(
+                              crop.plantedDate,
+                              crop.expectedHarvestDate
                             )}
-                          </div>
-                        </div>
-                      ))}
+                      </p>
                     </div>
                   </div>
-                </div>
 
-                {/* Notes */}
-                {crop.notes && (
-                  <div className="mt-6 pt-4 border-t">
-                    <h4 className="font-medium text-sm mb-2">Notes</h4>
-                    <p className="text-sm text-gray-600">{crop.notes}</p>
+                  <div className="mt-4">
+                    <div className="flex justify-between text-xs mb-1">
+                      <span>Progress</span>
+                      <span>
+                        {calculateProgress(
+                          crop.plantedDate,
+                          crop.expectedHarvestDate
+                        )}
+                        %
+                      </span>
+                    </div>
+                    <div className="bg-gray-200 rounded-full h-2 overflow-hidden">
+                      <div
+                        className="bg-primary-500 h-2"
+                        style={{
+                          width: `${calculateProgress(
+                            crop.plantedDate,
+                            crop.expectedHarvestDate
+                          )}%`,
+                        }}
+                      ></div>
+                    </div>
                   </div>
+
+                  {/* Growth Stage Timeline */}
+                  <div className="mt-6">
+                    <h4 className="font-medium text-sm mb-3">Growth Timeline</h4>
+                    <div className="relative">
+                      <div className="absolute top-3 left-3 h-full w-0.5 bg-gray-200 -z-10"></div>
+                      <div className="space-y-4">
+                        {(Array.isArray(crop.growthStages)
+                          ? crop.growthStages
+                          : []
+                        ).map((stage, index) => (
+                          <div key={index} className="flex">
+                            <div
+                              className={`h-6 w-6 rounded-full flex-shrink-0 flex items-center justify-center ${
+                                stage.completed
+                                  ? "bg-primary-500 text-white"
+                                  : "bg-gray-200"
+                              }`}
+                            >
+                              {stage.completed ? "✓" : ""}
+                            </div>
+                            <div className="ml-3">
+                              <div className="flex justify-between">
+                                <p className="font-medium">{stage.stage}</p>
+                                <p className="text-xs text-gray-500">
+                                  {formatDate(stage.date)}
+                                </p>
+                              </div>
+                              {stage.notes && (
+                                <p className="text-sm text-gray-600 mt-1">
+                                  {stage.notes}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Notes */}
+                  {crop.notes && (
+                    <div className="mt-6 pt-4 border-t">
+                      <h4 className="font-medium text-sm mb-2">Notes</h4>
+                      <p className="text-sm text-gray-600">{crop.notes}</p>
+                    </div>
+                  )}
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        )
+      )}
+
+      {/* Harvest Yield Logs Table */}
+      {viewTab === "harvest_logs" && (
+        <div className="bg-white rounded-xl shadow-md overflow-hidden">
+          <div className="p-4 border-b flex justify-between items-center bg-slate-50">
+            <div>
+              <h2 className="text-lg font-bold text-slate-800 flex items-center gap-2">
+                <span>🌾 Harvest Yield & ROI Analysis Logs</span>
+                <span className="text-xs bg-sky-100 text-sky-700 px-2 py-0.5 rounded-full font-semibold">
+                  {yieldAnalysis.length} Logs
+                </span>
+              </h2>
+              <p className="text-xs text-slate-500">Record of actual vs expected harvest yields, production costs, and ROI %.</p>
+            </div>
+            <button
+              onClick={() => {
+                setSelectedCropForModal(null);
+                setShowYieldForm(true);
+              }}
+              className="px-3 py-1.5 bg-sky-600 hover:bg-sky-700 text-white rounded-lg text-xs font-semibold flex items-center gap-1 shadow-xs"
+            >
+              <span>+ Record Harvest Yield</span>
+            </button>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="min-w-full text-sm">
+              <thead className="bg-slate-100 border-b">
+                <tr>
+                  <th className="py-3 px-4 text-left font-semibold text-slate-700">Crop</th>
+                  <th className="py-3 px-4 text-left font-semibold text-slate-700">Season / Year</th>
+                  <th className="py-3 px-4 text-right font-semibold text-slate-700">Expected Yield</th>
+                  <th className="py-3 px-4 text-right font-semibold text-slate-700">Actual Yield</th>
+                  <th className="py-3 px-4 text-right font-semibold text-slate-700">ROI %</th>
+                  <th className="py-3 px-4 text-left font-semibold text-slate-700">Logged By</th>
+                  <th className="py-3 px-4 text-left font-semibold text-slate-700">Notes</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-200">
+                {yieldAnalysis.length > 0 ? (
+                  yieldAnalysis.map((item) => (
+                    <tr key={item.id} className="hover:bg-slate-50 transition-colors">
+                      <td className="py-3.5 px-4 font-bold text-slate-900">
+                        {item.crop_name || item.crop?.name || `Crop #${item.crop}`}
+                      </td>
+                      <td className="py-3.5 px-4 font-mono text-xs text-slate-600">{item.season || "N/A"}</td>
+                      <td className="py-3.5 px-4 text-right text-slate-600 font-medium">
+                        {item.expected_yield || 0} {item.yield_unit || "kg"}
+                      </td>
+                      <td className="py-3.5 px-4 text-right font-bold text-sky-700">
+                        {item.actual_yield || 0} {item.yield_unit || "kg"}
+                      </td>
+                      <td className="py-3.5 px-4 text-right font-bold text-emerald-600">
+                        {item.roi_percentage ? `${item.roi_percentage}%` : item.roi ? `${item.roi}%` : "0%"}
+                      </td>
+                      <td className="py-3.5 px-4 font-medium text-xs text-indigo-700">
+                        {item.recorded_by_name || item.logged_by || activeFarm?.owner_name || "Adebayo Adeleke"}
+                      </td>
+                      <td className="py-3.5 px-4 text-xs text-slate-600 max-w-xs truncate">{item.notes || "-"}</td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan="7" className="py-8 text-center text-slate-500">
+                      No harvest yield records found. Click <strong>"+ Record Harvest Yield"</strong> above to log your crop output.
+                    </td>
+                  </tr>
                 )}
-              </div>
-            </motion.div>
-          ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* Fertilizer Recommendations Table */}
+      {viewTab === "fertilizer_logs" && (
+        <div className="bg-white rounded-xl shadow-md overflow-hidden">
+          <div className="p-4 border-b flex justify-between items-center bg-slate-50">
+            <div>
+              <h2 className="text-lg font-bold text-slate-800 flex items-center gap-2">
+                <span>🌱 Fertilizer Recommendation Logs</span>
+                <span className="text-xs bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full font-semibold">
+                  {recommendations.length} Recs
+                </span>
+              </h2>
+              <p className="text-xs text-slate-500">Log of soil test fertilizer type, recommended quantity, and application schedules.</p>
+            </div>
+            <button
+              onClick={() => {
+                setSelectedCropForModal(null);
+                setShowFertilizerForm(true);
+              }}
+              className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-semibold flex items-center gap-1 shadow-xs"
+            >
+              <span>+ Log Fert Rec</span>
+            </button>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="min-w-full text-sm">
+              <thead className="bg-slate-100 border-b">
+                <tr>
+                  <th className="py-3 px-4 text-left font-semibold text-slate-700">Date</th>
+                  <th className="py-3 px-4 text-left font-semibold text-slate-700">Crop</th>
+                  <th className="py-3 px-4 text-left font-semibold text-slate-700">Fertilizer Type</th>
+                  <th className="py-3 px-4 text-right font-semibold text-slate-700">Recommended Qty</th>
+                  <th className="py-3 px-4 text-center font-semibold text-slate-700">Status</th>
+                  <th className="py-3 px-4 text-left font-semibold text-slate-700">Logged By</th>
+                  <th className="py-3 px-4 text-left font-semibold text-slate-700">Application Window</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-200">
+                {recommendations.length > 0 ? (
+                  recommendations.map((rec) => (
+                    <tr key={rec.id} className="hover:bg-slate-50 transition-colors">
+                      <td className="py-3.5 px-4 font-mono text-xs text-slate-600">{rec.date}</td>
+                      <td className="py-3.5 px-4 font-bold text-slate-900">
+                        {rec.crop_name || rec.crop?.name || `Crop #${rec.crop}`}
+                      </td>
+                      <td className="py-3.5 px-4 font-semibold text-emerald-700 capitalize">{rec.fertilizer_type}</td>
+                      <td className="py-3.5 px-4 text-right font-bold text-slate-900">
+                        {rec.recommended_quantity || 0} {rec.unit || "kg"}
+                      </td>
+                      <td className="py-3.5 px-4 text-center">
+                        <span className={`px-2.5 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${
+                          rec.status === "completed" || rec.status === "applied"
+                            ? "bg-emerald-100 text-emerald-800 border border-emerald-300"
+                            : rec.status === "pending" || rec.status === "active"
+                            ? "bg-amber-100 text-amber-800 border border-amber-300"
+                            : "bg-slate-100 text-slate-700 border border-slate-300"
+                        }`}>
+                          {rec.status || "active"}
+                        </span>
+                      </td>
+                      <td className="py-3.5 px-4 font-medium text-xs text-indigo-700">
+                        {rec.recorded_by_name || rec.logged_by || activeFarm?.owner_name || "Adebayo Adeleke"}
+                      </td>
+                      <td className="py-3.5 px-4 text-xs text-slate-600">{rec.application_window || "-"}</td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan="7" className="py-8 text-center text-slate-500">
+                      No fertilizer recommendations logged yet. Click <strong>"+ Log Fert Rec"</strong> to add a new soil nutrient log.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* Weather Impact Records Table */}
+      {viewTab === "weather_logs" && (
+        <div className="bg-white rounded-xl shadow-md overflow-hidden">
+          <div className="p-4 border-b flex justify-between items-center bg-slate-50">
+            <div>
+              <h2 className="text-lg font-bold text-slate-800 flex items-center gap-2">
+                <span>⛅ Weather Impact & Recovery Records</span>
+                <span className="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full font-semibold">
+                  {weatherImpacts.length} Events
+                </span>
+              </h2>
+              <p className="text-xs text-slate-500">Record of severe weather events (droughts, floods, hail), yield loss estimates, and recovery strategies.</p>
+            </div>
+            <button
+              onClick={() => {
+                setSelectedCropForModal(null);
+                setShowWeatherForm(true);
+              }}
+              className="px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white rounded-lg text-xs font-semibold flex items-center gap-1 shadow-xs"
+            >
+              <span>+ Record Weather Impact</span>
+            </button>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="min-w-full text-sm">
+              <thead className="bg-slate-100 border-b">
+                <tr>
+                  <th className="py-3 px-4 text-left font-semibold text-slate-700">Impact Date</th>
+                  <th className="py-3 px-4 text-left font-semibold text-slate-700">Crop</th>
+                  <th className="py-3 px-4 text-left font-semibold text-slate-700">Weather Event</th>
+                  <th className="py-3 px-4 text-center font-semibold text-slate-700">Severity</th>
+                  <th className="py-3 px-4 text-right font-semibold text-slate-700">Estimated Yield Loss</th>
+                  <th className="py-3 px-4 text-left font-semibold text-slate-700">Logged By</th>
+                  <th className="py-3 px-4 text-left font-semibold text-slate-700">Recovery Strategy</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-200">
+                {weatherImpacts.length > 0 ? (
+                  weatherImpacts.map((w) => (
+                    <tr key={w.id} className="hover:bg-slate-50 transition-colors">
+                      <td className="py-3.5 px-4 font-mono text-xs text-slate-600">{w.impact_date || w.date}</td>
+                      <td className="py-3.5 px-4 font-bold text-slate-900">
+                        {w.crop_name || w.crop?.name || `Crop #${w.crop}`}
+                      </td>
+                      <td className="py-3.5 px-4 font-semibold text-amber-800 capitalize">{w.impact_type || w.weather_event}</td>
+                      <td className="py-3.5 px-4 text-center">
+                        <span className={`px-2.5 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${
+                          w.severity === "high" || w.severity === "critical"
+                            ? "bg-rose-100 text-rose-800 border border-rose-300"
+                            : w.severity === "medium"
+                            ? "bg-amber-100 text-amber-800 border border-amber-300"
+                            : "bg-slate-100 text-slate-700 border border-slate-300"
+                        }`}>
+                          {w.severity}
+                        </span>
+                      </td>
+                      <td className="py-3.5 px-4 text-right font-bold text-rose-600">
+                        {w.estimated_yield_loss || w.yield_loss || 0}
+                      </td>
+                      <td className="py-3.5 px-4 font-medium text-xs text-indigo-700">
+                        {w.recorded_by_name || w.logged_by || activeFarm?.owner_name || "Adebayo Adeleke"}
+                      </td>
+                      <td className="py-3.5 px-4 text-xs text-slate-600 max-w-xs truncate">{w.recovery_strategy || w.description || "-"}</td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan="7" className="py-8 text-center text-slate-500">
+                      No weather impact events recorded. Click <strong>"+ Record Weather Impact"</strong> to log climate events.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
 
@@ -637,6 +996,60 @@ function CropManagement() {
         initialType="crop_sales"
         onSuccess={() => setApiSuccess("Crop sale recorded successfully!")}
       />
+
+      {/* Weather Impact Form Modal */}
+      {showWeatherForm && (
+        <WeatherImpactForm
+          crops={crops}
+          cropId={selectedCropForModal?.id || ""}
+          onClose={() => {
+            setShowWeatherForm(false);
+            setSelectedCropForModal(null);
+          }}
+          onSuccess={() => {
+            setShowWeatherForm(false);
+            setSelectedCropForModal(null);
+            toast.success("Weather impact recorded successfully!");
+            fetchCropLogs();
+          }}
+        />
+      )}
+
+      {/* Fertilizer Recommendation Form Modal */}
+      {showFertilizerForm && (
+        <FertilizerRecommendationForm
+          crops={crops}
+          cropId={selectedCropForModal?.id || ""}
+          onClose={() => {
+            setShowFertilizerForm(false);
+            setSelectedCropForModal(null);
+          }}
+          onSuccess={() => {
+            setShowFertilizerForm(false);
+            setSelectedCropForModal(null);
+            toast.success("Fertilizer recommendation saved successfully!");
+            fetchCropLogs();
+          }}
+        />
+      )}
+
+      {/* Crop Yield Form Modal */}
+      {showYieldForm && (
+        <CropYieldForm
+          crops={crops}
+          cropId={selectedCropForModal?.id || ""}
+          onClose={() => {
+            setShowYieldForm(false);
+            setSelectedCropForModal(null);
+          }}
+          onSuccess={() => {
+            setShowYieldForm(false);
+            setSelectedCropForModal(null);
+            toast.success("Crop yield recorded successfully!");
+            fetchCropLogs();
+          }}
+        />
+      )}
     </div>
   );
 }

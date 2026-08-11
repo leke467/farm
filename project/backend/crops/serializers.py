@@ -90,11 +90,29 @@ class CropSerializer(serializers.ModelSerializer):
 
 class CropYieldAnalysisSerializer(serializers.ModelSerializer):
     crop_name = serializers.CharField(source='crop.name', read_only=True)
+    recorded_by_name = serializers.SerializerMethodField()
 
     class Meta:
         model = CropYieldAnalysis
         fields = '__all__'
         read_only_fields = ['last_updated']
+
+    def get_recorded_by_name(self, obj):
+        user = getattr(obj, 'recorded_by', None) or getattr(obj, 'created_by', None) or getattr(obj, 'user', None)
+        if user:
+            full_name = f"{user.first_name} {user.last_name}".strip()
+            return full_name if full_name else (user.username or user.email)
+        farm = getattr(obj.crop, 'farm', None) if getattr(obj, 'crop', None) else None
+        if farm and farm.owner:
+            owner = farm.owner
+            full_name = f"{owner.first_name} {owner.last_name}".strip()
+            return full_name if full_name else (owner.username or owner.email)
+        request = self.context.get('request')
+        if request and request.user and request.user.is_authenticated:
+            u = request.user
+            full_name = f"{u.first_name} {u.last_name}".strip()
+            return full_name if full_name else (u.username or u.email)
+        return "Farm Manager"
 
     def validate_expected_yield(self, value):
         if value is not None and float(value) < 0:
@@ -110,11 +128,29 @@ class CropYieldAnalysisSerializer(serializers.ModelSerializer):
 
 class FertilizerRecommendationSerializer(serializers.ModelSerializer):
     crop_name = serializers.CharField(source='crop.name', read_only=True)
+    recorded_by_name = serializers.SerializerMethodField()
 
     class Meta:
         model = FertilizerRecommendation
         fields = '__all__'
         read_only_fields = ['created_at', 'updated_at']
+
+    def get_recorded_by_name(self, obj):
+        user = getattr(obj, 'recorded_by', None) or getattr(obj, 'created_by', None) or getattr(obj, 'user', None)
+        if user:
+            full_name = f"{user.first_name} {user.last_name}".strip()
+            return full_name if full_name else (user.username or user.email)
+        farm = getattr(obj.crop, 'farm', None) if getattr(obj, 'crop', None) else None
+        if farm and farm.owner:
+            owner = farm.owner
+            full_name = f"{owner.first_name} {owner.last_name}".strip()
+            return full_name if full_name else (owner.username or owner.email)
+        request = self.context.get('request')
+        if request and request.user and request.user.is_authenticated:
+            u = request.user
+            full_name = f"{u.first_name} {u.last_name}".strip()
+            return full_name if full_name else (u.username or u.email)
+        return "Farm Manager"
 
     def validate_recommended_quantity(self, value):
         if value is not None and float(value) <= 0:
@@ -129,11 +165,29 @@ class FertilizerRecommendationSerializer(serializers.ModelSerializer):
 
 class WeatherImpactRecordSerializer(serializers.ModelSerializer):
     crop_name = serializers.CharField(source='crop.name', read_only=True)
+    recorded_by_name = serializers.SerializerMethodField()
 
     class Meta:
         model = WeatherImpactRecord
         fields = '__all__'
         read_only_fields = ['created_at']
+
+    def get_recorded_by_name(self, obj):
+        user = getattr(obj, 'recorded_by', None) or getattr(obj, 'created_by', None) or getattr(obj, 'user', None)
+        if user:
+            full_name = f"{user.first_name} {user.last_name}".strip()
+            return full_name if full_name else (user.username or user.email)
+        farm = getattr(obj.crop, 'farm', None) if getattr(obj, 'crop', None) else None
+        if farm and farm.owner:
+            owner = farm.owner
+            full_name = f"{owner.first_name} {owner.last_name}".strip()
+            return full_name if full_name else (owner.username or owner.email)
+        request = self.context.get('request')
+        if request and request.user and request.user.is_authenticated:
+            u = request.user
+            full_name = f"{u.first_name} {u.last_name}".strip()
+            return full_name if full_name else (u.username or u.email)
+        return "Farm Manager"
 
     def validate_impact_date(self, value):
         if value > timezone.now().date():

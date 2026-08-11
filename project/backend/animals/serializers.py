@@ -89,11 +89,29 @@ class MedicalRecordSerializer(serializers.ModelSerializer):
 class FeedRecordSerializer(serializers.ModelSerializer):
     animal = serializers.PrimaryKeyRelatedField(queryset=Animal.objects.all(), required=False, allow_null=True)
     animal_name = serializers.CharField(source='animal.name', read_only=True)
+    recorded_by_name = serializers.SerializerMethodField()
 
     class Meta:
         model = FeedRecord
         fields = '__all__'
         read_only_fields = ['created_at']
+
+    def get_recorded_by_name(self, obj):
+        user = getattr(obj, 'recorded_by', None) or getattr(obj, 'created_by', None) or getattr(obj, 'user', None)
+        if user:
+            full_name = f"{user.first_name} {user.last_name}".strip()
+            return full_name if full_name else (user.username or user.email)
+        farm = getattr(obj.animal, 'farm', None) if getattr(obj, 'animal', None) else None
+        if farm and farm.owner:
+            owner = farm.owner
+            full_name = f"{owner.first_name} {owner.last_name}".strip()
+            return full_name if full_name else (owner.username or owner.email)
+        request = self.context.get('request')
+        if request and request.user and request.user.is_authenticated:
+            u = request.user
+            full_name = f"{u.first_name} {u.last_name}".strip()
+            return full_name if full_name else (u.username or u.email)
+        return "Farm Manager"
     
     def validate_date(self, value):
         """Validate date is not in future"""
@@ -240,6 +258,7 @@ class BreedingRecordSerializer(serializers.ModelSerializer):
     father_name_id = serializers.SerializerMethodField()
     breeding_date = serializers.SerializerMethodField()
     breeding_status = serializers.SerializerMethodField()
+    recorded_by_name = serializers.SerializerMethodField()
 
     sire = serializers.CharField(write_only=True, required=False, allow_blank=True)
     dam = serializers.CharField(write_only=True, required=False, allow_blank=True)
@@ -249,6 +268,57 @@ class BreedingRecordSerializer(serializers.ModelSerializer):
         model = BreedingRecord
         fields = '__all__'
         read_only_fields = ['created_at', 'updated_at']
+
+    def get_recorded_by_name(self, obj):
+        user = getattr(obj, 'recorded_by', None) or getattr(obj, 'created_by', None) or getattr(obj, 'user', None)
+        if user:
+            full_name = f"{user.first_name} {user.last_name}".strip()
+            return full_name if full_name else (user.username or user.email)
+        farm = None
+        if hasattr(obj, 'dam_animal') and obj.dam_animal:
+            farm = getattr(obj.dam_animal, 'farm', None)
+        elif hasattr(obj, 'sire_animal') and obj.sire_animal:
+            farm = getattr(obj.sire_animal, 'farm', None)
+        elif hasattr(obj, 'breeding') and obj.breeding and getattr(obj.breeding, 'animal', None):
+            farm = getattr(obj.breeding.animal, 'farm', None)
+        if farm and farm.owner:
+            owner = farm.owner
+            full_name = f"{owner.first_name} {owner.last_name}".strip()
+            return full_name if full_name else (owner.username or owner.email)
+        request = self.context.get('request')
+        if request and request.user and request.user.is_authenticated:
+            u = request.user
+            full_name = f"{u.first_name} {u.last_name}".strip()
+            return full_name if full_name else (u.username or u.email)
+        return "Farm Manager"
+
+
+class ProductionRecordSerializer(serializers.ModelSerializer):
+    animal_name = serializers.CharField(source='animal.name', read_only=True)
+    date = serializers.DateField(source='recorded_date', read_only=True)
+    recorded_by_name = serializers.SerializerMethodField()
+
+    class Meta:
+        model = ProductionRecord
+        fields = '__all__'
+        read_only_fields = ['created_at']
+
+    def get_recorded_by_name(self, obj):
+        user = getattr(obj, 'recorded_by', None) or getattr(obj, 'created_by', None) or getattr(obj, 'user', None)
+        if user:
+            full_name = f"{user.first_name} {user.last_name}".strip()
+            return full_name if full_name else (user.username or user.email)
+        farm = getattr(obj.animal, 'farm', None) if getattr(obj, 'animal', None) else None
+        if farm and farm.owner:
+            owner = farm.owner
+            full_name = f"{owner.first_name} {owner.last_name}".strip()
+            return full_name if full_name else (owner.username or owner.email)
+        request = self.context.get('request')
+        if request and request.user and request.user.is_authenticated:
+            u = request.user
+            full_name = f"{u.first_name} {u.last_name}".strip()
+            return full_name if full_name else (u.username or u.email)
+        return "Farm Manager"
 
     def get_animal_name(self, obj):
         if obj.dam_animal:

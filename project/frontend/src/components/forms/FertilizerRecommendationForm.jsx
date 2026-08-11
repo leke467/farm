@@ -2,9 +2,9 @@ import { useState } from "react";
 import { FiPlus, FiX } from "react-icons/fi";
 import apiService from "../../services/api";
 
-const FertilizerRecommendationForm = ({ onClose, onSuccess, crops = [] }) => {
+const FertilizerRecommendationForm = ({ onClose, onSuccess, crops = [], cropId = "" }) => {
   const [formData, setFormData] = useState({
-    crop: "",
+    crop: cropId || "",
     date: new Date().toISOString().split("T")[0],
     fertilizer_type: "nitrogen",
     recommended_quantity: "",
