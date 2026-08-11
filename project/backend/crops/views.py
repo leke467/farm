@@ -53,8 +53,7 @@ class GrowthStageListCreateView(generics.ListCreateAPIView):
         )
 class CropYieldAnalysisListCreateView(generics.ListCreateAPIView):
     serializer_class = CropYieldAnalysisSerializer
-    permission_classes = [permissions.IsAuthenticated, FarmMenuPermission]
-    farm_menu_key = 'crops'
+    permission_classes = [permissions.IsAuthenticated]
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     filterset_fields = ['yield_unit']
     search_fields = ['crop__name']
@@ -65,6 +64,12 @@ class CropYieldAnalysisListCreateView(generics.ListCreateAPIView):
         user_farms = Farm.objects.filter(
             Q(owner=self.request.user) | Q(members__user=self.request.user)
         ).distinct()
+        farm_param = self.request.query_params.get('farm') or self.request.query_params.get('farm_id')
+        if farm_param:
+            try:
+                user_farms = user_farms.filter(pk=farm_param)
+            except ValueError:
+                pass
         for f in user_farms:
             from farms.analytics_generator import ensure_analytics_data_for_farm
             ensure_analytics_data_for_farm(f)
@@ -72,8 +77,7 @@ class CropYieldAnalysisListCreateView(generics.ListCreateAPIView):
 
 class CropYieldAnalysisDetailView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = CropYieldAnalysisSerializer
-    permission_classes = [permissions.IsAuthenticated, FarmMenuPermission]
-    farm_menu_key = 'crops'
+    permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
         return CropYieldAnalysis.objects.filter(
@@ -84,8 +88,7 @@ class CropYieldAnalysisDetailView(generics.RetrieveUpdateDestroyAPIView):
 
 class FertilizerRecommendationListCreateView(generics.ListCreateAPIView):
     serializer_class = FertilizerRecommendationSerializer
-    permission_classes = [permissions.IsAuthenticated, FarmMenuPermission]
-    farm_menu_key = 'crops'
+    permission_classes = [permissions.IsAuthenticated]
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     filterset_fields = ['status']
     search_fields = ['crop__name', 'recommended_type']
@@ -93,16 +96,23 @@ class FertilizerRecommendationListCreateView(generics.ListCreateAPIView):
     ordering = ['-created_at']
 
     def get_queryset(self):
-        return FertilizerRecommendation.objects.filter(
-            crop__farm__in=Farm.objects.filter(
-                Q(owner=self.request.user) | Q(members__user=self.request.user)
-            )
-        )
+        user_farms = Farm.objects.filter(
+            Q(owner=self.request.user) | Q(members__user=self.request.user)
+        ).distinct()
+        farm_param = self.request.query_params.get('farm') or self.request.query_params.get('farm_id')
+        if farm_param:
+            try:
+                user_farms = user_farms.filter(pk=farm_param)
+            except ValueError:
+                pass
+        for f in user_farms:
+            from farms.analytics_generator import ensure_analytics_data_for_farm
+            ensure_analytics_data_for_farm(f)
+        return FertilizerRecommendation.objects.filter(crop__farm__in=user_farms)
 
 class FertilizerRecommendationDetailView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = FertilizerRecommendationSerializer
-    permission_classes = [permissions.IsAuthenticated, FarmMenuPermission]
-    farm_menu_key = 'crops'
+    permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
         return FertilizerRecommendation.objects.filter(
@@ -113,8 +123,7 @@ class FertilizerRecommendationDetailView(generics.RetrieveUpdateDestroyAPIView):
 
 class WeatherImpactRecordListCreateView(generics.ListCreateAPIView):
     serializer_class = WeatherImpactRecordSerializer
-    permission_classes = [permissions.IsAuthenticated, FarmMenuPermission]
-    farm_menu_key = 'crops'
+    permission_classes = [permissions.IsAuthenticated]
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     filterset_fields = ['impact_type', 'severity']
     search_fields = ['crop__name', 'recovery_actions']
@@ -122,16 +131,23 @@ class WeatherImpactRecordListCreateView(generics.ListCreateAPIView):
     ordering = ['-impact_date']
 
     def get_queryset(self):
-        return WeatherImpactRecord.objects.filter(
-            crop__farm__in=Farm.objects.filter(
-                Q(owner=self.request.user) | Q(members__user=self.request.user)
-            )
-        )
+        user_farms = Farm.objects.filter(
+            Q(owner=self.request.user) | Q(members__user=self.request.user)
+        ).distinct()
+        farm_param = self.request.query_params.get('farm') or self.request.query_params.get('farm_id')
+        if farm_param:
+            try:
+                user_farms = user_farms.filter(pk=farm_param)
+            except ValueError:
+                pass
+        for f in user_farms:
+            from farms.analytics_generator import ensure_analytics_data_for_farm
+            ensure_analytics_data_for_farm(f)
+        return WeatherImpactRecord.objects.filter(crop__farm__in=user_farms)
 
 class WeatherImpactRecordDetailView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = WeatherImpactRecordSerializer
-    permission_classes = [permissions.IsAuthenticated, FarmMenuPermission]
-    farm_menu_key = 'crops'
+    permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
         return WeatherImpactRecord.objects.filter(

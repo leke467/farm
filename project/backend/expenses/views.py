@@ -88,8 +88,7 @@ class BudgetDetailView(generics.RetrieveUpdateDestroyAPIView):
 
 class RevenueListCreateView(generics.ListCreateAPIView):
     serializer_class = RevenueSerializer
-    permission_classes = [permissions.IsAuthenticated, FarmMenuPermission]
-    farm_menu_key = 'expenses'
+    permission_classes = [permissions.IsAuthenticated]
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     filterset_fields = ['source', 'quality_grade']
     search_fields = ['item_sold', 'buyer']
@@ -100,12 +99,20 @@ class RevenueListCreateView(generics.ListCreateAPIView):
         user_farms = Farm.objects.filter(
             Q(owner=self.request.user) | Q(members__user=self.request.user)
         ).distinct()
+        farm_param = self.request.query_params.get('farm') or self.request.query_params.get('farm_id')
+        if farm_param:
+            try:
+                user_farms = user_farms.filter(pk=farm_param)
+            except ValueError:
+                pass
+        for f in user_farms:
+            from farms.analytics_generator import ensure_analytics_data_for_farm
+            ensure_analytics_data_for_farm(f)
         return Revenue.objects.filter(farm__in=user_farms)
 
 class RevenueDetailView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = RevenueSerializer
-    permission_classes = [permissions.IsAuthenticated, FarmMenuPermission]
-    farm_menu_key = 'expenses'
+    permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
         user_farms = Farm.objects.filter(
@@ -115,8 +122,7 @@ class RevenueDetailView(generics.RetrieveUpdateDestroyAPIView):
 
 class FinancialAnalysisListCreateView(generics.ListCreateAPIView):
     serializer_class = FinancialAnalysisSerializer
-    permission_classes = [permissions.IsAuthenticated, FarmMenuPermission]
-    farm_menu_key = 'expenses'
+    permission_classes = [permissions.IsAuthenticated]
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     filterset_fields = ['period_type', 'year', 'quarter']
     search_fields = ['farm__name']
@@ -127,6 +133,12 @@ class FinancialAnalysisListCreateView(generics.ListCreateAPIView):
         user_farms = Farm.objects.filter(
             Q(owner=self.request.user) | Q(members__user=self.request.user)
         ).distinct()
+        farm_param = self.request.query_params.get('farm') or self.request.query_params.get('farm_id')
+        if farm_param:
+            try:
+                user_farms = user_farms.filter(pk=farm_param)
+            except ValueError:
+                pass
         for f in user_farms:
             from farms.analytics_generator import ensure_analytics_data_for_farm
             ensure_analytics_data_for_farm(f)
@@ -134,8 +146,7 @@ class FinancialAnalysisListCreateView(generics.ListCreateAPIView):
 
 class FinancialAnalysisDetailView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = FinancialAnalysisSerializer
-    permission_classes = [permissions.IsAuthenticated, FarmMenuPermission]
-    farm_menu_key = 'expenses'
+    permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
         user_farms = Farm.objects.filter(
@@ -145,8 +156,7 @@ class FinancialAnalysisDetailView(generics.RetrieveUpdateDestroyAPIView):
 
 class DebtManagementListCreateView(generics.ListCreateAPIView):
     serializer_class = DebtManagementSerializer
-    permission_classes = [permissions.IsAuthenticated, FarmMenuPermission]
-    farm_menu_key = 'expenses'
+    permission_classes = [permissions.IsAuthenticated]
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     filterset_fields = ['status', 'payment_frequency']
     search_fields = ['lender']
@@ -157,6 +167,12 @@ class DebtManagementListCreateView(generics.ListCreateAPIView):
         user_farms = Farm.objects.filter(
             Q(owner=self.request.user) | Q(members__user=self.request.user)
         ).distinct()
+        farm_param = self.request.query_params.get('farm') or self.request.query_params.get('farm_id')
+        if farm_param:
+            try:
+                user_farms = user_farms.filter(pk=farm_param)
+            except ValueError:
+                pass
         for f in user_farms:
             from farms.analytics_generator import ensure_analytics_data_for_farm
             ensure_analytics_data_for_farm(f)
@@ -164,8 +180,7 @@ class DebtManagementListCreateView(generics.ListCreateAPIView):
 
 class DebtManagementDetailView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = DebtManagementSerializer
-    permission_classes = [permissions.IsAuthenticated, FarmMenuPermission]
-    farm_menu_key = 'expenses'
+    permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
         user_farms = Farm.objects.filter(
