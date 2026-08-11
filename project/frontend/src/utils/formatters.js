@@ -51,10 +51,7 @@ export function formatNumber(amount, decimals = 0) {
 export function toFarmSlug(farmOrName) {
   const rawName = typeof farmOrName === "string" ? farmOrName : (farmOrName?.name || "");
   if (!rawName) return "farmname";
-  let cleaned = rawName.toLowerCase().replace(/[^a-z0-9]/g, "");
+  let cleaned = rawName.toLowerCase().trim().replace(/[^a-z0-9]+/g, "");
   if (!cleaned) return "farmname";
-  if (!cleaned.endsWith("farm")) {
-    cleaned += "farm";
-  }
   return cleaned;
 }

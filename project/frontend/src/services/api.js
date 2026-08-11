@@ -46,6 +46,9 @@ class ApiService {
 
   // Generic API request method
   async request(endpoint, options = {}, skipAuth = false) {
+    if (!skipAuth && !localStorage.getItem("authToken")) {
+      return { _error: true, status: 401, detail: "Authentication required" };
+    }
     let cleanEndpoint = endpoint || "";
     if (cleanEndpoint.startsWith("/api/")) {
       cleanEndpoint = cleanEndpoint.substring(4);
@@ -65,12 +68,13 @@ class ApiService {
       const response = await fetch(url, config);
       const data = await response.json().catch(() => ({}));
       if (!response.ok) {
-        // Instead of throwing, return the error data with a flag
+        if (response.status === 401) {
+          localStorage.removeItem("authToken");
+        }
         return { _error: true, ...data, status: response.status };
       }
       return data;
     } catch (error) {
-      // Return a generic error object
       return { _error: true, error: error.message };
     }
   }
