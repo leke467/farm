@@ -24,9 +24,7 @@ const FinancialOverviewDashboard = () => {
   const [showDebtForm, setShowDebtForm] = useState(false);
 
   useEffect(() => {
-    if (activeFarm?.id && token) {
-      fetchData();
-    }
+    fetchData();
   }, [activeFarm?.id, token]);
 
   const fetchData = async () => {
@@ -40,9 +38,13 @@ const FinancialOverviewDashboard = () => {
         apiService.getDebtManagement(farmParams),
       ]);
 
-      setAnalysis(analysisRes.results || analysisRes || []);
-      setRevenues(revenueRes.results || revenueRes || []);
-      setDebts(debtRes.results || debtRes || []);
+      const aList = Array.isArray(analysisRes) ? analysisRes : (analysisRes?.results || []);
+      const rList = Array.isArray(revenueRes) ? revenueRes : (revenueRes?.results || []);
+      const dList = Array.isArray(debtRes) ? debtRes : (debtRes?.results || []);
+
+      setAnalysis(aList);
+      setRevenues(rList);
+      setDebts(dList);
     } catch (error) {
       setApiError("Failed to load financial data");
       console.error("Error:", error);

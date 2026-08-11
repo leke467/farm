@@ -16,9 +16,7 @@ const DemandForecastingDashboard = () => {
   const [selectedItem, setSelectedItem] = useState(null);
 
   useEffect(() => {
-    if (activeFarm?.id && token) {
-      fetchData();
-    }
+    fetchData();
   }, [activeFarm?.id, token]);
 
   const fetchData = async () => {
@@ -31,8 +29,11 @@ const DemandForecastingDashboard = () => {
         apiService.getSuppliers(farmParams),
       ]);
 
-      setForecasts(forecastRes.results || forecastRes || []);
-      setSuppliers(supplierRes.results || supplierRes || []);
+      const fList = Array.isArray(forecastRes) ? forecastRes : (forecastRes?.results || []);
+      const sList = Array.isArray(supplierRes) ? supplierRes : (supplierRes?.results || []);
+
+      setForecasts(fList);
+      setSuppliers(sList);
     } catch (error) {
       setApiError("Failed to load forecasting data");
       console.error("Error:", error);

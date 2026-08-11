@@ -33,9 +33,7 @@ const AnimalProductivityDashboard = () => {
   const filteredBreeding = useDataFilter(breedingRecords, breedingFilters);
 
   useEffect(() => {
-    if (activeFarm?.id && token) {
-      fetchData();
-    }
+    fetchData();
   }, [activeFarm?.id, token]);
 
   const fetchData = async () => {
@@ -49,9 +47,13 @@ const AnimalProductivityDashboard = () => {
         apiService.getBreedingRecords(farmParams),
       ]);
 
-      setMetrics(metricsRes.results || metricsRes || []);
-      setProductionRecords(productionRes.results || productionRes || []);
-      setBreedingRecords(breedingRes.results || breedingRes || []);
+      const mList = Array.isArray(metricsRes) ? metricsRes : (metricsRes?.results || []);
+      const pList = Array.isArray(productionRes) ? productionRes : (productionRes?.results || []);
+      const bList = Array.isArray(breedingRes) ? breedingRes : (breedingRes?.results || []);
+
+      setMetrics(mList);
+      setProductionRecords(pList);
+      setBreedingRecords(bList);
     } catch (error) {
       setApiError("Failed to load animal data");
       console.error("Error:", error);

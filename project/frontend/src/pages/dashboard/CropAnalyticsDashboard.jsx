@@ -26,9 +26,7 @@ const CropAnalyticsDashboard = () => {
   const [showYieldForm, setShowYieldForm] = useState(false);
 
   useEffect(() => {
-    if (activeFarm?.id && token) {
-      fetchData();
-    }
+    fetchData();
   }, [activeFarm?.id, token]);
 
   const fetchData = async () => {
@@ -42,9 +40,13 @@ const CropAnalyticsDashboard = () => {
         apiService.getWeatherImpactRecords(farmParams),
       ]);
 
-      setYieldAnalysis(yieldRes.results || yieldRes || []);
-      setRecommendations(recommendRes.results || recommendRes || []);
-      setWeatherImpacts(weatherRes.results || weatherRes || []);
+      const yList = Array.isArray(yieldRes) ? yieldRes : (yieldRes?.results || []);
+      const rList = Array.isArray(recommendRes) ? recommendRes : (recommendRes?.results || []);
+      const wList = Array.isArray(weatherRes) ? weatherRes : (weatherRes?.results || []);
+
+      setYieldAnalysis(yList);
+      setRecommendations(rList);
+      setWeatherImpacts(wList);
     } catch (error) {
       setApiError("Failed to load crop analytics data");
       console.error("Error:", error);
