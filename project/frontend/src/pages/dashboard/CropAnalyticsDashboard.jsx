@@ -35,10 +35,11 @@ const CropAnalyticsDashboard = () => {
     setIsLoading(true);
     setApiError("");
     try {
+      const farmParams = activeFarm?.id ? { farm: activeFarm.id } : {};
       const [yieldRes, recommendRes, weatherRes] = await Promise.all([
-        apiService.getCropYieldAnalysis(),
-        apiService.getFertilizerRecommendations(),
-        apiService.getWeatherImpactRecords(),
+        apiService.getCropYieldAnalysis(farmParams),
+        apiService.getFertilizerRecommendations(farmParams),
+        apiService.getWeatherImpactRecords(farmParams),
       ]);
 
       setYieldAnalysis(yieldRes.results || yieldRes || []);

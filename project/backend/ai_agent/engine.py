@@ -76,11 +76,17 @@ class FarmAIEngine:
     
     def _analyze_revenue(self):
         """Analyze revenue streams and profitability"""
-        from expenses.models import Revenue
+        from expenses.models import Revenue, FinancialAnalysis
+        from animals.models import ProductionRecord
         
         revenues = Revenue.objects.filter(farm_id=self.farm_id)
         total_revenue = float(revenues.aggregate(Sum('total_amount'))['total_amount__sum'] or 0)
         
+        if total_revenue == 0:
+            prod_val = float(ProductionRecord.objects.filter(animal__farm_id=self.farm_id).aggregate(Sum('total_market_value'))['total_market_value__sum'] or 0)
+            fin_val = float(FinancialAnalysis.objects.filter(farm_id=self.farm_id).aggregate(Sum('total_revenue'))['total_revenue__sum'] or 0)
+            total_revenue = max(prod_val, fin_val)
+
         # Revenue by source
         sources = revenues.values('source').annotate(
             total=Sum('total_amount'),

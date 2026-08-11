@@ -89,6 +89,8 @@ class CropSerializer(serializers.ModelSerializer):
 
 
 class CropYieldAnalysisSerializer(serializers.ModelSerializer):
+    crop_name = serializers.CharField(source='crop.name', read_only=True)
+
     class Meta:
         model = CropYieldAnalysis
         fields = '__all__'
@@ -107,6 +109,8 @@ class CropYieldAnalysisSerializer(serializers.ModelSerializer):
 
 
 class FertilizerRecommendationSerializer(serializers.ModelSerializer):
+    crop_name = serializers.CharField(source='crop.name', read_only=True)
+
     class Meta:
         model = FertilizerRecommendation
         fields = '__all__'
@@ -124,6 +128,8 @@ class FertilizerRecommendationSerializer(serializers.ModelSerializer):
 
 
 class WeatherImpactRecordSerializer(serializers.ModelSerializer):
+    crop_name = serializers.CharField(source='crop.name', read_only=True)
+
     class Meta:
         model = WeatherImpactRecord
         fields = '__all__'

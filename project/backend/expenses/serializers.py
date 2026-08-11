@@ -107,6 +107,8 @@ class BudgetSerializer(serializers.ModelSerializer):
 
 class RevenueSerializer(serializers.ModelSerializer):
     """Serializer for farm revenue tracking"""
+    amount = serializers.DecimalField(source='total_amount', max_digits=12, decimal_places=2, read_only=True)
+
     class Meta:
         model = Revenue
         fields = '__all__'
@@ -127,6 +129,9 @@ class RevenueSerializer(serializers.ModelSerializer):
 
 class FinancialAnalysisSerializer(serializers.ModelSerializer):
     """Serializer for financial analysis and summaries"""
+    profit_loss = serializers.DecimalField(source='net_profit', max_digits=12, decimal_places=2, read_only=True)
+    roi_percentage = serializers.DecimalField(source='roi', max_digits=5, decimal_places=2, read_only=True)
+
     class Meta:
         model = FinancialAnalysis
         fields = '__all__'

@@ -25,9 +25,10 @@ const DemandForecastingDashboard = () => {
     setIsLoading(true);
     setApiError("");
     try {
+      const farmParams = activeFarm?.id ? { farm: activeFarm.id } : {};
       const [forecastRes, supplierRes] = await Promise.all([
-        apiService.getDemandForecasts(),
-        apiService.getSuppliers(),
+        apiService.getDemandForecasts(farmParams),
+        apiService.getSuppliers(farmParams),
       ]);
 
       setForecasts(forecastRes.results || forecastRes || []);

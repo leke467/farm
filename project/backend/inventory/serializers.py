@@ -218,6 +218,9 @@ class DemandForecastSerializer(serializers.ModelSerializer):
     """Serializer for demand forecasting data"""
     item_name = serializers.CharField(source='item.name', read_only=True)
     item_category = serializers.CharField(source='item.category', read_only=True)
+    reorder_point = serializers.DecimalField(source='optimal_reorder_point', max_digits=10, decimal_places=2, read_only=True)
+    forecasted_demand = serializers.DecimalField(source='forecasted_monthly_demand', max_digits=10, decimal_places=2, read_only=True)
+    current_inventory = serializers.DecimalField(source='item.quantity', max_digits=10, decimal_places=2, read_only=True)
     
     class Meta:
         model = DemandForecast
@@ -225,8 +228,8 @@ class DemandForecastSerializer(serializers.ModelSerializer):
             'id', 'item', 'item_name', 'item_category', 'farm',
             'avg_monthly_usage', 'max_monthly_usage', 'min_monthly_usage',
             'usage_trend', 'seasonality_factor',
-            'forecasted_monthly_demand', 'optimal_reorder_point', 
-            'optimal_order_quantity', 'safety_stock',
+            'forecasted_monthly_demand', 'forecasted_demand', 'optimal_reorder_point', 
+            'reorder_point', 'optimal_order_quantity', 'safety_stock', 'current_inventory',
             'forecast_accuracy', 'data_points', 'last_updated'
         ]
         read_only_fields = ['last_updated', 'item_name', 'item_category']
@@ -236,14 +239,16 @@ class SupplierPerformanceSerializer(serializers.ModelSerializer):
     """Serializer for supplier performance tracking"""
     supplier_performance_summary = serializers.SerializerMethodField()
     item_name = serializers.CharField(source='item.name', read_only=True)
+    on_time_delivery_percentage = serializers.DecimalField(source='on_time_delivery_rate', max_digits=5, decimal_places=2, read_only=True)
+    average_unit_price = serializers.DecimalField(source='avg_unit_price', max_digits=10, decimal_places=2, read_only=True)
     
     class Meta:
         model = SupplierPerformance
         fields = [
             'id', 'farm', 'supplier_name', 'item', 'item_name',
-            'avg_unit_price', 'lowest_unit_price', 'highest_unit_price',
+            'avg_unit_price', 'average_unit_price', 'lowest_unit_price', 'highest_unit_price',
             'last_purchase_price', 'last_purchase_date',
-            'on_time_delivery_rate', 'quality_rating', 'reliability_grade',
+            'on_time_delivery_rate', 'on_time_delivery_percentage', 'quality_rating', 'reliability_grade',
             'total_orders', 'contact_person', 'phone', 'email', 'notes',
             'supplier_performance_summary', 'created_at', 'updated_at'
         ]

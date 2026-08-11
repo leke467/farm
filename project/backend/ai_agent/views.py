@@ -11,19 +11,23 @@ from farms.models import Farm
 
 def get_user_farm(request):
     """Helper to resolve the target farm for the user."""
-    farm_id = request.query_params.get('farm_id') or request.data.get('farm_id')
+    from django.db.models import Q
+    farm_id = request.query_params.get('farm_id') or request.query_params.get('farm') or request.data.get('farm_id')
     if farm_id:
         try:
             return Farm.objects.get(pk=farm_id)
         except (Farm.DoesNotExist, ValueError):
             pass
-    farm = request.user.owned_farms.first()
-    if farm:
-        return farm
-    membership = request.user.farm_memberships.first()
-    if membership:
-        return membership.farm
-    return None
+            
+    user_farms = Farm.objects.filter(
+        Q(owner=request.user) | Q(members__user=request.user)
+    ).distinct()
+
+    for farm in user_farms:
+        if farm.animals.exists() or farm.crops.exists() or farm.inventory.exists() or farm.expenses.exists():
+            return farm
+            
+    return user_farms.first()
 
 
 class AIAgentViewSet(viewsets.ViewSet):

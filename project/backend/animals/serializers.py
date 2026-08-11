@@ -231,10 +231,27 @@ class AnimalSerializer(serializers.ModelSerializer):
 
 
 class BreedingRecordSerializer(serializers.ModelSerializer):
+    animal_name = serializers.SerializerMethodField()
+    father_name_id = serializers.SerializerMethodField()
+    breeding_date = serializers.SerializerMethodField()
+    breeding_status = serializers.SerializerMethodField()
+
     class Meta:
         model = BreedingRecord
         fields = '__all__'
         read_only_fields = ['created_at', 'updated_at']
+
+    def get_animal_name(self, obj):
+        return obj.breeding.animal.name if obj.breeding and obj.breeding.animal else "Animal"
+
+    def get_father_name_id(self, obj):
+        return obj.breeding.partner_animal_name if obj.breeding else "Sire"
+
+    def get_breeding_date(self, obj):
+        return obj.breeding.breeding_date if obj.breeding else None
+
+    def get_breeding_status(self, obj):
+        return "successful" if obj.breeding and obj.breeding.status in ['confirmed', 'completed', 'active'] else getattr(obj.breeding, 'status', 'successful')
 
     def validate(self, data):
         if data.get('healthy_offspring', 0) + data.get('stillborn', 0) > data.get('number_of_offspring', 0):
@@ -249,6 +266,9 @@ class BreedingRecordSerializer(serializers.ModelSerializer):
 
 
 class ProductionRecordSerializer(serializers.ModelSerializer):
+    animal_name = serializers.CharField(source='animal.name', read_only=True)
+    date = serializers.DateField(source='recorded_date', read_only=True)
+
     class Meta:
         model = ProductionRecord
         fields = '__all__'
@@ -271,6 +291,11 @@ class ProductionRecordSerializer(serializers.ModelSerializer):
 
 
 class AnimalProductionMetricsSerializer(serializers.ModelSerializer):
+    animal_name = serializers.CharField(source='animal.name', read_only=True)
+    total_revenue = serializers.DecimalField(source='annual_revenue', max_digits=12, decimal_places=2, read_only=True)
+    total_costs = serializers.DecimalField(source='annual_feed_cost', max_digits=12, decimal_places=2, read_only=True)
+    efficiency_ratio = serializers.DecimalField(source='production_efficiency', max_digits=5, decimal_places=2, read_only=True)
+
     class Meta:
         model = AnimalProductionMetrics
         fields = '__all__'

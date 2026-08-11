@@ -33,10 +33,11 @@ const FinancialOverviewDashboard = () => {
     setIsLoading(true);
     setApiError("");
     try {
+      const farmParams = activeFarm?.id ? { farm: activeFarm.id } : {};
       const [analysisRes, revenueRes, debtRes] = await Promise.all([
-        apiService.getFinancialAnalysis(),
-        apiService.getRevenues(),
-        apiService.getDebtManagement(),
+        apiService.getFinancialAnalysis(farmParams),
+        apiService.getRevenues(farmParams),
+        apiService.getDebtManagement(farmParams),
       ]);
 
       setAnalysis(analysisRes.results || analysisRes || []);

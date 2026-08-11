@@ -10,14 +10,14 @@ const AIAgentPanel = () => {
   const [loading, setLoading] = useState(false);
   const [insights, setInsights] = useState(null);
   const messagesEndRef = useRef(null);
-  const { animals, crops, expenses } = useFarmData();
+  const { activeFarm, animals, crops, expenses } = useFarmData();
 
   // Generate AI insights from backend service
   const generateInsights = async () => {
     setLoading(true);
     try {
       // Call backend AI service
-      const response = await apiService.getAIAnalysis();
+      const response = await apiService.getAIAnalysis(activeFarm?.id);
       
       if (!response || response._error || !response.recommendations) {
         console.error('API Response:', response);
@@ -88,7 +88,7 @@ const AIAgentPanel = () => {
       }]);
 
       // Call backend Gemini chat API
-      const response = await apiService.chatWithAI(userMessage.text);
+      const response = await apiService.chatWithAI(userMessage.text, null, activeFarm?.id);
 
       if (response && response.response && !response._error) {
         // Remove thinking indicator and add response
