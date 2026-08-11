@@ -1585,9 +1585,9 @@
     "role": "owner",
     "menu_key": "dashboard",
     "can_view": true,
-    "can_create": false,
-    "can_edit": false,
-    "can_delete": false,
+    "can_create": true,
+    "can_edit": true,
+    "can_delete": true,
     "updated_at": "2026-08-11T05:12:20.790Z"
   }
 },
@@ -1612,7 +1612,7 @@
     "farm": 1,
     "role": "owner",
     "menu_key": "crops",
-    "can_view": false,
+    "can_view": true,
     "can_create": true,
     "can_edit": true,
     "can_delete": true,
@@ -1711,9 +1711,9 @@
     "role": "owner",
     "menu_key": "health",
     "can_view": true,
-    "can_create": false,
-    "can_edit": false,
-    "can_delete": false,
+    "can_create": true,
+    "can_edit": true,
+    "can_delete": true,
     "updated_at": "2026-08-11T05:12:20.867Z"
   }
 },
@@ -1725,9 +1725,9 @@
     "role": "owner",
     "menu_key": "analytics",
     "can_view": true,
-    "can_create": false,
-    "can_edit": false,
-    "can_delete": false,
+    "can_create": true,
+    "can_edit": true,
+    "can_delete": true,
     "updated_at": "2026-08-11T05:12:20.877Z"
   }
 },
@@ -1739,9 +1739,9 @@
     "role": "owner",
     "menu_key": "subscription",
     "can_view": true,
-    "can_create": false,
-    "can_edit": false,
-    "can_delete": false,
+    "can_create": true,
+    "can_edit": true,
+    "can_delete": true,
     "updated_at": "2026-08-11T05:12:20.885Z"
   }
 },
@@ -4958,7 +4958,7 @@
     "production_efficiency": "93.20",
     "breeding_success_rate": "95.00",
     "health_score": "9.2",
-    "last_updated": "2026-08-11T07:25:33.659Z"
+    "last_updated": "2026-08-11T10:55:06.972Z"
   }
 },
 {
@@ -4977,7 +4977,7 @@
     "production_efficiency": "93.20",
     "breeding_success_rate": "95.00",
     "health_score": "9.2",
-    "last_updated": "2026-08-11T07:25:33.686Z"
+    "last_updated": "2026-08-11T10:55:06.976Z"
   }
 },
 {
@@ -4996,7 +4996,7 @@
     "production_efficiency": "93.20",
     "breeding_success_rate": "95.00",
     "health_score": "9.2",
-    "last_updated": "2026-08-11T07:25:33.708Z"
+    "last_updated": "2026-08-11T10:55:06.981Z"
   }
 },
 {
@@ -5015,7 +5015,7 @@
     "production_efficiency": "93.20",
     "breeding_success_rate": "95.00",
     "health_score": "9.2",
-    "last_updated": "2026-08-11T07:25:33.725Z"
+    "last_updated": "2026-08-11T10:55:06.986Z"
   }
 },
 {
@@ -5034,7 +5034,7 @@
     "production_efficiency": "93.20",
     "breeding_success_rate": "95.00",
     "health_score": "9.2",
-    "last_updated": "2026-08-11T07:25:33.727Z"
+    "last_updated": "2026-08-11T10:55:06.989Z"
   }
 },
 {
@@ -5053,7 +5053,7 @@
     "production_efficiency": "93.20",
     "breeding_success_rate": "95.00",
     "health_score": "9.2",
-    "last_updated": "2026-08-11T07:25:33.738Z"
+    "last_updated": "2026-08-11T10:55:06.993Z"
   }
 },
 {
@@ -5072,7 +5072,7 @@
     "production_efficiency": "93.20",
     "breeding_success_rate": "95.00",
     "health_score": "9.2",
-    "last_updated": "2026-08-11T07:25:33.738Z"
+    "last_updated": "2026-08-11T10:55:06.996Z"
   }
 },
 {
@@ -5091,7 +5091,7 @@
     "production_efficiency": "93.20",
     "breeding_success_rate": "95.00",
     "health_score": "9.2",
-    "last_updated": "2026-08-11T07:25:33.762Z"
+    "last_updated": "2026-08-11T10:55:06.999Z"
   }
 },
 {
@@ -5110,7 +5110,7 @@
     "production_efficiency": "93.20",
     "breeding_success_rate": "95.00",
     "health_score": "9.2",
-    "last_updated": "2026-08-11T07:25:33.767Z"
+    "last_updated": "2026-08-11T10:55:07.003Z"
   }
 },
 {
@@ -5260,7 +5260,7 @@
     "roi_percentage": "204.00",
     "yield_efficiency": "95.38",
     "optimization_recommendations": "Optimal yield analysis recorded for Hybrid White Maize (Commercial). Maintain nitrogen fertilization and drip irrigation schedules.",
-    "last_updated": "2026-08-11T07:25:33.831Z"
+    "last_updated": "2026-08-11T10:55:07.012Z"
   }
 },
 {
@@ -5320,7 +5320,7 @@
     "roi_percentage": "204.00",
     "yield_efficiency": "95.38",
     "optimization_recommendations": "Optimal yield analysis recorded for Roma Tomato (Greenhouse F1). Maintain nitrogen fertilization and drip irrigation schedules.",
-    "last_updated": "2026-08-11T07:25:33.860Z"
+    "last_updated": "2026-08-11T10:55:07.017Z"
   }
 },
 {
@@ -7741,7 +7741,7 @@
     "optimal_order_quantity": "60.00",
     "safety_stock": "10.00",
     "forecast_accuracy": "94.50",
-    "last_updated": "2026-08-11T07:25:33.449Z",
+    "last_updated": "2026-08-11T10:55:06.928Z",
     "data_points": 12
   }
 },
@@ -7761,7 +7761,7 @@
     "optimal_order_quantity": "1500.00",
     "safety_stock": "250.00",
     "forecast_accuracy": "94.50",
-    "last_updated": "2026-08-11T07:25:33.464Z",
+    "last_updated": "2026-08-11T10:55:06.930Z",
     "data_points": 12
   }
 },
@@ -7781,7 +7781,7 @@
     "optimal_order_quantity": "900.00",
     "safety_stock": "150.00",
     "forecast_accuracy": "94.50",
-    "last_updated": "2026-08-11T07:25:33.482Z",
+    "last_updated": "2026-08-11T10:55:06.932Z",
     "data_points": 12
   }
 },
@@ -7801,7 +7801,7 @@
     "optimal_order_quantity": "1200.00",
     "safety_stock": "200.00",
     "forecast_accuracy": "94.50",
-    "last_updated": "2026-08-11T07:25:33.494Z",
+    "last_updated": "2026-08-11T10:55:06.934Z",
     "data_points": 12
   }
 },
@@ -7821,7 +7821,7 @@
     "optimal_order_quantity": "900.00",
     "safety_stock": "150.00",
     "forecast_accuracy": "94.50",
-    "last_updated": "2026-08-11T07:25:33.496Z",
+    "last_updated": "2026-08-11T10:55:06.936Z",
     "data_points": 12
   }
 },
@@ -7841,7 +7841,7 @@
     "optimal_order_quantity": "600.00",
     "safety_stock": "100.00",
     "forecast_accuracy": "94.50",
-    "last_updated": "2026-08-11T07:25:33.496Z",
+    "last_updated": "2026-08-11T10:55:06.938Z",
     "data_points": 12
   }
 },
@@ -7861,7 +7861,7 @@
     "optimal_order_quantity": "30.00",
     "safety_stock": "5.00",
     "forecast_accuracy": "94.50",
-    "last_updated": "2026-08-11T07:25:33.512Z",
+    "last_updated": "2026-08-11T10:55:06.940Z",
     "data_points": 12
   }
 },
@@ -7881,7 +7881,7 @@
     "optimal_order_quantity": "15.00",
     "safety_stock": "2.50",
     "forecast_accuracy": "94.50",
-    "last_updated": "2026-08-11T07:25:33.520Z",
+    "last_updated": "2026-08-11T10:55:06.942Z",
     "data_points": 12
   }
 },
@@ -7901,7 +7901,7 @@
     "optimal_order_quantity": "15.00",
     "safety_stock": "2.50",
     "forecast_accuracy": "94.50",
-    "last_updated": "2026-08-11T07:25:33.528Z",
+    "last_updated": "2026-08-11T10:55:06.945Z",
     "data_points": 12
   }
 },
@@ -7921,7 +7921,7 @@
     "optimal_order_quantity": "30.00",
     "safety_stock": "5.00",
     "forecast_accuracy": "94.50",
-    "last_updated": "2026-08-11T07:25:33.534Z",
+    "last_updated": "2026-08-11T10:55:06.947Z",
     "data_points": 12
   }
 },
@@ -7941,7 +7941,7 @@
     "optimal_order_quantity": "15.00",
     "safety_stock": "2.50",
     "forecast_accuracy": "94.50",
-    "last_updated": "2026-08-11T07:25:33.543Z",
+    "last_updated": "2026-08-11T10:55:06.949Z",
     "data_points": 12
   }
 },
@@ -7961,7 +7961,7 @@
     "optimal_order_quantity": "450.00",
     "safety_stock": "75.00",
     "forecast_accuracy": "94.50",
-    "last_updated": "2026-08-11T07:25:33.543Z",
+    "last_updated": "2026-08-11T10:55:06.951Z",
     "data_points": 12
   }
 },
@@ -7981,7 +7981,7 @@
     "optimal_order_quantity": "45.00",
     "safety_stock": "7.50",
     "forecast_accuracy": "94.50",
-    "last_updated": "2026-08-11T07:25:33.559Z",
+    "last_updated": "2026-08-11T10:55:06.953Z",
     "data_points": 12
   }
 },
@@ -8001,7 +8001,7 @@
     "optimal_order_quantity": "6.00",
     "safety_stock": "1.00",
     "forecast_accuracy": "94.50",
-    "last_updated": "2026-08-11T07:25:33.559Z",
+    "last_updated": "2026-08-11T10:55:06.955Z",
     "data_points": 12
   }
 },
@@ -8021,7 +8021,7 @@
     "optimal_order_quantity": "3.00",
     "safety_stock": "0.50",
     "forecast_accuracy": "94.50",
-    "last_updated": "2026-08-11T07:25:33.569Z",
+    "last_updated": "2026-08-11T10:55:06.957Z",
     "data_points": 12
   }
 },
@@ -8041,7 +8041,7 @@
     "optimal_order_quantity": "30.00",
     "safety_stock": "5.00",
     "forecast_accuracy": "94.50",
-    "last_updated": "2026-08-11T07:25:33.577Z",
+    "last_updated": "2026-08-11T10:55:06.959Z",
     "data_points": 12
   }
 },
@@ -8162,7 +8162,7 @@
     "email": "",
     "notes": "Preferred primary supplier.",
     "created_at": "2026-08-11T07:17:07.143Z",
-    "updated_at": "2026-08-11T07:25:33.594Z"
+    "updated_at": "2026-08-11T10:55:06.962Z"
   }
 },
 {
@@ -8186,7 +8186,7 @@
     "email": "",
     "notes": "Preferred primary supplier.",
     "created_at": "2026-08-11T07:17:07.151Z",
-    "updated_at": "2026-08-11T07:25:33.607Z"
+    "updated_at": "2026-08-11T10:55:06.964Z"
   }
 },
 {
@@ -8210,7 +8210,7 @@
     "email": "",
     "notes": "Preferred primary supplier.",
     "created_at": "2026-08-11T07:17:07.159Z",
-    "updated_at": "2026-08-11T07:25:33.625Z"
+    "updated_at": "2026-08-11T10:55:06.966Z"
   }
 },
 {
@@ -8234,7 +8234,7 @@
     "email": "",
     "notes": "Preferred primary supplier.",
     "created_at": "2026-08-11T07:17:07.169Z",
-    "updated_at": "2026-08-11T07:25:33.645Z"
+    "updated_at": "2026-08-11T10:55:06.969Z"
   }
 },
 {
@@ -8885,7 +8885,7 @@
     "budget_variance": "0.00",
     "budget_variance_percentage": "0.00",
     "notes": "Monthly financial summary generated with AI metrics.",
-    "last_updated": "2026-08-11T07:17:21.999Z"
+    "last_updated": "2026-08-11T10:55:06.922Z"
   }
 },
 {
@@ -8916,7 +8916,7 @@
     "budget_variance": "0.00",
     "budget_variance_percentage": "0.00",
     "notes": "Monthly financial summary generated with AI metrics.",
-    "last_updated": "2026-08-11T07:25:33.797Z"
+    "last_updated": "2026-08-11T10:55:07.009Z"
   }
 },
 {

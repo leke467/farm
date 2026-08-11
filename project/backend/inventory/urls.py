@@ -19,6 +19,7 @@ urlpatterns = [
     
     # Demand Forecasting (Phase 2)
     path('forecasts/', views.DemandForecastListView.as_view(), name='forecast-list'),
+    path('demand-forecast/', views.DemandForecastListView.as_view(), name='demand-forecast-list'),
     path('forecasts/<int:pk>/', views.DemandForecastDetailView.as_view(), name='forecast-detail'),
     path('forecasts/optimization/', views.forecast_optimization_view, name='forecast-optimization'),
     

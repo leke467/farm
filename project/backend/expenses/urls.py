@@ -11,6 +11,7 @@ urlpatterns = [
     path('financial-analysis/', views.FinancialAnalysisListCreateView.as_view(), name='financial-analysis-list-create'),
     path('financial-analysis/<int:pk>/', views.FinancialAnalysisDetailView.as_view(), name='financial-analysis-detail'),
     path('debts/', views.DebtManagementListCreateView.as_view(), name='debt-list-create'),
+    path('debt-management/', views.DebtManagementListCreateView.as_view(), name='debt-management-list-create'),
     path('debts/<int:pk>/', views.DebtManagementDetailView.as_view(), name='debt-detail'),
     path('summary/', views.expense_summary_view, name='expense-summary'),
 ]

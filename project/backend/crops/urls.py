@@ -12,5 +12,6 @@ urlpatterns = [
     path('fertilizer-recommendations/', views.FertilizerRecommendationListCreateView.as_view(), name='fertilizer-recommendation-list-create'),
     path('fertilizer-recommendations/<int:pk>/', views.FertilizerRecommendationDetailView.as_view(), name='fertilizer-recommendation-detail'),
     path('weather-impacts/', views.WeatherImpactRecordListCreateView.as_view(), name='weather-impact-list-create'),
+    path('weather-impact/', views.WeatherImpactRecordListCreateView.as_view(), name='weather-impact-alias-list-create'),
     path('weather-impacts/<int:pk>/', views.WeatherImpactRecordDetailView.as_view(), name='weather-impact-detail'),
 ]

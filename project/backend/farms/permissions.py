@@ -81,6 +81,8 @@ def get_user_farm_role(farm, user):
 
 
 def get_effective_permission(farm, user, menu_key):
+    if farm.owner_id == user.id or getattr(user, 'is_superuser', False):
+        return {'can_view': True, 'can_create': True, 'can_edit': True, 'can_delete': True}
     role = get_user_farm_role(farm, user)
     if role is None:
         return {'can_view': False, 'can_create': False, 'can_edit': False, 'can_delete': False}
@@ -129,24 +131,16 @@ class FarmMenuPermission(BasePermission):
         return permissions.get(required_perm, False)
 
     def _get_farm(self, request, view):
-        farm_id = view.kwargs.get('farm_id')
-        if farm_id:
-            try:
-                return Farm.objects.get(pk=farm_id)
-            except Farm.DoesNotExist:
-                return None
-        farm_id = request.data.get('farm') or request.query_params.get('farm')
+        farm_id = view.kwargs.get('farm_id') or request.data.get('farm') or request.query_params.get('farm') or request.query_params.get('farm_id')
         if farm_id:
             try:
                 return Farm.objects.get(pk=farm_id)
             except (Farm.DoesNotExist, ValueError):
-                return None
+                pass
         user_farms = Farm.objects.filter(
             Q(owner=request.user) | Q(members__user=request.user)
         ).distinct()
-        if user_farms.count() == 1:
-            return user_farms.first()
-        return None
+        return user_farms.first()
 
     def _get_farm_from_object(self, obj):
         if hasattr(obj, 'farm'):
