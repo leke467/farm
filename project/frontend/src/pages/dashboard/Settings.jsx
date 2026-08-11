@@ -415,6 +415,10 @@ function Settings() {
   const handleProfileUpdate = async (e) => {
     e.preventDefault();
     setProfileStatus({ type: "", message: "" });
+    if (isDemoUser) {
+      setProfileStatus({ type: "error", message: "Demo Mode: Settings updates are disabled for public demo accounts." });
+      return;
+    }
     setProfileLoading(true);
 
     const response = await apiService.updateProfile({
@@ -458,6 +462,11 @@ function Settings() {
   const handleFarmUpdate = async (e) => {
     e.preventDefault();
     setFarmStatus({ type: "", message: "" });
+
+    if (isDemoUser) {
+      setFarmStatus({ type: "error", message: "Demo Mode: Settings updates are disabled for public demo accounts." });
+      return;
+    }
 
     if (!activeFarm?.id) {
       updateFarmSettings({
@@ -569,6 +578,11 @@ function Settings() {
     e.preventDefault();
     setMemberStatus({ type: "", message: "" });
 
+    if (isDemoUser) {
+      setMemberStatus({ type: "error", message: "Demo Mode: Member creation is disabled for public demo accounts." });
+      return;
+    }
+
     if (!activeFarm?.id) {
       setMemberStatus({
         type: "error",
@@ -653,6 +667,11 @@ function Settings() {
     if (!activeFarm?.id || !selectedRole) return;
     setRolePermissionStatus({ type: "", message: "" });
 
+    if (isDemoUser) {
+      setRolePermissionStatus({ type: "error", message: "Demo Mode: Permission updates are disabled for public demo accounts." });
+      return;
+    }
+
     const response = await apiService.updateRoleMenuPermissions(activeFarm.id, selectedRole, {
       permissions: rolePermissions.map((item) => ({
         menu_key: item.menu_key,
@@ -678,6 +697,11 @@ function Settings() {
   const handleSaveUserPermissions = async () => {
     if (!activeFarm?.id || !selectedMemberId) return;
     setUserPermissionStatus({ type: "", message: "" });
+
+    if (isDemoUser) {
+      setUserPermissionStatus({ type: "error", message: "Demo Mode: Permission overrides are disabled for public demo accounts." });
+      return;
+    }
 
     const response = await apiService.updateUserMenuPermissions(activeFarm.id, Number(selectedMemberId), {
       permissions: userPermissions.map((item) => ({
@@ -707,6 +731,19 @@ function Settings() {
         <h1 className="text-3xl font-display font-bold">Settings</h1>
         <p className="text-gray-600">Manage your account and farm settings</p>
       </div>
+
+      {isDemoUser && (
+        <div className="mb-6 p-4 bg-amber-50 border border-amber-300 text-amber-900 rounded-2xl flex items-center justify-between shadow-sm">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center text-amber-700 font-bold text-lg">🔒</div>
+            <div>
+              <h4 className="font-semibold text-sm sm:text-base">Demo Account Mode (Interactive Preview)</h4>
+              <p className="text-xs sm:text-sm text-amber-800">You are exploring Settings in public demo mode. You can view, interact with, and test all sections, but saving changes is disabled.</p>
+            </div>
+          </div>
+          <span className="text-xs font-semibold bg-amber-200 text-amber-800 px-3 py-1 rounded-full uppercase tracking-wider hidden sm:inline-block">Read Only</span>
+        </div>
+      )}
 
       <div className="space-y-4">
         <SettingsAccordionSection

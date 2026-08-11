@@ -56,9 +56,14 @@ def profile_view(request):
     serializer = UserSerializer(request.user)
     return Response(serializer.data)
 
-@api_view(['PUT'])
+@api_view(['PUT', 'PATCH'])
 @permission_classes([IsAuthenticated])
 def update_profile_view(request):
+    if request.user.username in ['demo', 'demo1234'] or getattr(request.user, 'is_demo', False):
+        return Response(
+            {'detail': 'Settings modifications are disabled for public demo accounts.'},
+            status=status.HTTP_403_FORBIDDEN
+        )
     serializer = UserSerializer(request.user, data=request.data, partial=True)
     if serializer.is_valid():
         serializer.save()

@@ -206,6 +206,22 @@ class FarmDetailView(generics.RetrieveUpdateDestroyAPIView):
             models.Q(members__user=self.request.user)
         ).distinct()
 
+    def update(self, request, *args, **kwargs):
+        if request.user.username in ['demo', 'demo1234'] or getattr(request.user, 'is_demo', False):
+            return Response(
+                {'detail': 'Settings modifications are disabled for public demo accounts.'},
+                status=status.HTTP_403_FORBIDDEN
+            )
+        return super().update(request, *args, **kwargs)
+
+    def destroy(self, request, *args, **kwargs):
+        if request.user.username in ['demo', 'demo1234'] or getattr(request.user, 'is_demo', False):
+            return Response(
+                {'detail': 'Settings modifications are disabled for public demo accounts.'},
+                status=status.HTTP_403_FORBIDDEN
+            )
+        return super().destroy(request, *args, **kwargs)
+
 @api_view(['GET'])
 @permission_classes([permissions.IsAuthenticated])
 def user_farms_view(request):
