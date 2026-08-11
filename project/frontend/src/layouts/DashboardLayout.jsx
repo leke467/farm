@@ -42,7 +42,7 @@ function DashboardLayout() {
   const { user, handleLogout } = useUser();
   const { farmSettings, activeFarm, farms, setActiveFarm } = useFarmData();
 
-  const currentSlug = farmSlug || toFarmSlug(activeFarm?.name || "adehifarm");
+  const currentSlug = farmSlug || toFarmSlug(activeFarm?.name || "farmname");
   const isOwner = activeFarm?.is_owner === true || activeFarm?.user_role === 'owner';
 
   useEffect(() => {

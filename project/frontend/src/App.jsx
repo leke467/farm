@@ -48,7 +48,7 @@ import { useFarmData } from "./context/FarmDataContext";
 
 function FarmSlugRedirect({ target = "dashboard" }) {
   const { activeFarm } = useFarmData();
-  const slug = toFarmSlug(activeFarm?.name || "adehifarm");
+  const slug = toFarmSlug(activeFarm?.name || "farmname");
   return <Navigate to={`/${slug}/${target}`} replace />;
 }
 
