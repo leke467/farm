@@ -309,6 +309,7 @@ function DashboardLayout() {
                             <Link
                               key={subItem.path}
                               to={subItem.path}
+                              onClick={() => setSidebarOpen(false)}
                               className={`flex items-center px-4 py-2 text-xs font-medium rounded-lg transition-colors ${
                                 location.pathname === subItem.path
                                   ? "bg-primary-100 text-primary-600"
@@ -324,6 +325,7 @@ function DashboardLayout() {
                   ) : (
                     <Link
                       to={item.path}
+                      onClick={() => setSidebarOpen(false)}
                       className={`flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors ${
                         location.pathname === item.path
                           ? "bg-primary-50 text-primary-600"
@@ -430,7 +432,7 @@ function DashboardLayout() {
                         className="fixed inset-0 z-40"
                         onClick={() => setNotificationsOpen(false)}
                       />
-                      <div className="absolute right-0 mt-2 w-80 sm:w-96 bg-white rounded-xl shadow-2xl border border-gray-100 z-50 overflow-hidden animate-fadeIn">
+                      <div className="absolute right-0 mt-2 w-72 sm:w-96 max-w-[calc(100vw-1.5rem)] bg-white rounded-xl shadow-2xl border border-gray-100 z-50 overflow-hidden animate-fadeIn">
                         <div className="px-4 py-3 bg-gray-50 border-b border-gray-100 flex items-center justify-between">
                           <div className="flex items-center space-x-2">
                             <FiBell className="text-primary-600" />
@@ -531,7 +533,7 @@ function DashboardLayout() {
                         className="fixed inset-0 z-40 bg-black/10 backdrop-blur-xs"
                         onClick={() => setProfileOpen(false)}
                       />
-                      <div className="absolute right-0 mt-2 w-80 sm:w-96 bg-white rounded-2xl shadow-2xl border border-gray-100 z-50 overflow-hidden animate-fadeIn p-5 space-y-4">
+                      <div className="absolute right-0 mt-2 w-72 sm:w-96 max-w-[calc(100vw-1.5rem)] bg-white rounded-2xl shadow-2xl border border-gray-100 z-50 overflow-hidden animate-fadeIn p-4 sm:p-5 space-y-4">
                         {/* Header Profile Summary */}
                         <div className="flex items-center space-x-3.5 pb-4 border-b border-gray-100">
                           <div className="h-12 w-12 rounded-2xl bg-emerald-100 text-emerald-800 font-black text-lg flex items-center justify-center shadow-inner">

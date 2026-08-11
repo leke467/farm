@@ -284,7 +284,7 @@ const HealthAlerts = () => {
           <h1 className="text-3xl font-display font-bold">Health Alerts</h1>
           <p className="text-gray-600">Monitor vaccinations, breeding, and animal health</p>
         </div>
-        <div className="mt-4 md:mt-0 flex gap-2">
+        <div className="mt-4 md:mt-0 flex flex-wrap gap-2">
           <button
             onClick={() => setIsAddAlertModalOpen(true)}
             className="btn btn-primary flex items-center"

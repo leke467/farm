@@ -270,7 +270,7 @@ function TaskScheduler() {
                       <p className="text-sm text-gray-600 mt-1">
                         {task.description}
                       </p>
-                      <div className="flex items-center space-x-4 mt-2 text-sm">
+                      <div className="flex flex-wrap items-center gap-2 sm:gap-4 mt-2 text-xs sm:text-sm">
                         <span className="flex items-center text-gray-500">
                           <FiCalendar className="mr-1" size={14} />
                           {new Date(task.dueDate).toLocaleDateString()}

@@ -466,7 +466,7 @@ function AnimalManagement() {
             </button>
 
             <button
-              className="btn btn-primary flex items-center justify-center text-xs sm:text-sm py-2 px-3 shadow-xs"
+              className="btn btn-primary col-span-2 sm:col-span-1 flex items-center justify-center text-xs sm:text-sm py-2 px-3 shadow-xs"
               onClick={() => setIsAddModalOpen(true)}
             >
               <FiPlus className="mr-1.5" />
@@ -474,7 +474,7 @@ function AnimalManagement() {
             </button>
           </div>
 
-          <div className="flex space-x-1 items-center bg-gray-200/70 p-1 rounded-xl w-full sm:w-auto justify-center">
+          <div className="flex space-x-1 items-center bg-gray-200/70 p-1 rounded-xl w-full sm:w-auto justify-start sm:justify-center overflow-x-auto whitespace-nowrap">
             <button
               className={`flex-1 sm:flex-none px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors ${
                 viewTab === "animals" ? "bg-white text-gray-900 shadow-xs" : "text-gray-600 hover:text-gray-900"
