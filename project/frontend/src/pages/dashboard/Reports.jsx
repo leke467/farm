@@ -13,6 +13,7 @@ import {
   StatCard,
   ChartContainer,
 } from "../../components/charts/ChartComponents";
+import AIChartInsight from "../../components/AIChartInsight";
 
 function Reports() {
   const { activeFarm } = useFarmData();
@@ -689,6 +690,14 @@ function Reports() {
             No active livestock batches found. Create animal groups and log feed/sales to view unit economics!
           </div>
         )}
+        {batchProfitability.length > 0 && (
+          <AIChartInsight
+            chartTitle="Flock & Batch Lifetime Profitability (Unit Economics)"
+            chartType="Unit Economics Matrix"
+            data={batchProfitability}
+            contextSummary="Measures exact sales revenues minus COGS (acquisition + cumulative feed + vet) per livestock batch."
+          />
+        )}
       </div>
 
       {error && (
@@ -735,7 +744,16 @@ function Reports() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
         {/* Expense Trends by Month */}
         {dashboardData?.finances?.expense_trend && (
-          <ChartContainer title="Monthly Expense Trend">
+          <ChartContainer
+            title="Monthly Expense Trend"
+            chartData={dashboardData.finances.expense_trend}
+            chartType="Line Chart"
+            contextSummary="Monthly operational expense trajectory across farm activities."
+            tooltipTitle="Monthly Expense Trend"
+            tooltipDesc="Tracks historical operational spending on a month-by-month basis."
+            tooltipHowToRead={["Orange Line: Total expenses logged in each month."]}
+            tooltipActionTip="Review months with steep upward spikes to identify recurring cost drivers."
+          >
             <LineChart
               labels={dashboardData.finances.expense_trend.map((item) => item.month)}
               datasets={[
@@ -752,7 +770,16 @@ function Reports() {
 
         {/* Livestock by Type */}
         {animalsData?.by_type && (
-          <ChartContainer title="Livestock by Type">
+          <ChartContainer
+            title="Livestock by Type"
+            chartData={animalsData.by_type}
+            chartType="Bar Chart"
+            contextSummary="Distribution of livestock population across species groups."
+            tooltipTitle="Livestock by Type"
+            tooltipDesc="Displays head counts across cattle, poultry, goats, pigs, and aquatic stock."
+            tooltipHowToRead={["Colored Bars: Total number of active animals per type."]}
+            tooltipActionTip="Ensure feed inventory aligns with your largest livestock bars."
+          >
             <BarChart
               labels={(animalsData.by_type || []).map((item) => (item.animal_type || "").toUpperCase())}
               datasets={[
@@ -775,7 +802,16 @@ function Reports() {
 
         {/* Expenses by Category */}
         {expensesData?.by_category && (
-          <ChartContainer title="Expenses by Category">
+          <ChartContainer
+            title="Expenses by Category"
+            chartData={expensesData.by_category}
+            chartType="Pie Chart"
+            contextSummary="Proportional breakdown of farm expenditures by budget category."
+            tooltipTitle="Expenses by Category"
+            tooltipDesc="Visualizes cost allocation across Feed, Medical/Vet, Equipment, Labor, and Supplies."
+            tooltipHowToRead={["Pie Slices: Percentage share per expense category."]}
+            tooltipActionTip="Target the largest expense slice for cost-reduction initiatives."
+          >
             <PieChart
               labels={(expensesData.by_category || []).map((item) => (item.category || "").toUpperCase())}
               data={(expensesData.by_category || []).map((item) => item.total)}
@@ -785,7 +821,16 @@ function Reports() {
 
         {/* Crop Status Distribution */}
         {cropsData?.by_status && (
-          <ChartContainer title="Crop Status">
+          <ChartContainer
+            title="Crop Status"
+            chartData={cropsData.by_status}
+            chartType="Doughnut Chart"
+            contextSummary="Active crop cultivation stage distribution."
+            tooltipTitle="Crop Status"
+            tooltipDesc="Tracks crop progress across planted, growing, and harvesting stages."
+            tooltipHowToRead={["Doughnut Segments: Number of plots in each growth stage."]}
+            tooltipActionTip="Prepare harvest storage and buyer contracts as growing crops near maturity."
+          >
             <DoughnutChart
               labels={(cropsData.by_status || []).map((item) => (item.status || "").toUpperCase())}
               data={(cropsData.by_status || []).map((item) => item.count)}
@@ -795,7 +840,16 @@ function Reports() {
 
         {/* Animal Health Status */}
         {animalsData?.by_status && (
-          <ChartContainer title="Livestock Health Status">
+          <ChartContainer
+            title="Livestock Health Status"
+            chartData={animalsData.by_status}
+            chartType="Bar Chart"
+            contextSummary="Health breakdown across active livestock population."
+            tooltipTitle="Livestock Health Status"
+            tooltipDesc="Monitors healthy, sick, quarantined, and pregnant animals."
+            tooltipHowToRead={["Bars: Head count of animals in each health state."]}
+            tooltipActionTip="Isolate animals in sick or quarantined bars immediately to prevent spread."
+          >
             <BarChart
               labels={(animalsData.by_status || []).map((item) => (item.status || "").toUpperCase())}
               datasets={[
@@ -816,7 +870,16 @@ function Reports() {
 
         {/* Inventory by Category */}
         {inventoryData?.by_category && (
-          <ChartContainer title="Inventory Value by Category">
+          <ChartContainer
+            title="Inventory Value by Category"
+            chartData={inventoryData.by_category}
+            chartType="Pie Chart"
+            contextSummary="Total capital valuation tied up in farm inventory."
+            tooltipTitle="Inventory Value by Category"
+            tooltipDesc="Displays financial valuation tied up in feeds, chemicals, tools, and harvest."
+            tooltipHowToRead={["Pie Slices: Monetary value share per inventory category."]}
+            tooltipActionTip="Avoid overstocking perishable inventory categories."
+          >
             <PieChart
               labels={(inventoryData.by_category || []).map((item) => (item.category || "").toUpperCase())}
               data={(inventoryData.by_category || []).map((item) => item.total_value || item.count)}

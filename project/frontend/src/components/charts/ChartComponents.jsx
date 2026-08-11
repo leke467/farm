@@ -12,6 +12,8 @@ import {
   Filler,
 } from "chart.js";
 import { Line, Bar, Pie, Doughnut } from "react-chartjs-2";
+import ChartInfoTooltip from "../ChartInfoTooltip";
+import AIChartInsight from "../AIChartInsight";
 
 ChartJS.register(
   CategoryScale,
@@ -312,11 +314,40 @@ export function StatCard({ title, value, subtitle, icon: Icon, color = "primary"
 }
 
 // ChartContainer Component
-export function ChartContainer({ title, children, className = "" }) {
+export function ChartContainer({
+  title,
+  children,
+  className = "",
+  chartData,
+  chartType = "Chart",
+  contextSummary,
+  tooltipTitle,
+  tooltipDesc,
+  tooltipHowToRead,
+  tooltipActionTip,
+}) {
   return (
     <div className={`bg-white rounded-lg shadow p-6 ${className}`}>
-      {title && <h3 className="text-lg font-bold text-gray-900 mb-4">{title}</h3>}
+      {title && (
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="text-lg font-bold text-gray-900">{title}</h3>
+          <ChartInfoTooltip
+            title={tooltipTitle || title}
+            description={tooltipDesc}
+            howToRead={tooltipHowToRead}
+            actionTip={tooltipActionTip}
+          />
+        </div>
+      )}
       {children}
+      {chartData && (
+        <AIChartInsight
+          chartTitle={title || "Chart"}
+          chartType={chartType}
+          data={chartData}
+          contextSummary={contextSummary}
+        />
+      )}
     </div>
   );
 }
