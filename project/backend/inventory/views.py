@@ -218,6 +218,9 @@ class DemandForecastListView(generics.ListAPIView):
         user_farms = Farm.objects.filter(
             Q(owner=self.request.user) | Q(members__user=self.request.user)
         ).distinct()
+        for f in user_farms:
+            from farms.analytics_generator import ensure_analytics_data_for_farm
+            ensure_analytics_data_for_farm(f)
         return DemandForecast.objects.filter(farm__in=user_farms)
 
 
@@ -243,39 +246,33 @@ def forecast_optimization_view(request):
     ).distinct()
     
     forecasts = DemandForecast.objects.filter(farm__in=user_farms)
-    
     recommendations = []
+    
     for forecast in forecasts:
         item = forecast.item
+        if not item:
+            continue
         
-        # Check if current quantity is below reorder point
+        # Recommendation 1: Reorder Point
         if item.quantity <= forecast.optimal_reorder_point:
             recommendations.append({
-                'item': item.name,
-                'action': 'URGENT: Reorder',
+                'item_id': item.id,
+                'item_name': item.name,
+                'type': 'reorder',
+                'urgency': 'critical' if item.quantity <= forecast.safety_stock else 'high',
                 'reorder_quantity': str(forecast.optimal_order_quantity),
-                'urgency': 'critical',
                 'reason': f'Current stock ({item.quantity}) <= Reorder point ({forecast.optimal_reorder_point})'
             })
         
-        # Check if trend is increasing but safety stock is low
-        if forecast.usage_trend == 'increasing' and item.quantity <= forecast.safety_stock * 1.5:
+        # Recommendation 2: High Demand
+        if forecast.usage_trend == 'increasing' and item.quantity <= forecast.safety_stock * Decimal('1.5'):
             recommendations.append({
-                'item': item.name,
-                'action': 'Increase safety stock',
-                'new_safety_stock': str(forecast.safety_stock * 1.2),
-                'urgency': 'high',
-                'reason': f'Increasing demand trend detected'
-            })
-        
-        # Check forecast accuracy
-        if forecast.forecast_accuracy < 70:
-            recommendations.append({
-                'item': item.name,
-                'action': 'Review forecast data',
-                'forecast_accuracy': f"{forecast.forecast_accuracy}%",
+                'item_id': item.id,
+                'item_name': item.name,
+                'type': 'stock_up',
                 'urgency': 'medium',
-                'reason': f'Forecast accuracy is low ({forecast.forecast_accuracy}%)'
+                'reorder_quantity': str(forecast.optimal_order_quantity * Decimal('1.2')),
+                'reason': 'Usage trend is increasing. Stock up recommended.'
             })
     
     return Response({
@@ -300,6 +297,9 @@ class SupplierPerformanceListCreateView(generics.ListCreateAPIView):
         user_farms = Farm.objects.filter(
             Q(owner=self.request.user) | Q(members__user=self.request.user)
         ).distinct()
+        for f in user_farms:
+            from farms.analytics_generator import ensure_analytics_data_for_farm
+            ensure_analytics_data_for_farm(f)
         return SupplierPerformance.objects.filter(farm__in=user_farms)
 
 

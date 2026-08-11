@@ -1588,7 +1588,7 @@
     "can_create": false,
     "can_edit": false,
     "can_delete": false,
-    "updated_at": "2026-08-10T04:49:42.642Z"
+    "updated_at": "2026-08-11T05:12:20.790Z"
   }
 },
 {
@@ -1602,7 +1602,7 @@
     "can_create": true,
     "can_edit": true,
     "can_delete": true,
-    "updated_at": "2026-08-10T04:49:42.660Z"
+    "updated_at": "2026-08-11T05:12:20.802Z"
   }
 },
 {
@@ -1612,11 +1612,11 @@
     "farm": 1,
     "role": "owner",
     "menu_key": "crops",
-    "can_view": true,
+    "can_view": false,
     "can_create": true,
     "can_edit": true,
     "can_delete": true,
-    "updated_at": "2026-08-10T04:49:42.677Z"
+    "updated_at": "2026-08-11T05:12:20.808Z"
   }
 },
 {
@@ -1630,7 +1630,7 @@
     "can_create": true,
     "can_edit": true,
     "can_delete": true,
-    "updated_at": "2026-08-10T04:49:42.690Z"
+    "updated_at": "2026-08-11T05:12:20.808Z"
   }
 },
 {
@@ -1644,7 +1644,7 @@
     "can_create": true,
     "can_edit": true,
     "can_delete": true,
-    "updated_at": "2026-08-10T04:49:42.694Z"
+    "updated_at": "2026-08-11T05:12:20.818Z"
   }
 },
 {
@@ -1658,7 +1658,7 @@
     "can_create": true,
     "can_edit": true,
     "can_delete": true,
-    "updated_at": "2026-08-10T04:49:42.702Z"
+    "updated_at": "2026-08-11T05:12:20.822Z"
   }
 },
 {
@@ -1672,7 +1672,7 @@
     "can_create": true,
     "can_edit": true,
     "can_delete": true,
-    "updated_at": "2026-08-10T04:49:42.714Z"
+    "updated_at": "2026-08-11T05:12:20.829Z"
   }
 },
 {
@@ -1686,7 +1686,7 @@
     "can_create": true,
     "can_edit": true,
     "can_delete": true,
-    "updated_at": "2026-08-10T04:49:42.719Z"
+    "updated_at": "2026-08-11T05:12:20.836Z"
   }
 },
 {
@@ -1700,7 +1700,7 @@
     "can_create": true,
     "can_edit": true,
     "can_delete": true,
-    "updated_at": "2026-08-10T04:49:42.725Z"
+    "updated_at": "2026-08-11T05:12:20.846Z"
   }
 },
 {
@@ -1714,7 +1714,7 @@
     "can_create": false,
     "can_edit": false,
     "can_delete": false,
-    "updated_at": "2026-08-10T04:49:42.736Z"
+    "updated_at": "2026-08-11T05:12:20.867Z"
   }
 },
 {
@@ -1728,7 +1728,7 @@
     "can_create": false,
     "can_edit": false,
     "can_delete": false,
-    "updated_at": "2026-08-10T04:49:42.749Z"
+    "updated_at": "2026-08-11T05:12:20.877Z"
   }
 },
 {
@@ -1742,7 +1742,7 @@
     "can_create": false,
     "can_edit": false,
     "can_delete": false,
-    "updated_at": "2026-08-10T04:49:42.758Z"
+    "updated_at": "2026-08-11T05:12:20.885Z"
   }
 },
 {
@@ -1929,18 +1929,18 @@
     "name": "Catfish Pond 1 - Fingerlings",
     "animal_type": "fish",
     "breed": "Clarias Gariepinus",
-    "birth_date": "2025-10-18",
+    "birth_date": "2025-10-17",
     "gender": "mixed",
-    "weight": "137.70",
+    "weight": null,
     "status": "healthy",
     "notes": "Commercial fish record in Catfish Pond 1 - Fingerlings.",
     "is_group": true,
     "count": 306,
-    "avg_weight": "0.45",
-    "established_date": "2025-10-18",
+    "avg_weight": null,
+    "established_date": "2025-10-17",
     "purchase_cost": "700000.00",
     "created_at": "2026-08-09T05:48:08.807Z",
-    "updated_at": "2026-08-09T19:32:52.024Z"
+    "updated_at": "2026-08-11T05:25:39.999Z"
   }
 },
 {
@@ -2599,6 +2599,25 @@
   }
 },
 {
+  "model": "animals.feedrecord",
+  "pk": 8,
+  "fields": {
+    "animal": 9,
+    "group_name": "Catfish Pond 1 - Fingerlings",
+    "date": "2026-08-11",
+    "amount": "20.00",
+    "unit": "kg",
+    "feed_type": "Catfish Floating Pellets 4mm",
+    "feed_mix": null,
+    "cost": "22000.00",
+    "deduct_from_inventory": true,
+    "is_recurring": false,
+    "end_date": null,
+    "notes": "",
+    "created_at": "2026-08-11T05:19:44.100Z"
+  }
+},
+{
   "model": "animals.recurringfeedschedule",
   "pk": 1,
   "fields": {
@@ -2645,6 +2664,312 @@
     "notes": "Booster dose administered successfully.",
     "created_at": "2026-08-09T06:12:25.153Z",
     "updated_at": "2026-08-09T06:12:25.153Z"
+  }
+},
+{
+  "model": "animals.breedingcalendar",
+  "pk": 1,
+  "fields": {
+    "animal": 10,
+    "partner_animal_name": "Sire #102",
+    "breeding_date": "2026-06-12",
+    "expected_delivery_date": "2026-09-10",
+    "status": "confirmed",
+    "notes": "Healthy gestation confirmed by vet examination.",
+    "created_at": "2026-08-11T07:17:06.705Z",
+    "updated_at": "2026-08-11T07:17:06.705Z"
+  }
+},
+{
+  "model": "animals.breedingcalendar",
+  "pk": 2,
+  "fields": {
+    "animal": 11,
+    "partner_animal_name": "Sire #102",
+    "breeding_date": "2026-06-12",
+    "expected_delivery_date": "2026-09-10",
+    "status": "confirmed",
+    "notes": "Healthy gestation confirmed by vet examination.",
+    "created_at": "2026-08-11T07:17:06.753Z",
+    "updated_at": "2026-08-11T07:17:06.753Z"
+  }
+},
+{
+  "model": "animals.breedingcalendar",
+  "pk": 3,
+  "fields": {
+    "animal": 13,
+    "partner_animal_name": "Sire #102",
+    "breeding_date": "2026-06-12",
+    "expected_delivery_date": "2026-09-10",
+    "status": "confirmed",
+    "notes": "Healthy gestation confirmed by vet examination.",
+    "created_at": "2026-08-11T07:17:06.779Z",
+    "updated_at": "2026-08-11T07:17:06.779Z"
+  }
+},
+{
+  "model": "animals.breedingcalendar",
+  "pk": 4,
+  "fields": {
+    "animal": 16,
+    "partner_animal_name": "Sire #102",
+    "breeding_date": "2026-06-12",
+    "expected_delivery_date": "2026-09-10",
+    "status": "confirmed",
+    "notes": "Healthy gestation confirmed by vet examination.",
+    "created_at": "2026-08-11T07:17:06.824Z",
+    "updated_at": "2026-08-11T07:17:06.824Z"
+  }
+},
+{
+  "model": "animals.breedingcalendar",
+  "pk": 5,
+  "fields": {
+    "animal": 1,
+    "partner_animal_name": "Sire #102",
+    "breeding_date": "2026-06-12",
+    "expected_delivery_date": "2026-09-10",
+    "status": "confirmed",
+    "notes": "Healthy gestation confirmed by vet examination.",
+    "created_at": "2026-08-11T07:17:07.199Z",
+    "updated_at": "2026-08-11T07:17:07.199Z"
+  }
+},
+{
+  "model": "animals.breedingcalendar",
+  "pk": 6,
+  "fields": {
+    "animal": 2,
+    "partner_animal_name": "Sire #102",
+    "breeding_date": "2026-06-12",
+    "expected_delivery_date": "2026-09-10",
+    "status": "confirmed",
+    "notes": "Healthy gestation confirmed by vet examination.",
+    "created_at": "2026-08-11T07:17:07.215Z",
+    "updated_at": "2026-08-11T07:17:07.215Z"
+  }
+},
+{
+  "model": "animals.breedingcalendar",
+  "pk": 7,
+  "fields": {
+    "animal": 3,
+    "partner_animal_name": "Sire #102",
+    "breeding_date": "2026-06-12",
+    "expected_delivery_date": "2026-09-10",
+    "status": "confirmed",
+    "notes": "Healthy gestation confirmed by vet examination.",
+    "created_at": "2026-08-11T07:17:07.215Z",
+    "updated_at": "2026-08-11T07:17:07.215Z"
+  }
+},
+{
+  "model": "animals.breedingcalendar",
+  "pk": 8,
+  "fields": {
+    "animal": 5,
+    "partner_animal_name": "Sire #102",
+    "breeding_date": "2026-06-12",
+    "expected_delivery_date": "2026-09-10",
+    "status": "confirmed",
+    "notes": "Healthy gestation confirmed by vet examination.",
+    "created_at": "2026-08-11T07:17:07.247Z",
+    "updated_at": "2026-08-11T07:17:07.247Z"
+  }
+},
+{
+  "model": "animals.breedingcalendar",
+  "pk": 9,
+  "fields": {
+    "animal": 8,
+    "partner_animal_name": "Sire #102",
+    "breeding_date": "2026-06-12",
+    "expected_delivery_date": "2026-09-10",
+    "status": "confirmed",
+    "notes": "Healthy gestation confirmed by vet examination.",
+    "created_at": "2026-08-11T07:17:07.273Z",
+    "updated_at": "2026-08-11T07:17:07.273Z"
+  }
+},
+{
+  "model": "animals.breedingrecord",
+  "pk": 1,
+  "fields": {
+    "breeding": 1,
+    "sire_animal": null,
+    "dam_animal": null,
+    "status": "planned",
+    "delivery_date": null,
+    "number_of_offspring": 4,
+    "healthy_offspring": 4,
+    "stillborn": 0,
+    "genetics_notes": "High vigor and strong growth traits.",
+    "birth_weights": {},
+    "veterinary_complications": "",
+    "post_delivery_care": "",
+    "created_at": "2026-08-11T07:17:06.722Z",
+    "updated_at": "2026-08-11T07:17:06.722Z"
+  }
+},
+{
+  "model": "animals.breedingrecord",
+  "pk": 2,
+  "fields": {
+    "breeding": 2,
+    "sire_animal": null,
+    "dam_animal": null,
+    "status": "planned",
+    "delivery_date": null,
+    "number_of_offspring": 4,
+    "healthy_offspring": 4,
+    "stillborn": 0,
+    "genetics_notes": "High vigor and strong growth traits.",
+    "birth_weights": {},
+    "veterinary_complications": "",
+    "post_delivery_care": "",
+    "created_at": "2026-08-11T07:17:06.762Z",
+    "updated_at": "2026-08-11T07:17:06.762Z"
+  }
+},
+{
+  "model": "animals.breedingrecord",
+  "pk": 3,
+  "fields": {
+    "breeding": 3,
+    "sire_animal": null,
+    "dam_animal": null,
+    "status": "planned",
+    "delivery_date": null,
+    "number_of_offspring": 4,
+    "healthy_offspring": 4,
+    "stillborn": 0,
+    "genetics_notes": "High vigor and strong growth traits.",
+    "birth_weights": {},
+    "veterinary_complications": "",
+    "post_delivery_care": "",
+    "created_at": "2026-08-11T07:17:06.793Z",
+    "updated_at": "2026-08-11T07:17:06.793Z"
+  }
+},
+{
+  "model": "animals.breedingrecord",
+  "pk": 4,
+  "fields": {
+    "breeding": 4,
+    "sire_animal": null,
+    "dam_animal": null,
+    "status": "planned",
+    "delivery_date": null,
+    "number_of_offspring": 4,
+    "healthy_offspring": 4,
+    "stillborn": 0,
+    "genetics_notes": "High vigor and strong growth traits.",
+    "birth_weights": {},
+    "veterinary_complications": "",
+    "post_delivery_care": "",
+    "created_at": "2026-08-11T07:17:06.824Z",
+    "updated_at": "2026-08-11T07:17:06.824Z"
+  }
+},
+{
+  "model": "animals.breedingrecord",
+  "pk": 5,
+  "fields": {
+    "breeding": 5,
+    "sire_animal": null,
+    "dam_animal": null,
+    "status": "planned",
+    "delivery_date": null,
+    "number_of_offspring": 4,
+    "healthy_offspring": 4,
+    "stillborn": 0,
+    "genetics_notes": "High vigor and strong growth traits.",
+    "birth_weights": {},
+    "veterinary_complications": "",
+    "post_delivery_care": "",
+    "created_at": "2026-08-11T07:17:07.199Z",
+    "updated_at": "2026-08-11T07:17:07.199Z"
+  }
+},
+{
+  "model": "animals.breedingrecord",
+  "pk": 6,
+  "fields": {
+    "breeding": 6,
+    "sire_animal": null,
+    "dam_animal": null,
+    "status": "planned",
+    "delivery_date": null,
+    "number_of_offspring": 4,
+    "healthy_offspring": 4,
+    "stillborn": 0,
+    "genetics_notes": "High vigor and strong growth traits.",
+    "birth_weights": {},
+    "veterinary_complications": "",
+    "post_delivery_care": "",
+    "created_at": "2026-08-11T07:17:07.215Z",
+    "updated_at": "2026-08-11T07:17:07.215Z"
+  }
+},
+{
+  "model": "animals.breedingrecord",
+  "pk": 7,
+  "fields": {
+    "breeding": 7,
+    "sire_animal": null,
+    "dam_animal": null,
+    "status": "planned",
+    "delivery_date": null,
+    "number_of_offspring": 4,
+    "healthy_offspring": 4,
+    "stillborn": 0,
+    "genetics_notes": "High vigor and strong growth traits.",
+    "birth_weights": {},
+    "veterinary_complications": "",
+    "post_delivery_care": "",
+    "created_at": "2026-08-11T07:17:07.232Z",
+    "updated_at": "2026-08-11T07:17:07.232Z"
+  }
+},
+{
+  "model": "animals.breedingrecord",
+  "pk": 8,
+  "fields": {
+    "breeding": 8,
+    "sire_animal": null,
+    "dam_animal": null,
+    "status": "planned",
+    "delivery_date": null,
+    "number_of_offspring": 4,
+    "healthy_offspring": 4,
+    "stillborn": 0,
+    "genetics_notes": "High vigor and strong growth traits.",
+    "birth_weights": {},
+    "veterinary_complications": "",
+    "post_delivery_care": "",
+    "created_at": "2026-08-11T07:17:07.250Z",
+    "updated_at": "2026-08-11T07:17:07.250Z"
+  }
+},
+{
+  "model": "animals.breedingrecord",
+  "pk": 9,
+  "fields": {
+    "breeding": 9,
+    "sire_animal": null,
+    "dam_animal": null,
+    "status": "planned",
+    "delivery_date": null,
+    "number_of_offspring": 4,
+    "healthy_offspring": 4,
+    "stillborn": 0,
+    "genetics_notes": "High vigor and strong growth traits.",
+    "birth_weights": {},
+    "veterinary_complications": "",
+    "post_delivery_care": "",
+    "created_at": "2026-08-11T07:17:07.273Z",
+    "updated_at": "2026-08-11T07:17:07.273Z"
   }
 },
 {
@@ -4178,6 +4503,617 @@
   }
 },
 {
+  "model": "animals.productionrecord",
+  "pk": 86,
+  "fields": {
+    "animal": 10,
+    "production_type": "milk",
+    "quantity": "45.00",
+    "unit": "liters",
+    "recorded_date": "2026-08-10",
+    "quality_grade": "A",
+    "market_price_per_unit": null,
+    "total_market_value": null,
+    "labor_hours": "0.00",
+    "feed_cost": null,
+    "notes": "Daily harvest for White Fulani Cow #001",
+    "created_at": "2026-08-11T07:17:06.689Z"
+  }
+},
+{
+  "model": "animals.productionrecord",
+  "pk": 87,
+  "fields": {
+    "animal": 11,
+    "production_type": "milk",
+    "quantity": "45.00",
+    "unit": "liters",
+    "recorded_date": "2026-08-10",
+    "quality_grade": "A",
+    "market_price_per_unit": null,
+    "total_market_value": null,
+    "labor_hours": "0.00",
+    "feed_cost": null,
+    "notes": "Daily harvest for Holstein Friesian Cow #002",
+    "created_at": "2026-08-11T07:17:06.736Z"
+  }
+},
+{
+  "model": "animals.productionrecord",
+  "pk": 88,
+  "fields": {
+    "animal": 12,
+    "production_type": "meat",
+    "quantity": "5.00",
+    "unit": "kg",
+    "recorded_date": "2026-08-10",
+    "quality_grade": "A",
+    "market_price_per_unit": null,
+    "total_market_value": null,
+    "labor_hours": "0.00",
+    "feed_cost": null,
+    "notes": "Daily harvest for Red Bororo Bull #003",
+    "created_at": "2026-08-11T07:17:06.762Z"
+  }
+},
+{
+  "model": "animals.productionrecord",
+  "pk": 89,
+  "fields": {
+    "animal": 13,
+    "production_type": "eggs",
+    "quantity": "15.00",
+    "unit": "crates",
+    "recorded_date": "2026-08-10",
+    "quality_grade": "A",
+    "market_price_per_unit": null,
+    "total_market_value": null,
+    "labor_hours": "0.00",
+    "feed_cost": null,
+    "notes": "Daily harvest for Flock A - ISA Brown Layers",
+    "created_at": "2026-08-11T07:17:06.779Z"
+  }
+},
+{
+  "model": "animals.productionrecord",
+  "pk": 90,
+  "fields": {
+    "animal": 14,
+    "production_type": "meat",
+    "quantity": "5.00",
+    "unit": "kg",
+    "recorded_date": "2026-08-10",
+    "quality_grade": "A",
+    "market_price_per_unit": null,
+    "total_market_value": null,
+    "labor_hours": "0.00",
+    "feed_cost": null,
+    "notes": "Daily harvest for Flock B - Cobb 500 Broilers",
+    "created_at": "2026-08-11T07:17:06.793Z"
+  }
+},
+{
+  "model": "animals.productionrecord",
+  "pk": 91,
+  "fields": {
+    "animal": 15,
+    "production_type": "meat",
+    "quantity": "5.00",
+    "unit": "kg",
+    "recorded_date": "2026-08-10",
+    "quality_grade": "A",
+    "market_price_per_unit": null,
+    "total_market_value": null,
+    "labor_hours": "0.00",
+    "feed_cost": null,
+    "notes": "Daily harvest for Kano Brown Goat Group",
+    "created_at": "2026-08-11T07:17:06.812Z"
+  }
+},
+{
+  "model": "animals.productionrecord",
+  "pk": 92,
+  "fields": {
+    "animal": 16,
+    "production_type": "meat",
+    "quantity": "5.00",
+    "unit": "kg",
+    "recorded_date": "2026-08-10",
+    "quality_grade": "A",
+    "market_price_per_unit": null,
+    "total_market_value": null,
+    "labor_hours": "0.00",
+    "feed_cost": null,
+    "notes": "Daily harvest for Large White Sow #P01",
+    "created_at": "2026-08-11T07:17:06.824Z"
+  }
+},
+{
+  "model": "animals.productionrecord",
+  "pk": 93,
+  "fields": {
+    "animal": 17,
+    "production_type": "meat",
+    "quantity": "5.00",
+    "unit": "kg",
+    "recorded_date": "2026-08-10",
+    "quality_grade": "A",
+    "market_price_per_unit": null,
+    "total_market_value": null,
+    "labor_hours": "0.00",
+    "feed_cost": null,
+    "notes": "Daily harvest for Catfish Pond 1 - Fingerlings",
+    "created_at": "2026-08-11T07:17:06.842Z"
+  }
+},
+{
+  "model": "animals.productionrecord",
+  "pk": 94,
+  "fields": {
+    "animal": 1,
+    "production_type": "meat",
+    "quantity": "5.00",
+    "unit": "kg",
+    "recorded_date": "2026-08-10",
+    "quality_grade": "A",
+    "market_price_per_unit": null,
+    "total_market_value": null,
+    "labor_hours": "0.00",
+    "feed_cost": null,
+    "notes": "Daily harvest for pen1",
+    "created_at": "2026-08-11T07:17:07.183Z"
+  }
+},
+{
+  "model": "animals.productionrecord",
+  "pk": 95,
+  "fields": {
+    "animal": 2,
+    "production_type": "milk",
+    "quantity": "45.00",
+    "unit": "liters",
+    "recorded_date": "2026-08-10",
+    "quality_grade": "A",
+    "market_price_per_unit": null,
+    "total_market_value": null,
+    "labor_hours": "0.00",
+    "feed_cost": null,
+    "notes": "Daily harvest for White Fulani Cow #001",
+    "created_at": "2026-08-11T07:17:07.215Z"
+  }
+},
+{
+  "model": "animals.productionrecord",
+  "pk": 96,
+  "fields": {
+    "animal": 3,
+    "production_type": "milk",
+    "quantity": "45.00",
+    "unit": "liters",
+    "recorded_date": "2026-08-10",
+    "quality_grade": "A",
+    "market_price_per_unit": null,
+    "total_market_value": null,
+    "labor_hours": "0.00",
+    "feed_cost": null,
+    "notes": "Daily harvest for Holstein Friesian Cow #002",
+    "created_at": "2026-08-11T07:17:07.215Z"
+  }
+},
+{
+  "model": "animals.productionrecord",
+  "pk": 97,
+  "fields": {
+    "animal": 4,
+    "production_type": "meat",
+    "quantity": "5.00",
+    "unit": "kg",
+    "recorded_date": "2026-08-10",
+    "quality_grade": "A",
+    "market_price_per_unit": null,
+    "total_market_value": null,
+    "labor_hours": "0.00",
+    "feed_cost": null,
+    "notes": "Daily harvest for Red Bororo Bull #003",
+    "created_at": "2026-08-11T07:17:07.232Z"
+  }
+},
+{
+  "model": "animals.productionrecord",
+  "pk": 98,
+  "fields": {
+    "animal": 5,
+    "production_type": "eggs",
+    "quantity": "15.00",
+    "unit": "crates",
+    "recorded_date": "2026-08-10",
+    "quality_grade": "A",
+    "market_price_per_unit": null,
+    "total_market_value": null,
+    "labor_hours": "0.00",
+    "feed_cost": null,
+    "notes": "Daily harvest for Flock A - ISA Brown Layers",
+    "created_at": "2026-08-11T07:17:07.232Z"
+  }
+},
+{
+  "model": "animals.productionrecord",
+  "pk": 99,
+  "fields": {
+    "animal": 6,
+    "production_type": "meat",
+    "quantity": "5.00",
+    "unit": "kg",
+    "recorded_date": "2026-08-10",
+    "quality_grade": "A",
+    "market_price_per_unit": null,
+    "total_market_value": null,
+    "labor_hours": "0.00",
+    "feed_cost": null,
+    "notes": "Daily harvest for Flock B - Cobb 500 Broilers",
+    "created_at": "2026-08-11T07:17:07.250Z"
+  }
+},
+{
+  "model": "animals.productionrecord",
+  "pk": 100,
+  "fields": {
+    "animal": 7,
+    "production_type": "meat",
+    "quantity": "5.00",
+    "unit": "kg",
+    "recorded_date": "2026-08-10",
+    "quality_grade": "A",
+    "market_price_per_unit": null,
+    "total_market_value": null,
+    "labor_hours": "0.00",
+    "feed_cost": null,
+    "notes": "Daily harvest for Kano Brown Goat Group",
+    "created_at": "2026-08-11T07:17:07.262Z"
+  }
+},
+{
+  "model": "animals.productionrecord",
+  "pk": 101,
+  "fields": {
+    "animal": 8,
+    "production_type": "meat",
+    "quantity": "5.00",
+    "unit": "kg",
+    "recorded_date": "2026-08-10",
+    "quality_grade": "A",
+    "market_price_per_unit": null,
+    "total_market_value": null,
+    "labor_hours": "0.00",
+    "feed_cost": null,
+    "notes": "Daily harvest for Large White Sow #P01",
+    "created_at": "2026-08-11T07:17:07.262Z"
+  }
+},
+{
+  "model": "animals.animalproductionmetrics",
+  "pk": 1,
+  "fields": {
+    "animal": 10,
+    "current_month_production": "450.00",
+    "avg_monthly_production": "420.00",
+    "highest_monthly_production": "510.00",
+    "year_to_date_production": "3200.00",
+    "annual_revenue": "120000.00",
+    "annual_feed_cost": "45000.00",
+    "annual_profit": "75000.00",
+    "feed_conversion_ratio": "1.85",
+    "production_efficiency": "93.20",
+    "breeding_success_rate": "95.00",
+    "health_score": "9.2",
+    "last_updated": "2026-08-11T07:17:21.876Z"
+  }
+},
+{
+  "model": "animals.animalproductionmetrics",
+  "pk": 2,
+  "fields": {
+    "animal": 11,
+    "current_month_production": "450.00",
+    "avg_monthly_production": "420.00",
+    "highest_monthly_production": "510.00",
+    "year_to_date_production": "3200.00",
+    "annual_revenue": "120000.00",
+    "annual_feed_cost": "45000.00",
+    "annual_profit": "75000.00",
+    "feed_conversion_ratio": "1.85",
+    "production_efficiency": "93.20",
+    "breeding_success_rate": "95.00",
+    "health_score": "9.2",
+    "last_updated": "2026-08-11T07:17:21.893Z"
+  }
+},
+{
+  "model": "animals.animalproductionmetrics",
+  "pk": 3,
+  "fields": {
+    "animal": 12,
+    "current_month_production": "450.00",
+    "avg_monthly_production": "420.00",
+    "highest_monthly_production": "510.00",
+    "year_to_date_production": "3200.00",
+    "annual_revenue": "120000.00",
+    "annual_feed_cost": "45000.00",
+    "annual_profit": "75000.00",
+    "feed_conversion_ratio": "1.85",
+    "production_efficiency": "93.20",
+    "breeding_success_rate": "95.00",
+    "health_score": "9.2",
+    "last_updated": "2026-08-11T07:17:21.895Z"
+  }
+},
+{
+  "model": "animals.animalproductionmetrics",
+  "pk": 4,
+  "fields": {
+    "animal": 13,
+    "current_month_production": "225000.00",
+    "avg_monthly_production": "210000.00",
+    "highest_monthly_production": "255000.00",
+    "year_to_date_production": "1600000.00",
+    "annual_revenue": "60000000.00",
+    "annual_feed_cost": "22500000.00",
+    "annual_profit": "37500000.00",
+    "feed_conversion_ratio": "1.85",
+    "production_efficiency": "93.20",
+    "breeding_success_rate": "95.00",
+    "health_score": "9.2",
+    "last_updated": "2026-08-11T07:17:21.901Z"
+  }
+},
+{
+  "model": "animals.animalproductionmetrics",
+  "pk": 5,
+  "fields": {
+    "animal": 14,
+    "current_month_production": "157500.00",
+    "avg_monthly_production": "147000.00",
+    "highest_monthly_production": "178500.00",
+    "year_to_date_production": "1120000.00",
+    "annual_revenue": "42000000.00",
+    "annual_feed_cost": "15750000.00",
+    "annual_profit": "26250000.00",
+    "feed_conversion_ratio": "1.85",
+    "production_efficiency": "93.20",
+    "breeding_success_rate": "95.00",
+    "health_score": "9.2",
+    "last_updated": "2026-08-11T07:17:21.917Z"
+  }
+},
+{
+  "model": "animals.animalproductionmetrics",
+  "pk": 6,
+  "fields": {
+    "animal": 15,
+    "current_month_production": "11250.00",
+    "avg_monthly_production": "10500.00",
+    "highest_monthly_production": "12750.00",
+    "year_to_date_production": "80000.00",
+    "annual_revenue": "3000000.00",
+    "annual_feed_cost": "1125000.00",
+    "annual_profit": "1875000.00",
+    "feed_conversion_ratio": "1.85",
+    "production_efficiency": "93.20",
+    "breeding_success_rate": "95.00",
+    "health_score": "9.2",
+    "last_updated": "2026-08-11T07:17:21.925Z"
+  }
+},
+{
+  "model": "animals.animalproductionmetrics",
+  "pk": 7,
+  "fields": {
+    "animal": 16,
+    "current_month_production": "450.00",
+    "avg_monthly_production": "420.00",
+    "highest_monthly_production": "510.00",
+    "year_to_date_production": "3200.00",
+    "annual_revenue": "120000.00",
+    "annual_feed_cost": "45000.00",
+    "annual_profit": "75000.00",
+    "feed_conversion_ratio": "1.85",
+    "production_efficiency": "93.20",
+    "breeding_success_rate": "95.00",
+    "health_score": "9.2",
+    "last_updated": "2026-08-11T07:17:21.933Z"
+  }
+},
+{
+  "model": "animals.animalproductionmetrics",
+  "pk": 8,
+  "fields": {
+    "animal": 17,
+    "current_month_production": "900000.00",
+    "avg_monthly_production": "840000.00",
+    "highest_monthly_production": "1020000.00",
+    "year_to_date_production": "6400000.00",
+    "annual_revenue": "240000000.00",
+    "annual_feed_cost": "90000000.00",
+    "annual_profit": "150000000.00",
+    "feed_conversion_ratio": "1.85",
+    "production_efficiency": "93.20",
+    "breeding_success_rate": "95.00",
+    "health_score": "9.2",
+    "last_updated": "2026-08-11T07:17:21.942Z"
+  }
+},
+{
+  "model": "animals.animalproductionmetrics",
+  "pk": 9,
+  "fields": {
+    "animal": 1,
+    "current_month_production": "900.00",
+    "avg_monthly_production": "840.00",
+    "highest_monthly_production": "1020.00",
+    "year_to_date_production": "6400.00",
+    "annual_revenue": "240000.00",
+    "annual_feed_cost": "90000.00",
+    "annual_profit": "150000.00",
+    "feed_conversion_ratio": "1.85",
+    "production_efficiency": "93.20",
+    "breeding_success_rate": "95.00",
+    "health_score": "9.2",
+    "last_updated": "2026-08-11T07:17:22.106Z"
+  }
+},
+{
+  "model": "animals.animalproductionmetrics",
+  "pk": 10,
+  "fields": {
+    "animal": 2,
+    "current_month_production": "450.00",
+    "avg_monthly_production": "420.00",
+    "highest_monthly_production": "510.00",
+    "year_to_date_production": "3200.00",
+    "annual_revenue": "120000.00",
+    "annual_feed_cost": "45000.00",
+    "annual_profit": "75000.00",
+    "feed_conversion_ratio": "1.85",
+    "production_efficiency": "93.20",
+    "breeding_success_rate": "95.00",
+    "health_score": "9.2",
+    "last_updated": "2026-08-11T07:17:22.123Z"
+  }
+},
+{
+  "model": "animals.animalproductionmetrics",
+  "pk": 11,
+  "fields": {
+    "animal": 3,
+    "current_month_production": "450.00",
+    "avg_monthly_production": "420.00",
+    "highest_monthly_production": "510.00",
+    "year_to_date_production": "3200.00",
+    "annual_revenue": "120000.00",
+    "annual_feed_cost": "45000.00",
+    "annual_profit": "75000.00",
+    "feed_conversion_ratio": "1.85",
+    "production_efficiency": "93.20",
+    "breeding_success_rate": "95.00",
+    "health_score": "9.2",
+    "last_updated": "2026-08-11T07:17:22.123Z"
+  }
+},
+{
+  "model": "animals.animalproductionmetrics",
+  "pk": 12,
+  "fields": {
+    "animal": 4,
+    "current_month_production": "450.00",
+    "avg_monthly_production": "420.00",
+    "highest_monthly_production": "510.00",
+    "year_to_date_production": "3200.00",
+    "annual_revenue": "120000.00",
+    "annual_feed_cost": "45000.00",
+    "annual_profit": "75000.00",
+    "feed_conversion_ratio": "1.85",
+    "production_efficiency": "93.20",
+    "breeding_success_rate": "95.00",
+    "health_score": "9.2",
+    "last_updated": "2026-08-11T07:17:22.132Z"
+  }
+},
+{
+  "model": "animals.animalproductionmetrics",
+  "pk": 13,
+  "fields": {
+    "animal": 5,
+    "current_month_production": "202500.00",
+    "avg_monthly_production": "189000.00",
+    "highest_monthly_production": "229500.00",
+    "year_to_date_production": "1440000.00",
+    "annual_revenue": "54000000.00",
+    "annual_feed_cost": "20250000.00",
+    "annual_profit": "33750000.00",
+    "feed_conversion_ratio": "1.85",
+    "production_efficiency": "93.20",
+    "breeding_success_rate": "95.00",
+    "health_score": "9.2",
+    "last_updated": "2026-08-11T07:17:22.140Z"
+  }
+},
+{
+  "model": "animals.animalproductionmetrics",
+  "pk": 14,
+  "fields": {
+    "animal": 6,
+    "current_month_production": "157500.00",
+    "avg_monthly_production": "147000.00",
+    "highest_monthly_production": "178500.00",
+    "year_to_date_production": "1120000.00",
+    "annual_revenue": "42000000.00",
+    "annual_feed_cost": "15750000.00",
+    "annual_profit": "26250000.00",
+    "feed_conversion_ratio": "1.85",
+    "production_efficiency": "93.20",
+    "breeding_success_rate": "95.00",
+    "health_score": "9.2",
+    "last_updated": "2026-08-11T07:17:22.140Z"
+  }
+},
+{
+  "model": "animals.animalproductionmetrics",
+  "pk": 15,
+  "fields": {
+    "animal": 7,
+    "current_month_production": "11250.00",
+    "avg_monthly_production": "10500.00",
+    "highest_monthly_production": "12750.00",
+    "year_to_date_production": "80000.00",
+    "annual_revenue": "3000000.00",
+    "annual_feed_cost": "1125000.00",
+    "annual_profit": "1875000.00",
+    "feed_conversion_ratio": "1.85",
+    "production_efficiency": "93.20",
+    "breeding_success_rate": "95.00",
+    "health_score": "9.2",
+    "last_updated": "2026-08-11T07:17:22.148Z"
+  }
+},
+{
+  "model": "animals.animalproductionmetrics",
+  "pk": 16,
+  "fields": {
+    "animal": 8,
+    "current_month_production": "450.00",
+    "avg_monthly_production": "420.00",
+    "highest_monthly_production": "510.00",
+    "year_to_date_production": "3200.00",
+    "annual_revenue": "120000.00",
+    "annual_feed_cost": "45000.00",
+    "annual_profit": "75000.00",
+    "feed_conversion_ratio": "1.85",
+    "production_efficiency": "93.20",
+    "breeding_success_rate": "95.00",
+    "health_score": "9.2",
+    "last_updated": "2026-08-11T07:17:22.148Z"
+  }
+},
+{
+  "model": "animals.animalproductionmetrics",
+  "pk": 17,
+  "fields": {
+    "animal": 9,
+    "current_month_production": "137700.00",
+    "avg_monthly_production": "128520.00",
+    "highest_monthly_production": "156060.00",
+    "year_to_date_production": "979200.00",
+    "annual_revenue": "36720000.00",
+    "annual_feed_cost": "13770000.00",
+    "annual_profit": "22950000.00",
+    "feed_conversion_ratio": "1.85",
+    "production_efficiency": "93.20",
+    "breeding_success_rate": "95.00",
+    "health_score": "9.2",
+    "last_updated": "2026-08-11T07:17:22.156Z"
+  }
+},
+{
   "model": "crops.crop",
   "pk": 1,
   "fields": {
@@ -4312,19 +5248,19 @@
   "pk": 1,
   "fields": {
     "crop": 1,
-    "previous_yield": "4.20",
-    "expected_yield": "5.50",
-    "actual_yield": "5.20",
-    "yield_unit": "tonnes/ha",
-    "water_provided": "450.00",
+    "previous_yield": "5800.00",
+    "expected_yield": "6500.00",
+    "actual_yield": "6200.00",
+    "yield_unit": "kg",
+    "water_provided": "14.50",
     "fertilizer_applied": "250.00",
-    "disease_severity": 0,
-    "pest_damage": 0,
-    "yield_per_dollar_invested": "3.45",
-    "roi_percentage": "42.50",
-    "yield_efficiency": "94.50",
-    "optimization_recommendations": "Maintain regular fertigation schedule and inspect lower leaves for rust.",
-    "last_updated": "2026-08-09T05:48:09.418Z"
+    "disease_severity": 5,
+    "pest_damage": 8,
+    "yield_per_dollar_invested": "3.04",
+    "roi_percentage": "204.00",
+    "yield_efficiency": "95.38",
+    "optimization_recommendations": "Optimal yield analysis recorded for Hybrid White Maize (Commercial). Maintain nitrogen fertilization and drip irrigation schedules.",
+    "last_updated": "2026-08-11T07:17:22.189Z"
   }
 },
 {
@@ -4332,19 +5268,207 @@
   "pk": 2,
   "fields": {
     "crop": 3,
-    "previous_yield": "4.20",
-    "expected_yield": "5.50",
-    "actual_yield": "5.20",
-    "yield_unit": "tonnes/ha",
-    "water_provided": "450.00",
+    "previous_yield": "5800.00",
+    "expected_yield": "6500.00",
+    "actual_yield": "6200.00",
+    "yield_unit": "kg",
+    "water_provided": "14.50",
     "fertilizer_applied": "250.00",
-    "disease_severity": 0,
-    "pest_damage": 0,
-    "yield_per_dollar_invested": "3.45",
-    "roi_percentage": "42.50",
-    "yield_efficiency": "94.50",
-    "optimization_recommendations": "Maintain regular fertigation schedule and inspect lower leaves for rust.",
-    "last_updated": "2026-08-09T06:12:25.229Z"
+    "disease_severity": 5,
+    "pest_damage": 8,
+    "yield_per_dollar_invested": "3.04",
+    "roi_percentage": "204.00",
+    "yield_efficiency": "95.38",
+    "optimization_recommendations": "Optimal yield analysis recorded for Hybrid White Maize (Commercial). Maintain nitrogen fertilization and drip irrigation schedules.",
+    "last_updated": "2026-08-11T07:17:21.975Z"
+  }
+},
+{
+  "model": "crops.cropyieldanalysis",
+  "pk": 3,
+  "fields": {
+    "crop": 4,
+    "previous_yield": "5800.00",
+    "expected_yield": "6500.00",
+    "actual_yield": "6200.00",
+    "yield_unit": "kg",
+    "water_provided": "14.50",
+    "fertilizer_applied": "250.00",
+    "disease_severity": 5,
+    "pest_damage": 8,
+    "yield_per_dollar_invested": "3.04",
+    "roi_percentage": "204.00",
+    "yield_efficiency": "95.38",
+    "optimization_recommendations": "Optimal yield analysis recorded for Roma Tomato (Greenhouse F1). Maintain nitrogen fertilization and drip irrigation schedules.",
+    "last_updated": "2026-08-11T07:17:21.975Z"
+  }
+},
+{
+  "model": "crops.cropyieldanalysis",
+  "pk": 4,
+  "fields": {
+    "crop": 2,
+    "previous_yield": "5800.00",
+    "expected_yield": "6500.00",
+    "actual_yield": "6200.00",
+    "yield_unit": "kg",
+    "water_provided": "14.50",
+    "fertilizer_applied": "250.00",
+    "disease_severity": 5,
+    "pest_damage": 8,
+    "yield_per_dollar_invested": "3.04",
+    "roi_percentage": "204.00",
+    "yield_efficiency": "95.38",
+    "optimization_recommendations": "Optimal yield analysis recorded for Roma Tomato (Greenhouse F1). Maintain nitrogen fertilization and drip irrigation schedules.",
+    "last_updated": "2026-08-11T07:17:22.206Z"
+  }
+},
+{
+  "model": "crops.fertilizerrecommendation",
+  "pk": 1,
+  "fields": {
+    "crop": 3,
+    "recommended_type": "NPK 15-15-15",
+    "recommended_quantity": "150.00",
+    "unit": "kg",
+    "application_timing": "Apply at early vegetative stage (Weeks 3-4)",
+    "expected_yield_increase": "18.50",
+    "status": "pending",
+    "applied_date": null,
+    "actual_quantity_applied": null,
+    "estimated_cost": "65000.00",
+    "expected_additional_revenue": "180000.00",
+    "notes": "Recommended NPK 15:15:15 application for Hybrid White Maize (Commercial).",
+    "created_at": "2026-08-11T07:17:06.927Z",
+    "updated_at": "2026-08-11T07:17:06.927Z"
+  }
+},
+{
+  "model": "crops.fertilizerrecommendation",
+  "pk": 2,
+  "fields": {
+    "crop": 4,
+    "recommended_type": "NPK 15-15-15",
+    "recommended_quantity": "150.00",
+    "unit": "kg",
+    "application_timing": "Apply at early vegetative stage (Weeks 3-4)",
+    "expected_yield_increase": "18.50",
+    "status": "pending",
+    "applied_date": null,
+    "actual_quantity_applied": null,
+    "estimated_cost": "65000.00",
+    "expected_additional_revenue": "180000.00",
+    "notes": "Recommended NPK 15:15:15 application for Roma Tomato (Greenhouse F1).",
+    "created_at": "2026-08-11T07:17:06.960Z",
+    "updated_at": "2026-08-11T07:17:06.960Z"
+  }
+},
+{
+  "model": "crops.fertilizerrecommendation",
+  "pk": 3,
+  "fields": {
+    "crop": 1,
+    "recommended_type": "NPK 15-15-15",
+    "recommended_quantity": "150.00",
+    "unit": "kg",
+    "application_timing": "Apply at early vegetative stage (Weeks 3-4)",
+    "expected_yield_increase": "18.50",
+    "status": "pending",
+    "applied_date": null,
+    "actual_quantity_applied": null,
+    "estimated_cost": "65000.00",
+    "expected_additional_revenue": "180000.00",
+    "notes": "Recommended NPK 15:15:15 application for Hybrid White Maize (Commercial).",
+    "created_at": "2026-08-11T07:17:22.197Z",
+    "updated_at": "2026-08-11T07:17:22.197Z"
+  }
+},
+{
+  "model": "crops.fertilizerrecommendation",
+  "pk": 4,
+  "fields": {
+    "crop": 2,
+    "recommended_type": "NPK 15-15-15",
+    "recommended_quantity": "150.00",
+    "unit": "kg",
+    "application_timing": "Apply at early vegetative stage (Weeks 3-4)",
+    "expected_yield_increase": "18.50",
+    "status": "pending",
+    "applied_date": null,
+    "actual_quantity_applied": null,
+    "estimated_cost": "65000.00",
+    "expected_additional_revenue": "180000.00",
+    "notes": "Recommended NPK 15:15:15 application for Roma Tomato (Greenhouse F1).",
+    "created_at": "2026-08-11T07:17:22.206Z",
+    "updated_at": "2026-08-11T07:17:22.206Z"
+  }
+},
+{
+  "model": "crops.weatherimpactrecord",
+  "pk": 1,
+  "fields": {
+    "crop": 3,
+    "impact_date": "2026-08-06",
+    "impact_type": "excessive_heat",
+    "severity": "minor",
+    "estimated_yield_loss": "3.50",
+    "estimated_financial_loss": "25000.00",
+    "recovery_actions": "Increased evening irrigation frequency by 20%",
+    "recovery_cost": "8000.00",
+    "expected_recovery_yield": "98.00",
+    "notes": "Favorable recovery following evening irrigation adjustment.",
+    "created_at": "2026-08-11T07:17:06.944Z"
+  }
+},
+{
+  "model": "crops.weatherimpactrecord",
+  "pk": 2,
+  "fields": {
+    "crop": 4,
+    "impact_date": "2026-08-06",
+    "impact_type": "excessive_heat",
+    "severity": "minor",
+    "estimated_yield_loss": "3.50",
+    "estimated_financial_loss": "25000.00",
+    "recovery_actions": "Increased evening irrigation frequency by 20%",
+    "recovery_cost": "8000.00",
+    "expected_recovery_yield": "98.00",
+    "notes": "Favorable recovery following evening irrigation adjustment.",
+    "created_at": "2026-08-11T07:17:06.983Z"
+  }
+},
+{
+  "model": "crops.weatherimpactrecord",
+  "pk": 3,
+  "fields": {
+    "crop": 1,
+    "impact_date": "2026-08-06",
+    "impact_type": "excessive_heat",
+    "severity": "minor",
+    "estimated_yield_loss": "3.50",
+    "estimated_financial_loss": "25000.00",
+    "recovery_actions": "Increased evening irrigation frequency by 20%",
+    "recovery_cost": "8000.00",
+    "expected_recovery_yield": "98.00",
+    "notes": "Favorable recovery following evening irrigation adjustment.",
+    "created_at": "2026-08-11T07:17:22.202Z"
+  }
+},
+{
+  "model": "crops.weatherimpactrecord",
+  "pk": 4,
+  "fields": {
+    "crop": 2,
+    "impact_date": "2026-08-06",
+    "impact_type": "excessive_heat",
+    "severity": "minor",
+    "estimated_yield_loss": "3.50",
+    "estimated_financial_loss": "25000.00",
+    "recovery_actions": "Increased evening irrigation frequency by 20%",
+    "recovery_cost": "8000.00",
+    "expected_recovery_yield": "98.00",
+    "notes": "Favorable recovery following evening irrigation adjustment.",
+    "created_at": "2026-08-11T07:17:22.214Z"
   }
 },
 {
@@ -4730,7 +5854,7 @@
     "farm": 1,
     "name": "Catfish Floating Pellets 4mm",
     "category": "feed",
-    "quantity": "100.00",
+    "quantity": "80.00",
     "unit": "kg",
     "min_quantity": "200.00",
     "location": "Aquaculture Shed",
@@ -4740,7 +5864,7 @@
     "supplier": "Skretting Feeds",
     "notes": "Commercial quality Catfish Floating Pellets 4mm stocked for farm operations.",
     "created_at": "2026-08-09T05:48:08.200Z",
-    "updated_at": "2026-08-09T10:31:42.486Z"
+    "updated_at": "2026-08-11T05:19:44.113Z"
   }
 },
 {
@@ -5926,6 +7050,24 @@
   }
 },
 {
+  "model": "inventory.inventorytransaction",
+  "pk": 40,
+  "fields": {
+    "item": 6,
+    "transaction_type": "out",
+    "quantity": "20.00",
+    "cost_per_unit": null,
+    "total_cost": null,
+    "status": "completed",
+    "date": "2026-08-11T05:19:44.133Z",
+    "transaction_date": "2026-08-11",
+    "reason": "Animal Feed: Catfish Pond 1 - Fingerlings",
+    "notes": "Auto-deducted daily feed entry for Catfish Pond 1 - Fingerlings",
+    "reference": "",
+    "created_by": "farm1@example.com"
+  }
+},
+{
   "model": "inventory.inventoryaudit",
   "pk": 1,
   "fields": {
@@ -6301,6 +7443,798 @@
     "total_purchase_cost": "370000.00",
     "weighted_avg_cost": "185000.00",
     "updated_at": "2026-08-09T06:12:24.604Z"
+  }
+},
+{
+  "model": "inventory.demandforecast",
+  "pk": 1,
+  "fields": {
+    "item": 16,
+    "farm": 3,
+    "avg_monthly_usage": "750.00",
+    "max_monthly_usage": "0.00",
+    "min_monthly_usage": "0.00",
+    "usage_trend": "increasing",
+    "seasonality_factor": "1.00",
+    "forecasted_monthly_demand": "875.00",
+    "optimal_reorder_point": "500.00",
+    "optimal_order_quantity": "1500.00",
+    "safety_stock": "250.00",
+    "forecast_accuracy": "94.50",
+    "last_updated": "2026-08-11T07:17:21.816Z",
+    "data_points": 12
+  }
+},
+{
+  "model": "inventory.demandforecast",
+  "pk": 2,
+  "fields": {
+    "item": 17,
+    "farm": 3,
+    "avg_monthly_usage": "360.00",
+    "max_monthly_usage": "0.00",
+    "min_monthly_usage": "0.00",
+    "usage_trend": "increasing",
+    "seasonality_factor": "1.00",
+    "forecasted_monthly_demand": "420.00",
+    "optimal_reorder_point": "300.00",
+    "optimal_order_quantity": "900.00",
+    "safety_stock": "150.00",
+    "forecast_accuracy": "94.50",
+    "last_updated": "2026-08-11T07:17:21.826Z",
+    "data_points": 12
+  }
+},
+{
+  "model": "inventory.demandforecast",
+  "pk": 3,
+  "fields": {
+    "item": 18,
+    "farm": 3,
+    "avg_monthly_usage": "540.00",
+    "max_monthly_usage": "0.00",
+    "min_monthly_usage": "0.00",
+    "usage_trend": "increasing",
+    "seasonality_factor": "1.00",
+    "forecasted_monthly_demand": "630.00",
+    "optimal_reorder_point": "400.00",
+    "optimal_order_quantity": "1200.00",
+    "safety_stock": "200.00",
+    "forecast_accuracy": "94.50",
+    "last_updated": "2026-08-11T07:17:21.826Z",
+    "data_points": 12
+  }
+},
+{
+  "model": "inventory.demandforecast",
+  "pk": 4,
+  "fields": {
+    "item": 19,
+    "farm": 3,
+    "avg_monthly_usage": "450.00",
+    "max_monthly_usage": "0.00",
+    "min_monthly_usage": "0.00",
+    "usage_trend": "increasing",
+    "seasonality_factor": "1.00",
+    "forecasted_monthly_demand": "525.00",
+    "optimal_reorder_point": "300.00",
+    "optimal_order_quantity": "900.00",
+    "safety_stock": "150.00",
+    "forecast_accuracy": "94.50",
+    "last_updated": "2026-08-11T07:17:21.834Z",
+    "data_points": 12
+  }
+},
+{
+  "model": "inventory.demandforecast",
+  "pk": 5,
+  "fields": {
+    "item": 20,
+    "farm": 3,
+    "avg_monthly_usage": "240.00",
+    "max_monthly_usage": "0.00",
+    "min_monthly_usage": "0.00",
+    "usage_trend": "increasing",
+    "seasonality_factor": "1.00",
+    "forecasted_monthly_demand": "280.00",
+    "optimal_reorder_point": "200.00",
+    "optimal_order_quantity": "600.00",
+    "safety_stock": "100.00",
+    "forecast_accuracy": "94.50",
+    "last_updated": "2026-08-11T07:17:21.834Z",
+    "data_points": 12
+  }
+},
+{
+  "model": "inventory.demandforecast",
+  "pk": 6,
+  "fields": {
+    "item": 21,
+    "farm": 3,
+    "avg_monthly_usage": "12.00",
+    "max_monthly_usage": "0.00",
+    "min_monthly_usage": "0.00",
+    "usage_trend": "increasing",
+    "seasonality_factor": "1.00",
+    "forecasted_monthly_demand": "14.00",
+    "optimal_reorder_point": "10.00",
+    "optimal_order_quantity": "30.00",
+    "safety_stock": "5.00",
+    "forecast_accuracy": "94.50",
+    "last_updated": "2026-08-11T07:17:21.834Z",
+    "data_points": 12
+  }
+},
+{
+  "model": "inventory.demandforecast",
+  "pk": 7,
+  "fields": {
+    "item": 22,
+    "farm": 3,
+    "avg_monthly_usage": "7.50",
+    "max_monthly_usage": "0.00",
+    "min_monthly_usage": "0.00",
+    "usage_trend": "increasing",
+    "seasonality_factor": "1.00",
+    "forecasted_monthly_demand": "8.75",
+    "optimal_reorder_point": "5.00",
+    "optimal_order_quantity": "15.00",
+    "safety_stock": "2.50",
+    "forecast_accuracy": "94.50",
+    "last_updated": "2026-08-11T07:17:21.843Z",
+    "data_points": 12
+  }
+},
+{
+  "model": "inventory.demandforecast",
+  "pk": 8,
+  "fields": {
+    "item": 23,
+    "farm": 3,
+    "avg_monthly_usage": "5.00",
+    "max_monthly_usage": "0.00",
+    "min_monthly_usage": "0.00",
+    "usage_trend": "increasing",
+    "seasonality_factor": "1.00",
+    "forecasted_monthly_demand": "8.00",
+    "optimal_reorder_point": "5.00",
+    "optimal_order_quantity": "15.00",
+    "safety_stock": "2.50",
+    "forecast_accuracy": "94.50",
+    "last_updated": "2026-08-11T07:17:21.843Z",
+    "data_points": 12
+  }
+},
+{
+  "model": "inventory.demandforecast",
+  "pk": 9,
+  "fields": {
+    "item": 24,
+    "farm": 3,
+    "avg_monthly_usage": "9.00",
+    "max_monthly_usage": "0.00",
+    "min_monthly_usage": "0.00",
+    "usage_trend": "increasing",
+    "seasonality_factor": "1.00",
+    "forecasted_monthly_demand": "10.50",
+    "optimal_reorder_point": "10.00",
+    "optimal_order_quantity": "30.00",
+    "safety_stock": "5.00",
+    "forecast_accuracy": "94.50",
+    "last_updated": "2026-08-11T07:17:21.843Z",
+    "data_points": 12
+  }
+},
+{
+  "model": "inventory.demandforecast",
+  "pk": 10,
+  "fields": {
+    "item": 25,
+    "farm": 3,
+    "avg_monthly_usage": "6.00",
+    "max_monthly_usage": "0.00",
+    "min_monthly_usage": "0.00",
+    "usage_trend": "increasing",
+    "seasonality_factor": "1.00",
+    "forecasted_monthly_demand": "8.00",
+    "optimal_reorder_point": "5.00",
+    "optimal_order_quantity": "15.00",
+    "safety_stock": "2.50",
+    "forecast_accuracy": "94.50",
+    "last_updated": "2026-08-11T07:17:21.843Z",
+    "data_points": 12
+  }
+},
+{
+  "model": "inventory.demandforecast",
+  "pk": 11,
+  "fields": {
+    "item": 26,
+    "farm": 3,
+    "avg_monthly_usage": "195.00",
+    "max_monthly_usage": "0.00",
+    "min_monthly_usage": "0.00",
+    "usage_trend": "increasing",
+    "seasonality_factor": "1.00",
+    "forecasted_monthly_demand": "227.50",
+    "optimal_reorder_point": "150.00",
+    "optimal_order_quantity": "450.00",
+    "safety_stock": "75.00",
+    "forecast_accuracy": "94.50",
+    "last_updated": "2026-08-11T07:17:21.851Z",
+    "data_points": 12
+  }
+},
+{
+  "model": "inventory.demandforecast",
+  "pk": 12,
+  "fields": {
+    "item": 27,
+    "farm": 3,
+    "avg_monthly_usage": "18.00",
+    "max_monthly_usage": "0.00",
+    "min_monthly_usage": "0.00",
+    "usage_trend": "increasing",
+    "seasonality_factor": "1.00",
+    "forecasted_monthly_demand": "21.00",
+    "optimal_reorder_point": "15.00",
+    "optimal_order_quantity": "45.00",
+    "safety_stock": "7.50",
+    "forecast_accuracy": "94.50",
+    "last_updated": "2026-08-11T07:17:21.851Z",
+    "data_points": 12
+  }
+},
+{
+  "model": "inventory.demandforecast",
+  "pk": 13,
+  "fields": {
+    "item": 28,
+    "farm": 3,
+    "avg_monthly_usage": "5.00",
+    "max_monthly_usage": "0.00",
+    "min_monthly_usage": "0.00",
+    "usage_trend": "increasing",
+    "seasonality_factor": "1.00",
+    "forecasted_monthly_demand": "8.00",
+    "optimal_reorder_point": "2.00",
+    "optimal_order_quantity": "6.00",
+    "safety_stock": "1.00",
+    "forecast_accuracy": "94.50",
+    "last_updated": "2026-08-11T07:17:21.851Z",
+    "data_points": 12
+  }
+},
+{
+  "model": "inventory.demandforecast",
+  "pk": 14,
+  "fields": {
+    "item": 29,
+    "farm": 3,
+    "avg_monthly_usage": "5.00",
+    "max_monthly_usage": "0.00",
+    "min_monthly_usage": "0.00",
+    "usage_trend": "increasing",
+    "seasonality_factor": "1.00",
+    "forecasted_monthly_demand": "8.00",
+    "optimal_reorder_point": "1.00",
+    "optimal_order_quantity": "3.00",
+    "safety_stock": "0.50",
+    "forecast_accuracy": "94.50",
+    "last_updated": "2026-08-11T07:17:21.861Z",
+    "data_points": 12
+  }
+},
+{
+  "model": "inventory.demandforecast",
+  "pk": 15,
+  "fields": {
+    "item": 1,
+    "farm": 1,
+    "avg_monthly_usage": "27.00",
+    "max_monthly_usage": "0.00",
+    "min_monthly_usage": "0.00",
+    "usage_trend": "increasing",
+    "seasonality_factor": "1.00",
+    "forecasted_monthly_demand": "31.50",
+    "optimal_reorder_point": "20.00",
+    "optimal_order_quantity": "60.00",
+    "safety_stock": "10.00",
+    "forecast_accuracy": "94.50",
+    "last_updated": "2026-08-11T07:17:22.016Z",
+    "data_points": 12
+  }
+},
+{
+  "model": "inventory.demandforecast",
+  "pk": 16,
+  "fields": {
+    "item": 2,
+    "farm": 1,
+    "avg_monthly_usage": "750.00",
+    "max_monthly_usage": "0.00",
+    "min_monthly_usage": "0.00",
+    "usage_trend": "increasing",
+    "seasonality_factor": "1.00",
+    "forecasted_monthly_demand": "875.00",
+    "optimal_reorder_point": "500.00",
+    "optimal_order_quantity": "1500.00",
+    "safety_stock": "250.00",
+    "forecast_accuracy": "94.50",
+    "last_updated": "2026-08-11T07:17:22.025Z",
+    "data_points": 12
+  }
+},
+{
+  "model": "inventory.demandforecast",
+  "pk": 17,
+  "fields": {
+    "item": 3,
+    "farm": 1,
+    "avg_monthly_usage": "300.00",
+    "max_monthly_usage": "0.00",
+    "min_monthly_usage": "0.00",
+    "usage_trend": "increasing",
+    "seasonality_factor": "1.00",
+    "forecasted_monthly_demand": "350.00",
+    "optimal_reorder_point": "300.00",
+    "optimal_order_quantity": "900.00",
+    "safety_stock": "150.00",
+    "forecast_accuracy": "94.50",
+    "last_updated": "2026-08-11T07:17:22.032Z",
+    "data_points": 12
+  }
+},
+{
+  "model": "inventory.demandforecast",
+  "pk": 18,
+  "fields": {
+    "item": 4,
+    "farm": 1,
+    "avg_monthly_usage": "540.00",
+    "max_monthly_usage": "0.00",
+    "min_monthly_usage": "0.00",
+    "usage_trend": "increasing",
+    "seasonality_factor": "1.00",
+    "forecasted_monthly_demand": "630.00",
+    "optimal_reorder_point": "400.00",
+    "optimal_order_quantity": "1200.00",
+    "safety_stock": "200.00",
+    "forecast_accuracy": "94.50",
+    "last_updated": "2026-08-11T07:17:22.033Z",
+    "data_points": 12
+  }
+},
+{
+  "model": "inventory.demandforecast",
+  "pk": 19,
+  "fields": {
+    "item": 5,
+    "farm": 1,
+    "avg_monthly_usage": "450.00",
+    "max_monthly_usage": "0.00",
+    "min_monthly_usage": "0.00",
+    "usage_trend": "increasing",
+    "seasonality_factor": "1.00",
+    "forecasted_monthly_demand": "525.00",
+    "optimal_reorder_point": "300.00",
+    "optimal_order_quantity": "900.00",
+    "safety_stock": "150.00",
+    "forecast_accuracy": "94.50",
+    "last_updated": "2026-08-11T07:17:22.033Z",
+    "data_points": 12
+  }
+},
+{
+  "model": "inventory.demandforecast",
+  "pk": 20,
+  "fields": {
+    "item": 6,
+    "farm": 1,
+    "avg_monthly_usage": "24.00",
+    "max_monthly_usage": "0.00",
+    "min_monthly_usage": "0.00",
+    "usage_trend": "increasing",
+    "seasonality_factor": "1.00",
+    "forecasted_monthly_demand": "28.00",
+    "optimal_reorder_point": "200.00",
+    "optimal_order_quantity": "600.00",
+    "safety_stock": "100.00",
+    "forecast_accuracy": "94.50",
+    "last_updated": "2026-08-11T07:17:22.041Z",
+    "data_points": 12
+  }
+},
+{
+  "model": "inventory.demandforecast",
+  "pk": 21,
+  "fields": {
+    "item": 7,
+    "farm": 1,
+    "avg_monthly_usage": "12.00",
+    "max_monthly_usage": "0.00",
+    "min_monthly_usage": "0.00",
+    "usage_trend": "increasing",
+    "seasonality_factor": "1.00",
+    "forecasted_monthly_demand": "14.00",
+    "optimal_reorder_point": "10.00",
+    "optimal_order_quantity": "30.00",
+    "safety_stock": "5.00",
+    "forecast_accuracy": "94.50",
+    "last_updated": "2026-08-11T07:17:22.048Z",
+    "data_points": 12
+  }
+},
+{
+  "model": "inventory.demandforecast",
+  "pk": 22,
+  "fields": {
+    "item": 8,
+    "farm": 1,
+    "avg_monthly_usage": "7.50",
+    "max_monthly_usage": "0.00",
+    "min_monthly_usage": "0.00",
+    "usage_trend": "increasing",
+    "seasonality_factor": "1.00",
+    "forecasted_monthly_demand": "8.75",
+    "optimal_reorder_point": "5.00",
+    "optimal_order_quantity": "15.00",
+    "safety_stock": "2.50",
+    "forecast_accuracy": "94.50",
+    "last_updated": "2026-08-11T07:17:22.057Z",
+    "data_points": 12
+  }
+},
+{
+  "model": "inventory.demandforecast",
+  "pk": 23,
+  "fields": {
+    "item": 9,
+    "farm": 1,
+    "avg_monthly_usage": "5.00",
+    "max_monthly_usage": "0.00",
+    "min_monthly_usage": "0.00",
+    "usage_trend": "increasing",
+    "seasonality_factor": "1.00",
+    "forecasted_monthly_demand": "8.00",
+    "optimal_reorder_point": "5.00",
+    "optimal_order_quantity": "15.00",
+    "safety_stock": "2.50",
+    "forecast_accuracy": "94.50",
+    "last_updated": "2026-08-11T07:17:22.057Z",
+    "data_points": 12
+  }
+},
+{
+  "model": "inventory.demandforecast",
+  "pk": 24,
+  "fields": {
+    "item": 10,
+    "farm": 1,
+    "avg_monthly_usage": "9.00",
+    "max_monthly_usage": "0.00",
+    "min_monthly_usage": "0.00",
+    "usage_trend": "increasing",
+    "seasonality_factor": "1.00",
+    "forecasted_monthly_demand": "10.50",
+    "optimal_reorder_point": "10.00",
+    "optimal_order_quantity": "30.00",
+    "safety_stock": "5.00",
+    "forecast_accuracy": "94.50",
+    "last_updated": "2026-08-11T07:17:22.057Z",
+    "data_points": 12
+  }
+},
+{
+  "model": "inventory.demandforecast",
+  "pk": 25,
+  "fields": {
+    "item": 11,
+    "farm": 1,
+    "avg_monthly_usage": "6.00",
+    "max_monthly_usage": "0.00",
+    "min_monthly_usage": "0.00",
+    "usage_trend": "increasing",
+    "seasonality_factor": "1.00",
+    "forecasted_monthly_demand": "8.00",
+    "optimal_reorder_point": "5.00",
+    "optimal_order_quantity": "15.00",
+    "safety_stock": "2.50",
+    "forecast_accuracy": "94.50",
+    "last_updated": "2026-08-11T07:17:22.065Z",
+    "data_points": 12
+  }
+},
+{
+  "model": "inventory.demandforecast",
+  "pk": 26,
+  "fields": {
+    "item": 12,
+    "farm": 1,
+    "avg_monthly_usage": "195.00",
+    "max_monthly_usage": "0.00",
+    "min_monthly_usage": "0.00",
+    "usage_trend": "increasing",
+    "seasonality_factor": "1.00",
+    "forecasted_monthly_demand": "227.50",
+    "optimal_reorder_point": "150.00",
+    "optimal_order_quantity": "450.00",
+    "safety_stock": "75.00",
+    "forecast_accuracy": "94.50",
+    "last_updated": "2026-08-11T07:17:22.065Z",
+    "data_points": 12
+  }
+},
+{
+  "model": "inventory.demandforecast",
+  "pk": 27,
+  "fields": {
+    "item": 13,
+    "farm": 1,
+    "avg_monthly_usage": "18.00",
+    "max_monthly_usage": "0.00",
+    "min_monthly_usage": "0.00",
+    "usage_trend": "increasing",
+    "seasonality_factor": "1.00",
+    "forecasted_monthly_demand": "21.00",
+    "optimal_reorder_point": "15.00",
+    "optimal_order_quantity": "45.00",
+    "safety_stock": "7.50",
+    "forecast_accuracy": "94.50",
+    "last_updated": "2026-08-11T07:17:22.065Z",
+    "data_points": 12
+  }
+},
+{
+  "model": "inventory.demandforecast",
+  "pk": 28,
+  "fields": {
+    "item": 14,
+    "farm": 1,
+    "avg_monthly_usage": "5.00",
+    "max_monthly_usage": "0.00",
+    "min_monthly_usage": "0.00",
+    "usage_trend": "increasing",
+    "seasonality_factor": "1.00",
+    "forecasted_monthly_demand": "8.00",
+    "optimal_reorder_point": "2.00",
+    "optimal_order_quantity": "6.00",
+    "safety_stock": "1.00",
+    "forecast_accuracy": "94.50",
+    "last_updated": "2026-08-11T07:17:22.073Z",
+    "data_points": 12
+  }
+},
+{
+  "model": "inventory.demandforecast",
+  "pk": 29,
+  "fields": {
+    "item": 15,
+    "farm": 1,
+    "avg_monthly_usage": "5.00",
+    "max_monthly_usage": "0.00",
+    "min_monthly_usage": "0.00",
+    "usage_trend": "increasing",
+    "seasonality_factor": "1.00",
+    "forecasted_monthly_demand": "8.00",
+    "optimal_reorder_point": "1.00",
+    "optimal_order_quantity": "3.00",
+    "safety_stock": "0.50",
+    "forecast_accuracy": "94.50",
+    "last_updated": "2026-08-11T07:17:22.073Z",
+    "data_points": 12
+  }
+},
+{
+  "model": "inventory.demandforecast",
+  "pk": 30,
+  "fields": {
+    "item": 30,
+    "farm": 1,
+    "avg_monthly_usage": "6.00",
+    "max_monthly_usage": "0.00",
+    "min_monthly_usage": "0.00",
+    "usage_trend": "increasing",
+    "seasonality_factor": "1.00",
+    "forecasted_monthly_demand": "8.00",
+    "optimal_reorder_point": "10.00",
+    "optimal_order_quantity": "30.00",
+    "safety_stock": "5.00",
+    "forecast_accuracy": "94.50",
+    "last_updated": "2026-08-11T07:17:22.073Z",
+    "data_points": 12
+  }
+},
+{
+  "model": "inventory.supplierperformance",
+  "pk": 1,
+  "fields": {
+    "farm": 3,
+    "supplier_name": "AgriPro Feeds & Supplies",
+    "item": 16,
+    "avg_unit_price": "1500.00",
+    "lowest_unit_price": "0.00",
+    "highest_unit_price": "0.00",
+    "last_purchase_price": "1500.00",
+    "last_purchase_date": null,
+    "on_time_delivery_rate": "97.50",
+    "quality_rating": "4.8",
+    "reliability_grade": "excellent",
+    "total_orders": 18,
+    "contact_person": "",
+    "phone": "",
+    "email": "",
+    "notes": "Preferred primary supplier.",
+    "created_at": "2026-08-11T07:16:15.459Z",
+    "updated_at": "2026-08-11T07:17:21.861Z"
+  }
+},
+{
+  "model": "inventory.supplierperformance",
+  "pk": 2,
+  "fields": {
+    "farm": 3,
+    "supplier_name": "VetCare International",
+    "item": 16,
+    "avg_unit_price": "1500.00",
+    "lowest_unit_price": "0.00",
+    "highest_unit_price": "0.00",
+    "last_purchase_price": "1500.00",
+    "last_purchase_date": null,
+    "on_time_delivery_rate": "99.00",
+    "quality_rating": "4.9",
+    "reliability_grade": "excellent",
+    "total_orders": 18,
+    "contact_person": "",
+    "phone": "",
+    "email": "",
+    "notes": "Preferred primary supplier.",
+    "created_at": "2026-08-11T07:16:15.490Z",
+    "updated_at": "2026-08-11T07:17:21.867Z"
+  }
+},
+{
+  "model": "inventory.supplierperformance",
+  "pk": 3,
+  "fields": {
+    "farm": 3,
+    "supplier_name": "Premier Seed & Fertilizer Co",
+    "item": 16,
+    "avg_unit_price": "1500.00",
+    "lowest_unit_price": "0.00",
+    "highest_unit_price": "0.00",
+    "last_purchase_price": "1500.00",
+    "last_purchase_date": null,
+    "on_time_delivery_rate": "94.00",
+    "quality_rating": "4.5",
+    "reliability_grade": "good",
+    "total_orders": 18,
+    "contact_person": "",
+    "phone": "",
+    "email": "",
+    "notes": "Preferred primary supplier.",
+    "created_at": "2026-08-11T07:16:15.505Z",
+    "updated_at": "2026-08-11T07:17:21.867Z"
+  }
+},
+{
+  "model": "inventory.supplierperformance",
+  "pk": 4,
+  "fields": {
+    "farm": 3,
+    "supplier_name": "Grand Cereals Ltd",
+    "item": 16,
+    "avg_unit_price": "1500.00",
+    "lowest_unit_price": "0.00",
+    "highest_unit_price": "0.00",
+    "last_purchase_price": "1500.00",
+    "last_purchase_date": null,
+    "on_time_delivery_rate": "96.00",
+    "quality_rating": "4.7",
+    "reliability_grade": "good",
+    "total_orders": 18,
+    "contact_person": "",
+    "phone": "",
+    "email": "",
+    "notes": "Preferred primary supplier.",
+    "created_at": "2026-08-11T07:16:15.522Z",
+    "updated_at": "2026-08-11T07:17:21.867Z"
+  }
+},
+{
+  "model": "inventory.supplierperformance",
+  "pk": 5,
+  "fields": {
+    "farm": 1,
+    "supplier_name": "AgriPro Feeds & Supplies",
+    "item": 1,
+    "avg_unit_price": "1500.00",
+    "lowest_unit_price": "0.00",
+    "highest_unit_price": "0.00",
+    "last_purchase_price": "1500.00",
+    "last_purchase_date": null,
+    "on_time_delivery_rate": "97.50",
+    "quality_rating": "4.8",
+    "reliability_grade": "excellent",
+    "total_orders": 18,
+    "contact_person": "",
+    "phone": "",
+    "email": "",
+    "notes": "Preferred primary supplier.",
+    "created_at": "2026-08-11T07:17:07.143Z",
+    "updated_at": "2026-08-11T07:17:22.090Z"
+  }
+},
+{
+  "model": "inventory.supplierperformance",
+  "pk": 6,
+  "fields": {
+    "farm": 1,
+    "supplier_name": "VetCare International",
+    "item": 1,
+    "avg_unit_price": "1500.00",
+    "lowest_unit_price": "0.00",
+    "highest_unit_price": "0.00",
+    "last_purchase_price": "1500.00",
+    "last_purchase_date": null,
+    "on_time_delivery_rate": "99.00",
+    "quality_rating": "4.9",
+    "reliability_grade": "excellent",
+    "total_orders": 18,
+    "contact_person": "",
+    "phone": "",
+    "email": "",
+    "notes": "Preferred primary supplier.",
+    "created_at": "2026-08-11T07:17:07.151Z",
+    "updated_at": "2026-08-11T07:17:22.090Z"
+  }
+},
+{
+  "model": "inventory.supplierperformance",
+  "pk": 7,
+  "fields": {
+    "farm": 1,
+    "supplier_name": "Premier Seed & Fertilizer Co",
+    "item": 1,
+    "avg_unit_price": "1500.00",
+    "lowest_unit_price": "0.00",
+    "highest_unit_price": "0.00",
+    "last_purchase_price": "1500.00",
+    "last_purchase_date": null,
+    "on_time_delivery_rate": "94.00",
+    "quality_rating": "4.5",
+    "reliability_grade": "good",
+    "total_orders": 18,
+    "contact_person": "",
+    "phone": "",
+    "email": "",
+    "notes": "Preferred primary supplier.",
+    "created_at": "2026-08-11T07:17:07.159Z",
+    "updated_at": "2026-08-11T07:17:22.098Z"
+  }
+},
+{
+  "model": "inventory.supplierperformance",
+  "pk": 8,
+  "fields": {
+    "farm": 1,
+    "supplier_name": "Grand Cereals Ltd",
+    "item": 1,
+    "avg_unit_price": "1500.00",
+    "lowest_unit_price": "0.00",
+    "highest_unit_price": "0.00",
+    "last_purchase_price": "1500.00",
+    "last_purchase_date": null,
+    "on_time_delivery_rate": "96.00",
+    "quality_rating": "4.7",
+    "reliability_grade": "good",
+    "total_orders": 18,
+    "contact_person": "",
+    "phone": "",
+    "email": "",
+    "notes": "Preferred primary supplier.",
+    "created_at": "2026-08-11T07:17:07.169Z",
+    "updated_at": "2026-08-11T07:17:22.101Z"
   }
 },
 {
@@ -6890,6 +8824,168 @@
     "notes": "",
     "created_at": "2026-08-10T04:12:40.646Z",
     "updated_at": "2026-08-10T04:12:40.646Z"
+  }
+},
+{
+  "model": "expenses.financialanalysis",
+  "pk": 1,
+  "fields": {
+    "farm": 3,
+    "period_type": "month",
+    "year": 2026,
+    "month": 8,
+    "quarter": null,
+    "total_revenue": "780000.00",
+    "animal_product_revenue": "468000.00",
+    "crop_revenue": "312000.00",
+    "other_revenue": "0.00",
+    "total_expenses": "2785000.00",
+    "feed_costs": "1531750.00",
+    "labor_costs": "696250.00",
+    "equipment_costs": "417750.00",
+    "other_costs": "0.00",
+    "gross_profit": "-751750.00",
+    "net_profit": "-2005000.00",
+    "profit_margin": "-257.05",
+    "roi": "-71.99",
+    "profit_trend": "increasing",
+    "expense_trend": "stable",
+    "budgeted_total": "0.00",
+    "budget_variance": "0.00",
+    "budget_variance_percentage": "0.00",
+    "notes": "Monthly financial summary generated with AI metrics.",
+    "last_updated": "2026-08-11T07:17:21.958Z"
+  }
+},
+{
+  "model": "expenses.financialanalysis",
+  "pk": 2,
+  "fields": {
+    "farm": 2,
+    "period_type": "month",
+    "year": 2026,
+    "month": 8,
+    "quarter": null,
+    "total_revenue": "780000.00",
+    "animal_product_revenue": "468000.00",
+    "crop_revenue": "312000.00",
+    "other_revenue": "0.00",
+    "total_expenses": "350000.00",
+    "feed_costs": "192500.00",
+    "labor_costs": "87500.00",
+    "equipment_costs": "52500.00",
+    "other_costs": "0.00",
+    "gross_profit": "587500.00",
+    "net_profit": "430000.00",
+    "profit_margin": "55.13",
+    "roi": "122.86",
+    "profit_trend": "increasing",
+    "expense_trend": "stable",
+    "budgeted_total": "0.00",
+    "budget_variance": "0.00",
+    "budget_variance_percentage": "0.00",
+    "notes": "Monthly financial summary generated with AI metrics.",
+    "last_updated": "2026-08-11T07:17:21.999Z"
+  }
+},
+{
+  "model": "expenses.financialanalysis",
+  "pk": 3,
+  "fields": {
+    "farm": 1,
+    "period_type": "month",
+    "year": 2026,
+    "month": 8,
+    "quarter": null,
+    "total_revenue": "45320000.00",
+    "animal_product_revenue": "27192000.00",
+    "crop_revenue": "18128000.00",
+    "other_revenue": "0.00",
+    "total_expenses": "3291400.00",
+    "feed_costs": "1810270.00",
+    "labor_costs": "822850.00",
+    "equipment_costs": "493710.00",
+    "other_costs": "0.00",
+    "gross_profit": "43509730.00",
+    "net_profit": "42028600.00",
+    "profit_margin": "92.74",
+    "roi": "999.99",
+    "profit_trend": "increasing",
+    "expense_trend": "stable",
+    "budgeted_total": "0.00",
+    "budget_variance": "0.00",
+    "budget_variance_percentage": "0.00",
+    "notes": "Monthly financial summary generated with AI metrics.",
+    "last_updated": "2026-08-11T07:17:22.172Z"
+  }
+},
+{
+  "model": "expenses.debtmanagement",
+  "pk": 1,
+  "fields": {
+    "farm": 3,
+    "lender": "AgriBank Development Fund",
+    "loan_amount": "5000000.00",
+    "disbursement_date": "2025-01-15",
+    "due_date": "2028-01-15",
+    "interest_rate": "9.50",
+    "status": "active",
+    "total_paid": "1500000.00",
+    "remaining_balance": "3500000.00",
+    "next_payment_date": "2026-09-05",
+    "next_payment_amount": "125000.00",
+    "payment_frequency": "monthly",
+    "number_of_payments": 36,
+    "payments_completed": 12,
+    "notes": "Commercial farm expansion loan.",
+    "created_at": "2026-08-11T07:17:06.887Z",
+    "updated_at": "2026-08-11T07:17:06.887Z"
+  }
+},
+{
+  "model": "expenses.debtmanagement",
+  "pk": 2,
+  "fields": {
+    "farm": 2,
+    "lender": "AgriBank Development Fund",
+    "loan_amount": "5000000.00",
+    "disbursement_date": "2025-01-15",
+    "due_date": "2028-01-15",
+    "interest_rate": "9.50",
+    "status": "active",
+    "total_paid": "1500000.00",
+    "remaining_balance": "3500000.00",
+    "next_payment_date": "2026-09-05",
+    "next_payment_amount": "125000.00",
+    "payment_frequency": "monthly",
+    "number_of_payments": 36,
+    "payments_completed": 12,
+    "notes": "Commercial farm expansion loan.",
+    "created_at": "2026-08-11T07:17:07.026Z",
+    "updated_at": "2026-08-11T07:17:07.026Z"
+  }
+},
+{
+  "model": "expenses.debtmanagement",
+  "pk": 3,
+  "fields": {
+    "farm": 1,
+    "lender": "AgriBank Development Fund",
+    "loan_amount": "5000000.00",
+    "disbursement_date": "2025-01-15",
+    "due_date": "2028-01-15",
+    "interest_rate": "9.50",
+    "status": "active",
+    "total_paid": "1500000.00",
+    "remaining_balance": "3500000.00",
+    "next_payment_date": "2026-09-05",
+    "next_payment_amount": "125000.00",
+    "payment_frequency": "monthly",
+    "number_of_payments": 36,
+    "payments_completed": 12,
+    "notes": "Commercial farm expansion loan.",
+    "created_at": "2026-08-11T07:17:22.189Z",
+    "updated_at": "2026-08-11T07:17:22.189Z"
   }
 },
 {

@@ -127,6 +127,9 @@ class FinancialAnalysisListCreateView(generics.ListCreateAPIView):
         user_farms = Farm.objects.filter(
             Q(owner=self.request.user) | Q(members__user=self.request.user)
         ).distinct()
+        for f in user_farms:
+            from farms.analytics_generator import ensure_analytics_data_for_farm
+            ensure_analytics_data_for_farm(f)
         return FinancialAnalysis.objects.filter(farm__in=user_farms)
 
 class FinancialAnalysisDetailView(generics.RetrieveUpdateDestroyAPIView):
@@ -154,6 +157,9 @@ class DebtManagementListCreateView(generics.ListCreateAPIView):
         user_farms = Farm.objects.filter(
             Q(owner=self.request.user) | Q(members__user=self.request.user)
         ).distinct()
+        for f in user_farms:
+            from farms.analytics_generator import ensure_analytics_data_for_farm
+            ensure_analytics_data_for_farm(f)
         return DebtManagement.objects.filter(farm__in=user_farms)
 
 class DebtManagementDetailView(generics.RetrieveUpdateDestroyAPIView):

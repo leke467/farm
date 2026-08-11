@@ -503,11 +503,13 @@ class AnimalProductionMetricsListView(generics.ListAPIView):
     ordering = ['-annual_revenue']
 
     def get_queryset(self):
-        return AnimalProductionMetrics.objects.filter(
-            animal__farm__in=Farm.objects.filter(
-                Q(owner=self.request.user) | Q(members__user=self.request.user)
-            )
-        )
+        user_farms = Farm.objects.filter(
+            Q(owner=self.request.user) | Q(members__user=self.request.user)
+        ).distinct()
+        for f in user_farms:
+            from farms.analytics_generator import ensure_analytics_data_for_farm
+            ensure_analytics_data_for_farm(f)
+        return AnimalProductionMetrics.objects.filter(animal__farm__in=user_farms)
 
 class AnimalProductionMetricsDetailView(generics.RetrieveAPIView):
     serializer_class = AnimalProductionMetricsSerializer

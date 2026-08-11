@@ -62,11 +62,13 @@ class CropYieldAnalysisListCreateView(generics.ListCreateAPIView):
     ordering = ['-last_updated']
 
     def get_queryset(self):
-        return CropYieldAnalysis.objects.filter(
-            crop__farm__in=Farm.objects.filter(
-                Q(owner=self.request.user) | Q(members__user=self.request.user)
-            )
-        )
+        user_farms = Farm.objects.filter(
+            Q(owner=self.request.user) | Q(members__user=self.request.user)
+        ).distinct()
+        for f in user_farms:
+            from farms.analytics_generator import ensure_analytics_data_for_farm
+            ensure_analytics_data_for_farm(f)
+        return CropYieldAnalysis.objects.filter(crop__farm__in=user_farms)
 
 class CropYieldAnalysisDetailView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = CropYieldAnalysisSerializer
