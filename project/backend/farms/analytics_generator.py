@@ -5,25 +5,77 @@ from django.utils import timezone
 from django.db import models
 
 from farms.models import Farm
-from inventory.models import InventoryItem, DemandForecast, SupplierPerformance
+from inventory.models import InventoryItem, InventoryTransaction, InventoryAudit, AuditLineItem, DemandForecast, SupplierPerformance
 from animals.models import Animal, AnimalProductionMetrics, ProductionRecord, BreedingCalendar, BreedingRecord
 from expenses.models import Expense, Revenue, FinancialAnalysis, DebtManagement
-from crops.models import Crop, CropYieldAnalysis, FertilizerRecommendation, WeatherImpactRecord
+from crops.models import Crop, CropYieldAnalysis, FertilizerRecommendation, WeatherImpactRecord, Harvest
 
 
 def ensure_analytics_data_for_farm(farm):
     """
-    Auto-generates and synchronizes rich Analytics records for the given farm
-    across all 4 Analytics sub-tabs:
-    1. Demand Forecasting & Supplier Performance
-    2. Animal Productivity & Breeding
-    3. Financial Overview & Debt Management
-    4. Crop Yield Analytics, Fertilizer Recommendations & Weather Impacts
+    Auto-generates and synchronizes rich data across ALL tabs for the given farm:
+    1. Baseline Animals, Crops, Inventory, Sales, Expenses, & Audits
+    2. Demand Forecasting & Supplier Performance
+    3. Animal Productivity & Breeding Records
+    4. Financial Overview, Profit & Loss, & Debt Management
+    5. Crop Yield Analytics, Fertilizer Recommendations & Weather Impacts
     """
     if not farm:
         return
 
     today = timezone.now().date()
+
+    # =======================================================
+    # BASELINE DATA ENSURER: Ensure farm has base entities
+    # =======================================================
+
+    # 1. Base Animals
+    if not Animal.objects.filter(farm=farm).exists():
+        Animal.objects.create(farm=farm, name='Holstein Dairy Cows', animal_type='cow', breed='Holstein', count=35, weight=650.0, gender='female', status='healthy', notes='High yield milk producers', is_group=True)
+        Animal.objects.create(farm=farm, name='Broiler Chicken Flock A', animal_type='chicken', breed='Cobb 500', count=650, weight=2.4, gender='mixed', status='healthy', notes='Market weight flock', is_group=True)
+        Animal.objects.create(farm=farm, name='Boer Goat Herd', animal_type='goat', breed='Boer', count=50, weight=48.0, gender='female', status='healthy', notes='Meat production group', is_group=True)
+        Animal.objects.create(farm=farm, name='Tilapia Fish Pond #1', animal_type='fish', breed='Nile Tilapia', count=1500, weight=0.45, gender='mixed', status='healthy', notes='Main aquaculture pond', is_group=True)
+
+    # 2. Base Crops
+    if not Crop.objects.filter(farm=farm).exists():
+        Crop.objects.create(farm=farm, name='Maize Field Alpha', variety='Hybrid Grain', field='Field A', area=50.0, stage='vegetative', status='growing', planted_date=today - timedelta(days=45), expected_harvest_date=today + timedelta(days=75))
+        Crop.objects.create(farm=farm, name='Cassava Plot Beta', variety='TMS 30572', field='Field B', area=30.0, stage='planting', status='planning', planted_date=today - timedelta(days=20), expected_harvest_date=today + timedelta(days=240))
+        Crop.objects.create(farm=farm, name='Greenhouse Tomatoes', variety='Roma VF', field='Greenhouse 1', area=10.0, stage='harvest', status='harvesting', planted_date=today - timedelta(days=90), expected_harvest_date=today + timedelta(days=15))
+
+    # 3. Base Inventory Items
+    if not InventoryItem.objects.filter(farm=farm).exists():
+        inv1 = InventoryItem.objects.create(farm=farm, name='Layers Poultry Concentrate', category='feed', quantity=85.0, unit='bags', min_quantity=20.0, cost_per_unit=14500.0, supplier='AgroFeeds Ltd', location='Store A')
+        inv2 = InventoryItem.objects.create(farm=farm, name='Dairy Cattle Feed Mix', category='feed', quantity=120.0, unit='bags', min_quantity=30.0, cost_per_unit=12000.0, supplier='GrainMasters', location='Store B')
+        inv3 = InventoryItem.objects.create(farm=farm, name='NPK 15-15-15 Fertilizer', category='fertilizer', quantity=45.0, unit='bags', min_quantity=15.0, cost_per_unit=18500.0, supplier='FertilizerCo', location='Shed 1')
+        inv4 = InventoryItem.objects.create(farm=farm, name='NDV Poultry Vaccine', category='medical', quantity=18.0, unit='vials', min_quantity=5.0, cost_per_unit=3500.0, supplier='VetCare Pharma', location='Fridge')
+        
+        for inv in [inv1, inv2, inv3, inv4]:
+            InventoryTransaction.objects.create(item=inv, transaction_type='in', quantity=inv.quantity, cost_per_unit=inv.cost_per_unit, transaction_date=today - timedelta(days=30), reason='Initial stock purchase')
+
+    # 4. Base Inventory Audit
+    if not InventoryAudit.objects.filter(farm=farm).exists():
+        aud = InventoryAudit.objects.create(
+            farm=farm, audit_date=today - timedelta(days=7), end_date=today - timedelta(days=6),
+            status='completed', notes='Q3 Comprehensive Physical Stock Reconciliation', created_by='Store Manager'
+        )
+        inv_item = InventoryItem.objects.filter(farm=farm).first()
+        if inv_item:
+            AuditLineItem.objects.create(
+                audit=aud, item=inv_item, expected_quantity=90.0, counted_quantity=85.0, variance=-5.0, notes='Minor usage discrepancy resolved.'
+            )
+
+    # 5. Base Revenues / Sales
+    if not Revenue.objects.filter(farm=farm).exists():
+        Revenue.objects.create(farm=farm, item_sold='4 Bull Calves', source='animal_sales', quantity=4, unit='head', unit_price=237500.0, total_amount=950000.0, buyer='Livestock Mart Ltd', date=today - timedelta(days=15))
+        Revenue.objects.create(farm=farm, item_sold='60 Crates Fresh Layer Eggs', source='animal_products', quantity=60, unit='crates', unit_price=3500.0, total_amount=210000.0, buyer='City Supermarket', date=today - timedelta(days=7))
+        Revenue.objects.create(farm=farm, item_sold='Fresh Greenhouse Tomatoes (3.5 Tons)', source='crop_sales', quantity=3.5, unit='ton', unit_price=148500.0, total_amount=520000.0, buyer='Wholesale Veggie Distributor', date=today - timedelta(days=3))
+
+    # 6. Base Expenses
+    if not Expense.objects.filter(farm=farm).exists():
+        Expense.objects.create(farm=farm, description='Bulk Layers Poultry Feed Purchase', amount=185000.0, category='feed', vendor='AgroFeeds Ltd', date=today - timedelta(days=12), payment_method='bank_transfer')
+        Expense.objects.create(farm=farm, description='Veterinary Inspection & Medications', amount=42000.0, category='veterinary', vendor='Dr. Smith Vet Services', date=today - timedelta(days=8), payment_method='cash')
+        Expense.objects.create(farm=farm, description='Monthly Farm Helpers Wage Payment', amount=250000.0, category='labor', vendor='Farm Labor Force', date=today - timedelta(days=5), payment_method='bank_transfer')
+        Expense.objects.create(farm=farm, description='Tractor Diesel Fuel Top-up', amount=65000.0, category='fuel', vendor='TotalEnergies Station', date=today - timedelta(days=2), payment_method='credit_card')
 
     # =======================================================
     # 1. DEMAND FORECASTING & SUPPLIER PERFORMANCE
@@ -52,7 +104,6 @@ def ensure_analytics_data_for_farm(farm):
             }
         )
 
-    # Suppliers
     first_item = inventory_items.first()
     if first_item:
         suppliers_list = [
@@ -103,7 +154,6 @@ def ensure_analytics_data_for_farm(farm):
             }
         )
 
-        # Production records for daily output
         prod_type = 'eggs' if 'layer' in animal.name.lower() or 'chicken' in animal.name.lower() else ('milk' if 'cow' in animal.name.lower() or 'cattle' in animal.name.lower() else 'meat')
         unit = 'crates' if prod_type == 'eggs' else ('liters' if prod_type == 'milk' else 'kg')
         qty = Decimal('15.00') if prod_type == 'eggs' else (Decimal('45.00') if prod_type == 'milk' else Decimal('5.00'))
@@ -120,8 +170,7 @@ def ensure_analytics_data_for_farm(farm):
             }
         )
 
-        # Breeding records for female / breeding animals
-        if animal.gender in ['female', 'Female', 'F']:
+        if animal.gender in ['female', 'Female', 'F', 'mixed']:
             cal, _ = BreedingCalendar.objects.get_or_create(
                 animal=animal,
                 defaults={
@@ -148,10 +197,10 @@ def ensure_analytics_data_for_farm(farm):
     cur_year = today.year
     cur_month = today.month
 
-    total_exp = Expense.objects.filter(farm=farm).aggregate(tot=models.Sum('amount'))['tot'] or Decimal('350000.00')
-    total_rev = Revenue.objects.filter(farm=farm).aggregate(tot=models.Sum('total_amount'))['tot'] or Decimal('780000.00')
+    total_exp = Expense.objects.filter(farm=farm).aggregate(tot=models.Sum('amount'))['tot'] or Decimal('542000.00')
+    total_rev = Revenue.objects.filter(farm=farm).aggregate(tot=models.Sum('total_amount'))['tot'] or Decimal('1680000.00')
     if total_rev == 0:
-        total_rev = Decimal('780000.00')
+        total_rev = Decimal('1680000.00')
 
     net_prof = total_rev - total_exp
     raw_margin = (net_prof / total_rev * Decimal('100.00')) if total_rev > 0 else Decimal('0.00')
@@ -183,7 +232,6 @@ def ensure_analytics_data_for_farm(farm):
         }
     )
 
-    # Active Loans / Debt Management
     DebtManagement.objects.get_or_create(
         farm=farm,
         lender='AgriBank Development Fund',
@@ -213,6 +261,15 @@ def ensure_analytics_data_for_farm(farm):
         act_yield = Decimal('6200.00')
         harvest_eff = (act_yield / exp_yield * Decimal('100.00'))
 
+        Harvest.objects.get_or_create(
+            crop=crop, date=today - timedelta(days=5),
+            defaults={
+                'quantity': Decimal('4.50'),
+                'unit': 'tons',
+                'quality_grade': 'A',
+            }
+        )
+
         CropYieldAnalysis.objects.update_or_create(
             crop=crop,
             defaults={
@@ -239,7 +296,7 @@ def ensure_analytics_data_for_farm(farm):
                 'unit': 'kg',
                 'application_timing': 'Apply at early vegetative stage (Weeks 3-4)',
                 'expected_yield_increase': Decimal('18.50'),
-                'status': 'pending',
+                'status': 'applied',
                 'estimated_cost': Decimal('65000.00'),
                 'expected_additional_revenue': Decimal('180000.00'),
                 'notes': f'Recommended NPK 15:15:15 application for {crop.name}.',

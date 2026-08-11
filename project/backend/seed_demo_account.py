@@ -286,8 +286,28 @@ def seed_demo_account():
             item_sold=rd['item_sold'],
             defaults=rd
         )
+    user_demo, _ = User.objects.get_or_create(username='demo', defaults={
+        'email': 'john@example.com',
+        'first_name': 'Demo',
+        'last_name': 'User',
+        'is_admin': True,
+        'is_active': True,
+    })
+    user_demo.set_password('password1234')
+    user_demo.save()
 
-    print("=== FULL DEMO DATA SEEDED SUCCESSFULLY ===")
+    FarmMember.objects.get_or_create(
+        farm=farm,
+        user=user_demo,
+        defaults={'role': 'owner'}
+    )
+
+    # Auto-generate analytics data for all farms in database
+    from farms.analytics_generator import ensure_analytics_data_for_farm
+    for f in Farm.objects.all():
+        ensure_analytics_data_for_farm(f)
+
+    print("=== FULL DEMO DATA SEEDED SUCCESSFULLY FOR ALL FARMS ===")
 
 if __name__ == "__main__":
     seed_demo_account()
