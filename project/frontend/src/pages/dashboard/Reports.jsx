@@ -681,6 +681,29 @@ function Reports() {
                       <FiArrowUpRight />
                     </button>
                   </div>
+
+                  {/* AI Unit Economics Analysis for this Specific Animal/Batch Card */}
+                  <AIChartInsight
+                    chartTitle={`Batch Analysis: ${batch.animal.name}`}
+                    chartType="Livestock Unit Economics"
+                    data={{
+                      name: batch.animal.name,
+                      type: batch.animal.animal_type,
+                      revenue: batch.totalSalesRevenue,
+                      cogs: batch.cogs,
+                      acqCost: batch.acqCost,
+                      feedCost: batch.totalFeedCost,
+                      medicalCost: batch.totalMedicalCost,
+                      netProfit: batch.batchNetProfit,
+                      roi: batch.roiPercent,
+                      profitPerUnit: batch.profitPerUnit,
+                      unitLabel: batch.unitLabel,
+                      salesCount: batch.salesCount,
+                      feedCount: batch.feedCount,
+                      medicalCount: batch.medicalCount,
+                    }}
+                    contextSummary={`Unit economics data for ${batch.animal.name} (${batch.animal.animal_type || "Livestock"}). Revenue: ${batch.totalSalesRevenue}, COGS: ${batch.cogs}, Net Profit: ${batch.batchNetProfit}, ROI: ${batch.roiPercent}%. Feed logs: ${batch.feedCount}, Medical logs: ${batch.medicalCount}, Sales logs: ${batch.salesCount}.`}
+                  />
                 </div>
               </div>
             ))}

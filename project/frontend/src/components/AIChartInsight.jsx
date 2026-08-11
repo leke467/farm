@@ -44,7 +44,39 @@ Provide a concise 2-sentence analytical summary of what these specific numbers i
     let summary = "";
     let recommendations = [];
 
-    if (chartTitle.includes("Demand") || chartTitle.includes("Forecast")) {
+    const isBatchObj = data && typeof data === "object" && !Array.isArray(data) && (data.cogs !== undefined || data.revenue !== undefined);
+
+    if (isBatchObj || chartTitle.includes("Batch Analysis") || chartType.includes("Unit Economics")) {
+      const name = data?.name || chartTitle.replace("Batch Analysis: ", "");
+      const rev = Number(data?.revenue || 0);
+      const cogs = Number(data?.cogs || 0);
+      const net = Number(data?.netProfit || rev - cogs);
+      const roi = data?.roi || 0;
+      const feedCount = data?.feedCount || 0;
+      const medCount = data?.medicalCount || 0;
+      const unitLabel = data?.unitLabel || "head";
+
+      if (rev === 0 && cogs === 0) {
+        summary = `AI Unit Economics Analysis for ${name}: No purchase cost, feed logs (${feedCount}), medical records (${medCount}), or sales receipts have been recorded for this animal batch yet.`;
+        recommendations = [
+          `Log purchase price or market value for ${name} under Expenses or Animal details.`,
+          `Record feed consumption & medical logs in Livestock management to calculate true COGS.`,
+          `Log sales transactions when produce or livestock is sold to generate live ROI & profit per ${unitLabel}.`
+        ];
+      } else if (net >= 0) {
+        summary = `AI Unit Economics Analysis for ${name}: Operating profitably with a +${roi}% ROI and positive unit margins.`;
+        recommendations = [
+          `Maintain current feed intake ratios and healthcare protocols for maximum profitability.`,
+          `Consider expanding herd/flock size for this category based on strong positive unit economics.`
+        ];
+      } else {
+        summary = `AI Unit Economics Analysis for ${name}: Operating at a net loss (COGS exceed revenue by ₦${Math.abs(net).toLocaleString()}).`;
+        recommendations = [
+          `Audit feed intake logs (${feedCount} logs) to optimize feed cost efficiency.`,
+          `Review healthcare expenses (${medCount} logs) and adjust selling price to achieve positive ROI.`
+        ];
+      }
+    } else if (chartTitle.includes("Demand") || chartTitle.includes("Forecast")) {
       const lowStockCount = Array.isArray(data) ? data.filter(d => (d.predicted || d.forecasted_demand || 0) > (d.safety || d.current_inventory || 0)).length : 1;
       summary = `AI analysis shows active demand trends across ${Array.isArray(data) ? data.length : 0} inventory items. ${lowStockCount} items are nearing reorder thresholds based on seasonal usage velocity.`;
       recommendations = [
@@ -79,7 +111,7 @@ Provide a concise 2-sentence analytical summary of what these specific numbers i
 
   useEffect(() => {
     fetchAIInsight();
-  }, [chartTitle, activeFarm?.id, Array.isArray(data) ? data.length : data]);
+  }, [chartTitle, activeFarm?.id, Array.isArray(data) ? data.length : typeof data === "object" ? JSON.stringify(data) : data]);
 
   if (!data || (Array.isArray(data) && data.length === 0)) {
     return null;
