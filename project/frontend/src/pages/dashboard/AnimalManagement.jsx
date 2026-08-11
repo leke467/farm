@@ -66,6 +66,7 @@ function AnimalManagement() {
   const [selectedProductionAnimal, setSelectedProductionAnimal] = useState(null);
   const [isBreedingModalOpen, setIsBreedingModalOpen] = useState(false);
   const [selectedBreedingAnimal, setSelectedBreedingAnimal] = useState(null);
+  const [breedingRecords, setBreedingRecords] = useState([]);
 
   const fetchFeedRecords = async () => {
     if (activeFarm?.id) {
@@ -80,6 +81,18 @@ function AnimalManagement() {
         setInventoryItems(invs);
       } catch (err) {
         console.error("Failed to load feed records:", err);
+      }
+    }
+  };
+
+  const fetchBreedingRecords = async () => {
+    if (activeFarm?.id) {
+      try {
+        const res = await apiService.get(`/animals/breeding-records/?farm=${activeFarm.id}`).catch(() => []);
+        const list = Array.isArray(res) ? res : res?.results || res?.data || [];
+        setBreedingRecords(list);
+      } catch (err) {
+        console.error("Failed to load breeding records:", err);
       }
     }
   };
@@ -111,6 +124,7 @@ function AnimalManagement() {
           console.error("Failed to load categories:", error);
         }
         fetchFeedRecords();
+        fetchBreedingRecords();
       }
     };
     loadCategories();
@@ -467,7 +481,7 @@ function AnimalManagement() {
               }`}
               onClick={() => setViewTab("animals")}
             >
-              Animals
+              Animals ({safeAnimals.length})
             </button>
             <button
               className={`flex-1 sm:flex-none px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors ${
@@ -476,6 +490,14 @@ function AnimalManagement() {
               onClick={() => setViewTab("feed_logs")}
             >
               🌾 Feed Logs ({feedRecords.length})
+            </button>
+            <button
+              className={`flex-1 sm:flex-none px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors ${
+                viewTab === "breeding_logs" ? "bg-white text-gray-900 shadow-xs" : "text-gray-600 hover:text-gray-900"
+              }`}
+              onClick={() => setViewTab("breeding_logs")}
+            >
+              🧬 Breeding Logs ({breedingRecords.length})
             </button>
           </div>
         </div>
@@ -512,8 +534,8 @@ function AnimalManagement() {
         </div>
       </div>
 
-      {/* View Switcher: Animals Grid vs Feed Logs Table */}
-      {viewTab === "animals" ? (
+      {/* View Switcher: Animals Grid vs Feed Logs Table vs Breeding Logs Table */}
+      {viewTab === "animals" && (
         filteredAnimals.length === 0 ? (
           <div className="text-gray-500 bg-white p-8 rounded-xl text-center shadow-sm">No animals to display.</div>
         ) : (
@@ -540,7 +562,9 @@ function AnimalManagement() {
             ))}
           </div>
         )
-      ) : (
+      )}
+
+      {viewTab === "feed_logs" && (
         /* Feed Consumption Logs Table */
         <div className="bg-white rounded-xl shadow-md overflow-hidden">
           <div className="p-4 border-b flex justify-between items-center bg-slate-50">
@@ -588,6 +612,117 @@ function AnimalManagement() {
                   <tr>
                     <td colSpan="6" className="py-8 text-center text-gray-500">
                       No feed intake records found. Click <strong>"Log Feed Intake"</strong> above to record animal feeding.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {viewTab === "breeding_logs" && (
+        /* Breeding & Pregnancy Logs Table */
+        <div className="bg-white rounded-xl shadow-md overflow-hidden">
+          <div className="p-4 border-b flex justify-between items-center bg-slate-50">
+            <div>
+              <h2 className="text-lg font-bold text-slate-800 flex items-center gap-2">
+                <span>🧬 Animal Breeding & Pregnancy Logs</span>
+                <span className="text-xs bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full font-semibold">
+                  {breedingRecords.length} Events
+                </span>
+              </h2>
+              <p className="text-xs text-slate-500">Track all mating dates, sire/dam pairings, expected delivery dates, and breeding outcomes.</p>
+            </div>
+            <button
+              onClick={() => {
+                setSelectedBreedingAnimal(null);
+                setIsBreedingModalOpen(true);
+              }}
+              className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-semibold flex items-center gap-1 shadow-xs"
+            >
+              <span>+ Add Breeding Log</span>
+            </button>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="min-w-full text-sm">
+              <thead className="bg-slate-100 border-b">
+                <tr>
+                  <th className="py-3 px-4 text-left font-semibold text-slate-700">Breeding Date</th>
+                  <th className="py-3 px-4 text-left font-semibold text-slate-700">Dam (Female)</th>
+                  <th className="py-3 px-4 text-left font-semibold text-slate-700">Sire (Male)</th>
+                  <th className="py-3 px-4 text-left font-semibold text-slate-700">Expected Delivery</th>
+                  <th className="py-3 px-4 text-center font-semibold text-slate-700">Status</th>
+                  <th className="py-3 px-4 text-right font-semibold text-slate-700">Offspring (Healthy / Stillborn)</th>
+                  <th className="py-3 px-4 text-left font-semibold text-slate-700">Genetics & Notes</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-200">
+                {breedingRecords.length > 0 ? (
+                  breedingRecords.map((record) => {
+                    const bDate = record.breeding_date || record.delivery_date;
+                    const bDateStr = bDate ? new Date(bDate).toLocaleDateString() : "N/A";
+                    const expDate = record.expected_delivery_date;
+                    const expDateStr = expDate ? new Date(expDate).toLocaleDateString() : "N/A";
+                    const statusStr = (record.breeding_status || record.status || "planned").toLowerCase();
+
+                    // Calculate days remaining to expected delivery
+                    let daysRemaining = null;
+                    if (expDate) {
+                      const diffTime = new Date(expDate) - new Date();
+                      daysRemaining = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                    }
+
+                    return (
+                      <tr key={record.id} className="hover:bg-slate-50 transition-colors">
+                        <td className="py-3.5 px-4 font-mono text-xs text-slate-600">{bDateStr}</td>
+                        <td className="py-3.5 px-4 font-bold text-slate-900">
+                          {record.dam_name || record.animal_name || "Dam"}
+                        </td>
+                        <td className="py-3.5 px-4 font-medium text-slate-700">
+                          {record.sire_name || record.father_name_id || "Sire"}
+                        </td>
+                        <td className="py-3.5 px-4 text-xs">
+                          <span className="font-semibold text-slate-800">{expDateStr}</span>
+                          {daysRemaining !== null && statusStr !== "delivered" && statusStr !== "successful" && statusStr !== "failed" && (
+                            <span className={`block text-[11px] font-bold ${daysRemaining < 0 ? "text-red-600" : daysRemaining <= 14 ? "text-amber-600 animate-pulse" : "text-emerald-600"}`}>
+                              {daysRemaining < 0 ? `Overdue by ${Math.abs(daysRemaining)} days` : `Due in ${daysRemaining} days`}
+                            </span>
+                          )}
+                        </td>
+                        <td className="py-3.5 px-4 text-center">
+                          <span className={`px-2.5 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${
+                            statusStr === "successful" || statusStr === "confirmed" || statusStr === "completed" || statusStr === "delivered"
+                              ? "bg-emerald-100 text-emerald-800 border border-emerald-300"
+                              : statusStr === "in_progress" || statusStr === "mated" || statusStr === "pregnant"
+                              ? "bg-amber-100 text-amber-800 border border-amber-300"
+                              : statusStr === "failed" || statusStr === "cancelled"
+                              ? "bg-rose-100 text-rose-800 border border-rose-300"
+                              : "bg-slate-100 text-slate-700 border border-slate-300"
+                          }`}>
+                            {statusStr}
+                          </span>
+                        </td>
+                        <td className="py-3.5 px-4 text-right font-bold text-slate-800">
+                          {record.number_of_offspring ? (
+                            <span className="flex items-center justify-end gap-1 text-xs">
+                              <span className="text-emerald-600">{record.healthy_offspring || record.number_of_offspring} Healthy</span>
+                              {record.stillborn > 0 && <span className="text-rose-600">({record.stillborn} stillborn)</span>}
+                            </span>
+                          ) : (
+                            <span className="text-slate-400 text-xs font-normal">Pending delivery</span>
+                          )}
+                        </td>
+                        <td className="py-3.5 px-4 text-xs text-slate-600 max-w-xs truncate">
+                          {record.genetics_notes || record.notes || "-"}
+                        </td>
+                      </tr>
+                    );
+                  })
+                ) : (
+                  <tr>
+                    <td colSpan="7" className="py-8 text-center text-slate-500">
+                      No breeding records found for this farm. Click <strong>"+ Add Breeding Log"</strong> to record a new mating or breeding calendar event.
                     </td>
                   </tr>
                 )}
@@ -898,6 +1033,7 @@ function AnimalManagement() {
           }}
           onSuccess={() => {
             setApiSuccess("Animal breeding record added successfully!");
+            fetchBreedingRecords();
             if (refreshData) refreshData();
           }}
         />
