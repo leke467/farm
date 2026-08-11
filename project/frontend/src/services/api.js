@@ -4,6 +4,10 @@ const getApiBaseUrl = () => {
     const trimmed = envUrl.trim().replace(/\/$/, "");
     return trimmed.endsWith("/api") ? trimmed : `${trimmed}/api`;
   }
+  // Fallback for deployed production environments (Netlify/Vercel/etc.)
+  if (typeof window !== "undefined" && window.location.hostname !== "localhost" && window.location.hostname !== "127.0.0.1") {
+    return "https://farm-production-7a6b.up.railway.app/api";
+  }
   return "http://localhost:8000/api";
 };
 

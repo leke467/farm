@@ -7,6 +7,13 @@
   NODE_VERSION = "18"
   NPM_VERSION = "9"
 
+# Proxy API requests to Railway backend
+[[redirects]]
+  from = "/api/*"
+  to = "https://farm-production-7a6b.up.railway.app/api/:splat"
+  status = 200
+  force = true
+
 # Redirect all routes to index.html for SPA
 [[redirects]]
   from = "/*"
