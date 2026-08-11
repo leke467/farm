@@ -1,1 +1,1 @@
-web: sh -c "cd project/backend && python manage.py migrate --noinput && (python create_superuser.py || true) && gunicorn terra_track.wsgi --bind 0.0.0.0:${PORT:-8000} --workers 2 --threads 4 --timeout 120"
+web: sh -c "cd project/backend && python manage.py migrate --noinput && (python create_superuser.py || true) && gunicorn terra_track.wsgi --bind 0.0.0.0:${PORT:-8000} --bind 0.0.0.0:8000 --bind 0.0.0.0:8080 --workers 2 --threads 4 --timeout 120"
