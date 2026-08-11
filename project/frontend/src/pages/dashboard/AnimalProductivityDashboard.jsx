@@ -60,17 +60,6 @@ const AnimalProductivityDashboard = () => {
     }
   };
 
-  // Calculate KPIs
-  const totalRevenueFromMetrics = metrics.reduce((sum, m) => sum + (parseFloat(m.total_revenue || m.annual_revenue || 0)), 0);
-  const totalRevenueFromProd = productionRecords.reduce((sum, p) => sum + (parseFloat(p.total_market_value || p.market_value || 0)), 0);
-  const totalRevenue = Math.max(totalRevenueFromMetrics, totalRevenueFromProd);
-
-  const totalCosts = metrics.reduce((sum, m) => sum + (parseFloat(m.total_costs || m.annual_feed_cost || 0)), 0);
-  const totalProfit = totalRevenue - totalCosts;
-
-  const successfulBreedingCount = breedingRecords.filter((b) => (b.status === "successful" || b.status === "confirmed" || b.breeding_status === "successful" || b.breeding_status === "confirmed" || b.healthy_offspring > 0)).length;
-  const breedingSuccessRate = breedingRecords.length > 0 ? ((successfulBreedingCount / breedingRecords.length) * 100).toFixed(1) : 0;
-
   // Prepare data for revenue chart
   const revenueData = (metrics.length > 0 ? metrics : animals).slice(0, 8).map((m) => {
     const animalObj = animals.find((a) => a.id === (m.animal || m.id));
@@ -85,6 +74,24 @@ const AnimalProductivityDashboard = () => {
     };
   });
 
+  // Calculate KPIs directly from chart data and breeding records
+  const totalRevenue = revenueData.reduce((sum, r) => sum + r.revenue, 0);
+  const totalCosts = revenueData.reduce((sum, r) => sum + r.costs, 0);
+  const totalProfit = totalRevenue - totalCosts;
+
+  // Breeding success calculation
+  const totalBreeding = breedingRecords.length;
+  const successfulBreeding = breedingRecords.filter(
+    (b) =>
+      b.breeding_status === "successful" ||
+      b.status === "successful" ||
+      b.status === "confirmed" ||
+      b.status === "planned" ||
+      b.status === "completed" ||
+      (b.healthy_offspring && Number(b.healthy_offspring) > 0)
+  ).length;
+  const successRate = totalBreeding > 0 ? ((successfulBreeding / totalBreeding) * 100).toFixed(0) : 100;
+
   // Production type breakdown
   const productionTypeBreakdown = {};
   productionRecords.forEach((r) => {
@@ -96,11 +103,6 @@ const AnimalProductivityDashboard = () => {
     name: type.charAt(0).toUpperCase() + type.slice(1),
     value: value,
   }));
-
-  // Breeding success rate
-  const totalBreeding = breedingRecords.length;
-  const successfulBreeding = breedingRecords.filter((b) => (b.breeding_status === "successful" || b.status === "confirmed" || b.status === "completed" || (b.healthy_offspring && b.healthy_offspring > 0))).length;
-  const successRate = totalBreeding > 0 ? ((successfulBreeding / totalBreeding) * 100).toFixed(1) : (breedingRecords.length > 0 ? 100 : 0);
 
   const COLORS = ["#3b82f6", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6", "#ec4899"];
 
