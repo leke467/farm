@@ -70,6 +70,48 @@ function Login() {
     }
   };
 
+  const handleQuickDemoLogin = async (demoUsername, demoPassword) => {
+    setFormData({ username: demoUsername, password: demoPassword });
+    setLoading(true);
+    setError("");
+
+    try {
+      const response = await apiService.login({
+        username: demoUsername,
+        password: demoPassword,
+      });
+      if (response.token) {
+        const mustChangePassword = Boolean(
+          response.user?.must_change_password ?? response.user?.mustChangePassword
+        );
+        handleLogin({
+          username: demoUsername,
+          token: response.token,
+          ...response.user,
+        });
+        setLoading(false);
+        navigate(mustChangePassword ? "/force-password-change" : "/dashboard");
+        return;
+      }
+    } catch (err) {
+      // Fallback to mock demo user if offline
+    }
+
+    const demoUser = users.find(
+      (u) => u.username === demoUsername || u.password === demoPassword
+    );
+    if (demoUser) {
+      const { password, ...userData } = demoUser;
+      userData.isDemo = true;
+      handleLogin(userData);
+      setLoading(false);
+      navigate("/dashboard");
+    } else {
+      setError("Demo login failed. Please try again.");
+      setLoading(false);
+    }
+  };
+
   return (
     <div>
       <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-6">
@@ -77,14 +119,17 @@ function Login() {
       </h2>
 
       {error && (
-        <div className="mb-4 p-3 sm:p-4 bg-error-50 text-error-600 rounded-lg border border-error-200 text-sm sm:text-base">
+        <div className="mb-4 sm:mb-6 bg-red-50 border-l-4 border-red-500 p-3 sm:p-4 text-red-700 text-xs sm:text-sm rounded">
           {error}
         </div>
       )}
 
-      <form className="space-y-5 sm:space-y-6" onSubmit={handleSubmit}>
+      <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
         <div>
-          <label htmlFor="username" className="label text-sm sm:text-base">
+          <label
+            htmlFor="username"
+            className="block text-xs sm:text-sm font-medium text-gray-700 mb-1"
+          >
             Username
           </label>
           <input
@@ -94,15 +139,26 @@ function Login() {
             required
             value={formData.username}
             onChange={handleChange}
-            className="input text-base"
-            placeholder="Username"
+            className="input text-sm sm:text-base py-2 sm:py-2.5"
+            placeholder="Enter your username"
           />
         </div>
 
         <div>
-          <label htmlFor="password" className="label text-sm sm:text-base">
-            Password
-          </label>
+          <div className="flex items-center justify-between mb-1">
+            <label
+              htmlFor="password"
+              className="block text-xs sm:text-sm font-medium text-gray-700"
+            >
+              Password
+            </label>
+            <Link
+              to="/forgot-password"
+              className="text-xs sm:text-sm text-primary-500 hover:text-primary-600"
+            >
+              Forgot password?
+            </Link>
+          </div>
           <input
             id="password"
             name="password"
@@ -110,13 +166,13 @@ function Login() {
             required
             value={formData.password}
             onChange={handleChange}
-            className="input text-base"
-            placeholder="Password"
+            className="input text-sm sm:text-base py-2 sm:py-2.5"
+            placeholder="Enter your password"
           />
         </div>
 
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center">
             <input
               id="remember-me"
               name="remember-me"
@@ -125,14 +181,14 @@ function Login() {
             />
             <label
               htmlFor="remember-me"
-              className="block text-xs sm:text-sm text-gray-700"
+              className="ml-2 block text-xs sm:text-sm text-gray-700"
             >
               Remember me
             </label>
           </div>
         </div>
 
-        <div>
+        <div className="space-y-3">
           <button
             type="submit"
             disabled={loading}
@@ -141,6 +197,15 @@ function Login() {
             }`}
           >
             {loading ? "Signing in..." : "Sign in"}
+          </button>
+
+          <button
+            type="button"
+            onClick={() => handleQuickDemoLogin("demo1234", "password1234")}
+            disabled={loading}
+            className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-2.5 sm:py-3 rounded-xl shadow-sm transition-all flex items-center justify-center gap-2 text-sm sm:text-base"
+          >
+            <span>⚡ 1-Click Demo Account Login</span>
           </button>
         </div>
 
@@ -167,19 +232,28 @@ function Login() {
             <div className="w-full border-t border-gray-300"></div>
           </div>
           <div className="relative flex justify-center text-xs sm:text-sm">
-            <span className="px-2 bg-white text-gray-500">Demo accounts</span>
+            <span className="px-2 bg-white text-gray-500">Quick Demo Credentials (Click to Autofill & Login)</span>
           </div>
         </div>
 
-        <div className="mt-6 space-y-3 sm:space-y-4">
-          <div className="text-xs sm:text-sm text-gray-600 text-center break-words">
-            <p className="mb-2 sm:mb-3">
-              Username: <span className="font-mono bg-gray-100 px-1.5 py-0.5 rounded text-xs">demo1234</span> | Password: <span className="font-mono bg-gray-100 px-1.5 py-0.5 rounded text-xs">password1234</span>
-            </p>
-            <p>
-              Username: <span className="font-mono bg-gray-100 px-1.5 py-0.5 rounded text-xs">admin</span> | Password: <span className="font-mono bg-gray-100 px-1.5 py-0.5 rounded text-xs">admin123</span>
-            </p>
-          </div>
+        <div className="mt-4 space-y-2 text-center">
+          <button
+            type="button"
+            onClick={() => handleQuickDemoLogin("demo1234", "password1234")}
+            className="w-full text-xs sm:text-sm text-gray-700 hover:text-emerald-700 bg-gray-50 hover:bg-emerald-50 border border-gray-200 hover:border-emerald-300 p-2.5 rounded-xl transition-all flex items-center justify-between"
+          >
+            <span>Demo User: <strong className="font-mono text-emerald-800">demo1234</strong></span>
+            <span className="text-xs font-semibold bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full">Auto Login →</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => handleQuickDemoLogin("admin", "admin123")}
+            className="w-full text-xs sm:text-sm text-gray-700 hover:text-emerald-700 bg-gray-50 hover:bg-emerald-50 border border-gray-200 hover:border-emerald-300 p-2.5 rounded-xl transition-all flex items-center justify-between"
+          >
+            <span>Admin User: <strong className="font-mono text-emerald-800">admin</strong></span>
+            <span className="text-xs font-semibold bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full">Auto Login →</span>
+          </button>
         </div>
       </div>
     </div>
