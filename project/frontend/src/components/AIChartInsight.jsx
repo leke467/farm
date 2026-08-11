@@ -139,7 +139,7 @@ Provide a concise 2-sentence analytical summary of what these specific numbers i
           </div>
           <div>
             <span className="font-semibold text-xs sm:text-sm text-indigo-200 flex items-center gap-1.5">
-              <span>Farm AI Chart Analysis</span>
+              <span>Livesteads AI Chart Analysis</span>
               <span className="text-[10px] bg-indigo-500/20 text-indigo-300 px-2 py-0.5 rounded-full border border-indigo-400/30 uppercase tracking-wider font-mono">
                 Live Insights
               </span>
@@ -169,7 +169,7 @@ Provide a concise 2-sentence analytical summary of what these specific numbers i
           {loading ? (
             <div className="flex items-center gap-2 text-indigo-300 py-2">
               <FiRefreshCw className="animate-spin text-indigo-400" size={14} />
-              <span>Analyzing live chart metrics with Gemini AI...</span>
+              <span>Analyzing live chart metrics with Livesteads AI...</span>
             </div>
           ) : (
             <>

@@ -47,7 +47,7 @@ const AIAgentPanel = () => {
         { 
           id: 1, 
           type: "bot", 
-          text: "Hello! I am your AI Farm Assistant. Ask me anything about your livestock, crop yield, inventory, or expenses." 
+          text: "Hello! I am Livesteads AI. Ask me anything about your livestock, crop yield, inventory, or expenses." 
         }, 
         ...prev.filter(m => m.id !== 1)
       ]);
@@ -153,10 +153,10 @@ const AIAgentPanel = () => {
       <button
         onClick={() => setIsOpen(!isOpen)}
         className="fixed bottom-6 right-6 bg-gradient-to-r from-emerald-600 to-teal-700 hover:from-emerald-500 hover:to-teal-600 text-white p-3.5 sm:p-4 rounded-full shadow-2xl z-40 transition-all transform hover:scale-105 flex items-center gap-2 font-semibold text-sm border border-emerald-400/40"
-        title="Farm AI Assistant"
+        title="Livesteads AI"
       >
         <FiCpu className="w-5 h-5 animate-pulse text-amber-300" />
-        <span className="hidden sm:inline">AI Farm Assistant</span>
+        <span className="hidden sm:inline">Livesteads AI</span>
       </button>
 
       {/* Floating AI Panel */}
@@ -171,9 +171,9 @@ const AIAgentPanel = () => {
               </div>
               <div>
                 <h3 className="font-bold text-base sm:text-lg text-white leading-tight flex items-center gap-2">
-                  <span>Farm AI Assistant</span>
+                  <span>Livesteads AI</span>
                   <span className="text-[10px] bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded-full border border-emerald-400/30 font-mono uppercase">
-                    Gemini Live
+                    Live
                   </span>
                 </h3>
                 <p className="text-xs text-slate-300">Smart Profitability & Advisory</p>
@@ -209,7 +209,7 @@ const AIAgentPanel = () => {
               }`}
             >
               <FiMessageCircle size={14} />
-              <span>AI Chat Assistant</span>
+              <span>Livesteads AI Chat</span>
             </button>
             <button
               onClick={() => setActiveTab("insights")}
@@ -257,7 +257,7 @@ const AIAgentPanel = () => {
                         onClick={() => setInput(`Tell me how to execute: ${insights.recommendations[0].title}`)}
                         className="text-[11px] font-bold text-emerald-700 hover:underline pt-0.5 block"
                       >
-                        → Ask AI how to implement this recommendations
+                        → Ask AI how to implement this recommendation
                       </button>
                     </div>
                   )}
@@ -288,7 +288,7 @@ const AIAgentPanel = () => {
                   <div className="flex justify-start">
                     <div className="bg-white border border-slate-200 rounded-2xl p-3 shadow-sm flex items-center gap-2 text-xs text-slate-600">
                       <FiRefreshCw className="animate-spin text-emerald-600" size={14} />
-                      <span>Gemini AI is analyzing farm metrics...</span>
+                      <span>Livesteads AI is analyzing farm metrics...</span>
                     </div>
                   </div>
                 )}
