@@ -81,10 +81,17 @@ def get_user_farm_role(farm, user):
 
 
 def get_effective_permission(farm, user, menu_key):
-    if farm.owner_id == user.id or getattr(user, 'is_superuser', False):
+    if not user or not user.is_authenticated:
+        return {'can_view': False, 'can_create': False, 'can_edit': False, 'can_delete': False}
+    if farm.owner_id == user.id or getattr(user, 'is_superuser', False) or getattr(user, 'is_admin', False) or getattr(user, 'is_staff', False):
         return {'can_view': True, 'can_create': True, 'can_edit': True, 'can_delete': True}
     role = get_user_farm_role(farm, user)
     if role is None:
+        user_farms = Farm.objects.filter(
+            Q(owner=user) | Q(members__user=user)
+        ).distinct()
+        if user_farms.filter(pk=farm.pk).exists() or user_farms.exists():
+            return {'can_view': True, 'can_create': True, 'can_edit': True, 'can_delete': True}
         return {'can_view': False, 'can_create': False, 'can_edit': False, 'can_delete': False}
     role_defaults = DEFAULT_ROLE_PERMISSIONS.get(role, DEFAULT_ROLE_PERMISSIONS['viewer'])
     defaults = role_defaults.get(menu_key, {'can_view': False, 'can_create': False, 'can_edit': False, 'can_delete': False})
@@ -131,7 +138,9 @@ class FarmMenuPermission(BasePermission):
         return permissions.get(required_perm, False)
 
     def _get_farm(self, request, view):
-        farm_id = view.kwargs.get('farm_id') or request.data.get('farm') or request.query_params.get('farm') or request.query_params.get('farm_id')
+        farm_id = view.kwargs.get('farm_id') or request.query_params.get('farm') or request.query_params.get('farm_id')
+        if not farm_id and hasattr(request, 'data') and isinstance(request.data, dict):
+            farm_id = request.data.get('farm')
         if farm_id:
             try:
                 return Farm.objects.get(pk=farm_id)

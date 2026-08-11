@@ -24,9 +24,14 @@ class ExpenseListCreateView(generics.ListCreateAPIView):
         user_farms = Farm.objects.filter(
             Q(owner=self.request.user) | Q(members__user=self.request.user)
         ).distinct()
-        if not user_farms.exists():
-            return Expense.objects.none()
-        return Expense.objects.filter(farm__in=user_farms)
+        queryset = Expense.objects.filter(farm__in=user_farms)
+        farm_param = self.request.query_params.get('farm') or self.request.query_params.get('farm_id')
+        if farm_param:
+            try:
+                queryset = queryset.filter(farm_id=farm_param)
+            except ValueError:
+                pass
+        return queryset
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
