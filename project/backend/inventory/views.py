@@ -206,8 +206,7 @@ def inventory_dashboard_view(request):
 class DemandForecastListView(generics.ListAPIView):
     """List demand forecasts with filtering and search"""
     serializer_class = DemandForecastSerializer
-    permission_classes = [permissions.IsAuthenticated, FarmMenuPermission]
-    farm_menu_key = 'inventory'
+    permission_classes = [permissions.IsAuthenticated]
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     filterset_fields = ['farm', 'usage_trend']
     search_fields = ['item__name', 'item__category']
@@ -218,6 +217,12 @@ class DemandForecastListView(generics.ListAPIView):
         user_farms = Farm.objects.filter(
             Q(owner=self.request.user) | Q(members__user=self.request.user)
         ).distinct()
+        farm_param = self.request.query_params.get('farm') or self.request.query_params.get('farm_id')
+        if farm_param:
+            try:
+                user_farms = user_farms.filter(pk=farm_param)
+            except ValueError:
+                pass
         for f in user_farms:
             from farms.analytics_generator import ensure_analytics_data_for_farm
             ensure_analytics_data_for_farm(f)
@@ -227,8 +232,7 @@ class DemandForecastListView(generics.ListAPIView):
 class DemandForecastDetailView(generics.RetrieveUpdateAPIView):
     """Get or update demand forecast details"""
     serializer_class = DemandForecastSerializer
-    permission_classes = [permissions.IsAuthenticated, FarmMenuPermission]
-    farm_menu_key = 'inventory'
+    permission_classes = [permissions.IsAuthenticated]
     
     def get_queryset(self):
         user_farms = Farm.objects.filter(
@@ -285,8 +289,7 @@ def forecast_optimization_view(request):
 class SupplierPerformanceListCreateView(generics.ListCreateAPIView):
     """List or create supplier performance records"""
     serializer_class = SupplierPerformanceSerializer
-    permission_classes = [permissions.IsAuthenticated, FarmMenuPermission]
-    farm_menu_key = 'inventory'
+    permission_classes = [permissions.IsAuthenticated]
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     filterset_fields = ['farm', 'reliability_grade']
     search_fields = ['supplier_name', 'item__name']
@@ -297,6 +300,12 @@ class SupplierPerformanceListCreateView(generics.ListCreateAPIView):
         user_farms = Farm.objects.filter(
             Q(owner=self.request.user) | Q(members__user=self.request.user)
         ).distinct()
+        farm_param = self.request.query_params.get('farm') or self.request.query_params.get('farm_id')
+        if farm_param:
+            try:
+                user_farms = user_farms.filter(pk=farm_param)
+            except ValueError:
+                pass
         for f in user_farms:
             from farms.analytics_generator import ensure_analytics_data_for_farm
             ensure_analytics_data_for_farm(f)
@@ -306,8 +315,7 @@ class SupplierPerformanceListCreateView(generics.ListCreateAPIView):
 class SupplierPerformanceDetailView(generics.RetrieveUpdateDestroyAPIView):
     """Get, update, or delete supplier performance record"""
     serializer_class = SupplierPerformanceSerializer
-    permission_classes = [permissions.IsAuthenticated, FarmMenuPermission]
-    farm_menu_key = 'inventory'
+    permission_classes = [permissions.IsAuthenticated]
     
     def get_queryset(self):
         user_farms = Farm.objects.filter(
