@@ -1,5 +1,13 @@
-// API service for Terra Track frontend
-const API_BASE_URL = "http://localhost:8000/api";
+const getApiBaseUrl = () => {
+  const envUrl = import.meta.env.VITE_API_URL;
+  if (envUrl && envUrl.trim() !== "") {
+    const trimmed = envUrl.trim().replace(/\/$/, "");
+    return trimmed.endsWith("/api") ? trimmed : `${trimmed}/api`;
+  }
+  return "http://localhost:8000/api";
+};
+
+const API_BASE_URL = getApiBaseUrl();
 
 class ApiService {
   constructor() {
