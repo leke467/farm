@@ -174,7 +174,7 @@ function Login() {
         <div className="mt-6 space-y-3 sm:space-y-4">
           <div className="text-xs sm:text-sm text-gray-600 text-center break-words">
             <p className="mb-2 sm:mb-3">
-              Username: <span className="font-mono bg-gray-100 px-1.5 py-0.5 rounded text-xs">demo</span> | Password: <span className="font-mono bg-gray-100 px-1.5 py-0.5 rounded text-xs">demo123</span>
+              Username: <span className="font-mono bg-gray-100 px-1.5 py-0.5 rounded text-xs">demo1234</span> | Password: <span className="font-mono bg-gray-100 px-1.5 py-0.5 rounded text-xs">password1234</span>
             </p>
             <p>
               Username: <span className="font-mono bg-gray-100 px-1.5 py-0.5 rounded text-xs">admin</span> | Password: <span className="font-mono bg-gray-100 px-1.5 py-0.5 rounded text-xs">admin123</span>

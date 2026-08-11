@@ -517,9 +517,19 @@ function Settings() {
     setFarmLoading(false);
   };
 
+  const isDemoUser = user?.username === "demo1234" || user?.username === "demo" || Boolean(user?.isDemo);
+
   const handlePasswordChange = async (e) => {
     e.preventDefault();
     setPasswordStatus({ type: "", message: "" });
+
+    if (isDemoUser) {
+      setPasswordStatus({
+        type: "error",
+        message: "Password modifications are disabled for public demo accounts.",
+      });
+      return;
+    }
 
     if (passwordData.newPassword !== passwordData.confirmPassword) {
       setPasswordStatus({ type: "error", message: "New passwords do not match" });
@@ -1467,6 +1477,13 @@ function Settings() {
           openSection={openSection}
           onToggle={toggleSection}
         >
+          {isDemoUser && (
+            <div className="mb-4 p-3 bg-amber-50 border border-amber-200 text-amber-800 text-xs sm:text-sm rounded-xl flex items-center gap-2">
+              <FiLock className="flex-shrink-0" />
+              <span>Password modifications are disabled for public demo accounts.</span>
+            </div>
+          )}
+
           {passwordStatus.message && (
             <div className={`mb-4 p-3 rounded-lg border ${statusClass(passwordStatus.type)}`}>
               {passwordStatus.message}
@@ -1483,8 +1500,9 @@ function Settings() {
                   onChange={(e) =>
                     setPasswordData((prev) => ({ ...prev, currentPassword: e.target.value }))
                   }
-                  className="input"
+                  className="input disabled:bg-gray-100 disabled:cursor-not-allowed"
                   required
+                  disabled={isDemoUser}
                 />
               </div>
 
@@ -1496,9 +1514,10 @@ function Settings() {
                   onChange={(e) =>
                     setPasswordData((prev) => ({ ...prev, newPassword: e.target.value }))
                   }
-                  className="input"
+                  className="input disabled:bg-gray-100 disabled:cursor-not-allowed"
                   required
                   minLength={8}
+                  disabled={isDemoUser}
                 />
               </div>
 
@@ -1510,18 +1529,19 @@ function Settings() {
                   onChange={(e) =>
                     setPasswordData((prev) => ({ ...prev, confirmPassword: e.target.value }))
                   }
-                  className="input"
+                  className="input disabled:bg-gray-100 disabled:cursor-not-allowed"
                   required
                   minLength={8}
+                  disabled={isDemoUser}
                 />
               </div>
 
               <button
                 type="submit"
                 className={`btn btn-primary w-full ${
-                  passwordLoading ? "opacity-70 cursor-not-allowed" : ""
+                  passwordLoading || isDemoUser ? "opacity-70 cursor-not-allowed" : ""
                 }`}
-                disabled={passwordLoading}
+                disabled={passwordLoading || isDemoUser}
               >
                 {passwordLoading ? "Updating..." : "Change Password"}
               </button>

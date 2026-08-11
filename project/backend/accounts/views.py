@@ -69,6 +69,11 @@ def update_profile_view(request):
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def change_password_view(request):
+    if request.user.username in ['demo', 'demo1234'] or getattr(request.user, 'is_demo', False):
+        return Response(
+            {'detail': 'Password modifications are disabled for public demo accounts.'},
+            status=status.HTTP_403_FORBIDDEN
+        )
     serializer = ChangePasswordSerializer(
         data=request.data,
         context={'request': request},
