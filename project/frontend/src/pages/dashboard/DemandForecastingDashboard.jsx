@@ -5,6 +5,7 @@ import { useUser } from "../../context/UserContext";
 import { useFarmData } from "../../context/FarmDataContext";
 import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import ChartInfoTooltip from "../../components/ChartInfoTooltip";
+import AIChartInsight from "../../components/AIChartInsight";
 
 const DemandForecastingDashboard = () => {
   const { token } = useUser();
@@ -193,6 +194,12 @@ const DemandForecastingDashboard = () => {
                 No forecast data available
               </div>
             )}
+            <AIChartInsight
+              chartTitle="Demand Prediction Trend"
+              chartType="Line Chart"
+              data={trendData}
+              contextSummary="Projects monthly inventory usage and alerts on reorder points."
+            />
           </div>
 
           {/* Supplier Performance */}
@@ -234,6 +241,12 @@ const DemandForecastingDashboard = () => {
                 No supplier data available
               </div>
             )}
+            <AIChartInsight
+              chartTitle="Supplier Performance Index"
+              chartType="Bar Chart"
+              data={supplierScores}
+              contextSummary="Evaluates supplier quality ratings and on-time delivery rates."
+            />
           </div>
         </div>
 

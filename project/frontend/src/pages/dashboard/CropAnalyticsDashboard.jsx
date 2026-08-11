@@ -11,6 +11,7 @@ import Toast from "../../components/Toast";
 import { useToast } from "../../hooks/useToast";
 import { exportToCSV } from "../../utils/csvExport";
 import ChartInfoTooltip from "../../components/ChartInfoTooltip";
+import AIChartInsight from "../../components/AIChartInsight";
 
 const CropAnalyticsDashboard = () => {
   const { token } = useUser();
@@ -232,6 +233,12 @@ const CropAnalyticsDashboard = () => {
                 No yield data available
               </div>
             )}
+            <AIChartInsight
+              chartTitle="Expected vs Actual Yield"
+              chartType="Bar Chart"
+              data={yieldData}
+              contextSummary="Compares crop harvest targets against actual harvested yield."
+            />
           </div>
 
           {/* Weather Impact by Type */}
@@ -270,6 +277,12 @@ const CropAnalyticsDashboard = () => {
                 No weather impact data available
               </div>
             )}
+            <AIChartInsight
+              chartTitle="Yield Loss by Weather"
+              chartType="Bar Chart"
+              data={weatherData}
+              contextSummary="Quantifies crop output losses caused by extreme weather hazards."
+            />
           </div>
         </div>
 
@@ -317,6 +330,12 @@ const CropAnalyticsDashboard = () => {
                 No ROI data available
               </div>
             )}
+            <AIChartInsight
+              chartTitle="Crop ROI Performance"
+              chartType="Line Chart"
+              data={yieldData}
+              contextSummary="Evaluates return on investment percentages across crop categories."
+            />
           </div>
 
           {/* Recommendation Status */}
@@ -341,7 +360,7 @@ const CropAnalyticsDashboard = () => {
                     cy="50%"
                     labelLine={true}
                     label={({ name, percent }) => `${name} (${(percent * 100).toFixed(0)}%)`}
-                    outerRadius={80}
+                    outerRadius={90}
                     fill="#8884d8"
                     dataKey="value"
                   >
@@ -364,6 +383,12 @@ const CropAnalyticsDashboard = () => {
                 No recommendation data available
               </div>
             )}
+            <AIChartInsight
+              chartTitle="Fertilizer Recommendation Status"
+              chartType="Pie Chart"
+              data={statusData}
+              contextSummary="Tracks execution status of AI fertilizer recommendations."
+            />
           </div>
         </div>
 

@@ -10,6 +10,7 @@ import Toast from "../../components/Toast";
 import { useToast } from "../../hooks/useToast";
 import { exportToCSV } from "../../utils/csvExport";
 import ChartInfoTooltip from "../../components/ChartInfoTooltip";
+import AIChartInsight from "../../components/AIChartInsight";
 
 const FinancialOverviewDashboard = () => {
   const { token } = useUser();
@@ -232,6 +233,12 @@ const FinancialOverviewDashboard = () => {
                 No financial data available
               </div>
             )}
+            <AIChartInsight
+              chartTitle="Monthly Profit/Loss Trend"
+              chartType="Line Chart"
+              data={monthlyData}
+              contextSummary="Tracks monthly net income trajectory (Revenue minus Expenses)."
+            />
           </div>
 
           {/* Revenue Source Distribution */}
@@ -281,6 +288,12 @@ const FinancialOverviewDashboard = () => {
                 No revenue data available
               </div>
             )}
+            <AIChartInsight
+              chartTitle="Revenue Source Breakdown"
+              chartType="Pie Chart"
+              data={sourceData}
+              contextSummary="Displays contribution shares of livestock, dairy, crops, and service revenues."
+            />
           </div>
         </div>
 

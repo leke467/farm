@@ -13,6 +13,7 @@ import { useDataFilter } from "../../hooks/useDataFilter";
 import FilterBar from "../../components/FilterBar";
 import { exportToCSV } from "../../utils/csvExport";
 import ChartInfoTooltip from "../../components/ChartInfoTooltip";
+import AIChartInsight from "../../components/AIChartInsight";
 
 const AnimalProductivityDashboard = () => {
   const { token } = useUser();
@@ -232,6 +233,12 @@ const AnimalProductivityDashboard = () => {
                 No production data available
               </div>
             )}
+            <AIChartInsight
+              chartTitle="Animal Revenue & Cost Analysis"
+              chartType="Bar Chart"
+              data={revenueData}
+              contextSummary="Compares gross market value generated vs feed and healthcare costs per animal group."
+            />
           </div>
 
           {/* Production Type Distribution */}
@@ -281,6 +288,12 @@ const AnimalProductivityDashboard = () => {
                 No production type data available
               </div>
             )}
+            <AIChartInsight
+              chartTitle="Production Type Distribution"
+              chartType="Pie Chart"
+              data={productionTypeData}
+              contextSummary="Shows volume breakdown across Milk, Eggs, Meat, and Wool production."
+            />
           </div>
         </div>
 
