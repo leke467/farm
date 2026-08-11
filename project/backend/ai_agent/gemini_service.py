@@ -23,28 +23,17 @@ class GeminiAIService:
     Uses round-robin rotation for API keys to maximize free tier usage
     """
     
-    # Load Gemini API keys from environment variable (comma-separated list)
-    _keys_str = config('GEMINI_API_KEYS', default='')
+    # Load Gemini API keys from environment variable (comma-separated list GEMINI_API_KEYS or single GEMINI_API_KEY)
+    _keys_str = config('GEMINI_API_KEYS', default='') or config('GEMINI_API_KEY', default='')
     GEMINI_API_KEYS = [k.strip() for k in _keys_str.split(',') if k.strip()]
     
     # Fallback to empty list gracefully if no keys found
     if not GEMINI_API_KEYS:
-        logger.warning("No Gemini API keys found in environment variables (GEMINI_API_KEYS)")
+        logger.warning("No Gemini API keys found in environment variables (GEMINI_API_KEYS or GEMINI_API_KEY)")
     
     _key_index = 0  # Class variable for round-robin rotation
     
     def __init__(self):
-        # Get API key if available
-        if HAS_GENAI and self.GEMINI_API_KEYS:
-            try:
-                api_key = self.get_gemini_api_key()
-                genai.configure(api_key=api_key)
-                self.model = genai.GenerativeModel('gemini-1.5-flash')
-            except Exception as e:
-                logger.warning(f"Could not configure Gemini: {e}")
-                self.model = None
-        else:
-            self.model = None
         self.conversation_history = []
     
     @classmethod
@@ -101,7 +90,8 @@ Be conversational, concise, professional, and practical."""
     
     def chat(self, user_message: str, farm_data: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
         """
-        Send a message and get AI response with farm context
+        Send a message and get AI response with farm context.
+        Rotates keys on failure to guarantee maximum uptime.
         """
         try:
             # Build context if farm data provided
@@ -127,14 +117,23 @@ Provide helpful, practical advice about farm management, profitability, and opti
             
             logger.info(f"Sending prompt to AI engine (length: {len(full_prompt)})")
             
-            if self.model:
-                try:
-                    response = self.model.generate_content(full_prompt)
-                    ai_response = response.text
-                except Exception as genai_err:
-                    logger.warning(f"Gemini API call failed, generating fallback: {genai_err}")
-                    ai_response = self._generate_fallback(user_message, farm_data)
-            else:
+            ai_response = None
+            if HAS_GENAI and self.GEMINI_API_KEYS:
+                max_attempts = len(self.GEMINI_API_KEYS)
+                for attempt in range(max_attempts):
+                    api_key = self.get_gemini_api_key()
+                    try:
+                        genai.configure(api_key=api_key)
+                        model = genai.GenerativeModel('gemini-1.5-flash')
+                        response = model.generate_content(full_prompt)
+                        if response and response.text:
+                            ai_response = response.text
+                            logger.info(f"Successfully generated response with key index {self._key_index}")
+                            break
+                    except Exception as genai_err:
+                        logger.warning(f"Gemini API call failed with key attempt {attempt + 1}/{max_attempts}: {genai_err}")
+
+            if not ai_response:
                 ai_response = self._generate_fallback(user_message, farm_data)
             
             logger.info(f"Got response from AI: {len(ai_response)} chars")
