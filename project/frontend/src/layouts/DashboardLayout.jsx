@@ -191,11 +191,26 @@ function DashboardLayout() {
     };
   }, [activeFarm?.id, user?.id]);
 
-  const visibleMenuItems = menuItems.filter((item) => {
-    const permission = permissionMap?.[item.key];
-    if (!permission) return true;
-    return Boolean(permission.can_view);
-  });
+  const visibleMenuItems = menuItems
+    .map((item) => {
+      const parentPerm = permissionMap?.[item.key];
+      if (parentPerm && parentPerm.can_view === false) {
+        return null;
+      }
+      if (item.subItems) {
+        const allowedSubItems = item.subItems.filter((subItem) => {
+          const subPerm = permissionMap?.[subItem.key];
+          if (!subPerm) return true;
+          return Boolean(subPerm.can_view);
+        });
+        if (allowedSubItems.length === 0) {
+          return null;
+        }
+        return { ...item, subItems: allowedSubItems };
+      }
+      return item;
+    })
+    .filter(Boolean);
 
   const onLogout = () => {
     handleLogout();
