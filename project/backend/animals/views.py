@@ -391,8 +391,7 @@ class HealthAlertListCreateView(generics.ListCreateAPIView):
 
 class BreedingRecordListCreateView(generics.ListCreateAPIView):
     serializer_class = BreedingRecordSerializer
-    permission_classes = [permissions.IsAuthenticated, FarmMenuPermission]
-    farm_menu_key = 'animals'
+    permission_classes = [permissions.IsAuthenticated]
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     filterset_fields = ['status']
     search_fields = ['breeding__animal__name', 'sire_animal__name', 'dam_animal__name']
@@ -400,23 +399,32 @@ class BreedingRecordListCreateView(generics.ListCreateAPIView):
     ordering = ['-created_at']
 
     def get_queryset(self):
-        return BreedingRecord.objects.filter(
-            breeding__animal__farm__in=Farm.objects.filter(
-                Q(owner=self.request.user) | Q(members__user=self.request.user)
-            )
+        farm_param = self.request.query_params.get('farm') or self.request.query_params.get('farm_id')
+        user_farms = Farm.objects.filter(
+            Q(owner=self.request.user) | Q(members__user=self.request.user)
         )
+        if farm_param:
+            user_farms = user_farms.filter(id=farm_param)
+
+        return BreedingRecord.objects.filter(
+            Q(breeding__animal__farm__in=user_farms) |
+            Q(sire_animal__farm__in=user_farms) |
+            Q(dam_animal__farm__in=user_farms)
+        ).distinct()
 
 class BreedingRecordDetailView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = BreedingRecordSerializer
-    permission_classes = [permissions.IsAuthenticated, FarmMenuPermission]
-    farm_menu_key = 'animals'
+    permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
-        return BreedingRecord.objects.filter(
-            breeding__animal__farm__in=Farm.objects.filter(
-                Q(owner=self.request.user) | Q(members__user=self.request.user)
-            )
+        user_farms = Farm.objects.filter(
+            Q(owner=self.request.user) | Q(members__user=self.request.user)
         )
+        return BreedingRecord.objects.filter(
+            Q(breeding__animal__farm__in=user_farms) |
+            Q(sire_animal__farm__in=user_farms) |
+            Q(dam_animal__farm__in=user_farms)
+        ).distinct()
 
 class ProductionRecordListCreateView(generics.ListCreateAPIView):
     serializer_class = ProductionRecordSerializer

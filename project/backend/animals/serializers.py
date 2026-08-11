@@ -1,4 +1,6 @@
 from rest_framework import serializers
+from django.db.models import Q
+from django.utils import timezone
 from .models import (Animal, WeightRecord, MedicalRecord, FeedRecord, SampleWeight, 
                      WaterQuality, Vaccination, BreedingCalendar, HealthAlert,
                      BreedingRecord, ProductionRecord, AnimalProductionMetrics,
@@ -230,11 +232,18 @@ class AnimalSerializer(serializers.ModelSerializer):
         return data
 
 
+from django.utils import timezone
+
 class BreedingRecordSerializer(serializers.ModelSerializer):
+    breeding = serializers.PrimaryKeyRelatedField(queryset=BreedingCalendar.objects.all(), required=False, allow_null=True)
     animal_name = serializers.SerializerMethodField()
     father_name_id = serializers.SerializerMethodField()
     breeding_date = serializers.SerializerMethodField()
     breeding_status = serializers.SerializerMethodField()
+
+    sire = serializers.CharField(write_only=True, required=False, allow_blank=True)
+    dam = serializers.CharField(write_only=True, required=False, allow_blank=True)
+    expected_delivery_date = serializers.DateField(write_only=True, required=False, allow_null=True)
 
     class Meta:
         model = BreedingRecord
@@ -242,15 +251,21 @@ class BreedingRecordSerializer(serializers.ModelSerializer):
         read_only_fields = ['created_at', 'updated_at']
 
     def get_animal_name(self, obj):
+        if obj.dam_animal:
+            return obj.dam_animal.name
         return obj.breeding.animal.name if obj.breeding and obj.breeding.animal else "Animal"
 
     def get_father_name_id(self, obj):
+        if obj.sire_animal:
+            return obj.sire_animal.name
         return obj.breeding.partner_animal_name if obj.breeding else "Sire"
 
     def get_breeding_date(self, obj):
-        return obj.breeding.breeding_date if obj.breeding else None
+        return obj.breeding.breeding_date if obj.breeding else (obj.created_at.date() if obj.created_at else None)
 
     def get_breeding_status(self, obj):
+        if obj.status:
+            return obj.status
         return "successful" if obj.breeding and obj.breeding.status in ['confirmed', 'completed', 'active'] else getattr(obj.breeding, 'status', 'successful')
 
     def validate(self, data):
@@ -258,11 +273,67 @@ class BreedingRecordSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(
                 "Healthy offspring plus stillborn cannot exceed total number of offspring"
             )
-        if data.get('delivery_date') and data.get('delivery_date') < data.get('breeding').breeding_date:
+        if data.get('delivery_date') and data.get('breeding') and data.get('delivery_date') < data.get('breeding').breeding_date:
             raise serializers.ValidationError({
                 'delivery_date': 'Delivery date cannot be before breeding date.'
             })
         return data
+
+    def create(self, validated_data):
+        raw_data = self.initial_data
+        sire_id = validated_data.pop('sire', None) or raw_data.get('sire')
+        dam_id = validated_data.pop('dam', None) or raw_data.get('dam')
+        b_date = raw_data.get('breeding_date')
+        exp_date = validated_data.pop('expected_delivery_date', None) or raw_data.get('expected_delivery_date')
+        b_status = raw_data.get('breeding_status') or raw_data.get('status') or 'planned'
+        notes = raw_data.get('notes') or raw_data.get('genetics_notes') or ''
+
+        # Resolve sire and dam animal models
+        sire_obj = None
+        if sire_id:
+            try:
+                sire_obj = Animal.objects.filter(id=sire_id).first()
+            except Exception:
+                pass
+
+        dam_obj = None
+        if dam_id:
+            try:
+                dam_obj = Animal.objects.filter(id=dam_id).first()
+            except Exception:
+                pass
+
+        if sire_obj and not validated_data.get('sire_animal'):
+            validated_data['sire_animal'] = sire_obj
+        if dam_obj and not validated_data.get('dam_animal'):
+            validated_data['dam_animal'] = dam_obj
+
+        # If breeding calendar object is not passed, create one automatically
+        if not validated_data.get('breeding'):
+            target_animal = dam_obj or sire_obj
+            if not target_animal:
+                request = self.context.get('request')
+                if request and request.user:
+                    target_animal = Animal.objects.filter(
+                        Q(farm__owner=request.user) | Q(farm__members__user=request.user)
+                    ).first()
+
+            if target_animal:
+                b_date_val = b_date if b_date else timezone.now().date()
+                b_cal = BreedingCalendar.objects.create(
+                    animal=target_animal,
+                    partner_animal_name=sire_obj.name if sire_obj else "Sire",
+                    breeding_date=b_date_val,
+                    expected_delivery_date=exp_date if exp_date else None,
+                    status=b_status if b_status in ['planning', 'in_progress', 'confirmed', 'completed', 'cancelled'] else 'planning',
+                    notes=notes
+                )
+                validated_data['breeding'] = b_cal
+
+        if not validated_data.get('status'):
+            validated_data['status'] = b_status if b_status in ['planned', 'mated', 'pregnant', 'delivered', 'failed'] else 'planned'
+
+        return super().create(validated_data)
 
 
 class ProductionRecordSerializer(serializers.ModelSerializer):
