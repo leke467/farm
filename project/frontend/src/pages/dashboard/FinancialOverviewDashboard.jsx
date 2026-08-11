@@ -9,6 +9,7 @@ import FinancialEntryForm from "../../components/forms/FinancialEntryForm";
 import Toast from "../../components/Toast";
 import { useToast } from "../../hooks/useToast";
 import { exportToCSV } from "../../utils/csvExport";
+import ChartInfoTooltip from "../../components/ChartInfoTooltip";
 
 const FinancialOverviewDashboard = () => {
   const { token } = useUser();
@@ -188,7 +189,19 @@ const FinancialOverviewDashboard = () => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 mb-6 sm:mb-8">
           {/* Monthly Profit/Loss Trend */}
           <div className="bg-white rounded-lg shadow-md p-4 sm:p-6">
-            <h2 className="text-base sm:text-lg font-bold text-slate-800 mb-4">Monthly Profit/Loss Trend</h2>
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-base sm:text-lg font-bold text-slate-800">Monthly Profit/Loss Trend</h2>
+              <ChartInfoTooltip
+                title="Monthly Profit/Loss Trend"
+                description="Tracks financial trajectory by calculating net income (Total Revenue minus Total Expenses) per period."
+                howToRead={[
+                  "Green Line (Profit/Loss): Values above ₦0 indicate profitable months.",
+                  "Upward Slopes: Increasing revenue or decreasing operating costs.",
+                  "Downward Slopes: Period with higher expense outlays."
+                ]}
+                actionTip="Monitor trend dips to control seasonal cost spikes."
+              />
+            </div>
             {monthlyData.length > 0 ? (
               <ResponsiveContainer width="100%" height={250}>
                 <LineChart data={monthlyData}>
@@ -223,7 +236,18 @@ const FinancialOverviewDashboard = () => {
 
           {/* Revenue Source Distribution */}
           <div className="bg-white rounded-lg shadow-md p-4 sm:p-6">
-            <h2 className="text-base sm:text-lg font-bold text-slate-800 mb-4">Revenue Source Breakdown</h2>
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-base sm:text-lg font-bold text-slate-800">Revenue Source Breakdown</h2>
+              <ChartInfoTooltip
+                title="Revenue Source Breakdown"
+                description="Categorizes revenue streams by source to highlight top cash-generating farm activities."
+                howToRead={[
+                  "Colored Slices: Portions of income from Livestock, Milk, Crops, and Services.",
+                  "Percentage Labels: Contribution share to total farm revenue."
+                ]}
+                actionTip="Invest resources heavily into high-performing revenue categories."
+              />
+            </div>
             {sourceData.length > 0 ? (
               <ResponsiveContainer width="100%" height={250}>
                 <PieChart>

@@ -10,6 +10,7 @@ import CropYieldForm from "../../components/forms/CropYieldForm";
 import Toast from "../../components/Toast";
 import { useToast } from "../../hooks/useToast";
 import { exportToCSV } from "../../utils/csvExport";
+import ChartInfoTooltip from "../../components/ChartInfoTooltip";
 
 const CropAnalyticsDashboard = () => {
   const { token } = useUser();
@@ -193,7 +194,19 @@ const CropAnalyticsDashboard = () => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 mb-6 sm:mb-8">
           {/* Yield vs Expected */}
           <div className="bg-white rounded-lg shadow-md p-4 sm:p-6">
-            <h2 className="text-base sm:text-lg font-bold text-slate-800 mb-4">Expected vs Actual Yield</h2>
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-base sm:text-lg font-bold text-slate-800">Expected vs Actual Yield</h2>
+              <ChartInfoTooltip
+                title="Expected vs Actual Yield"
+                description="Compares target harvest predictions against actual crop harvest results."
+                howToRead={[
+                  "Grey Bar (Expected): Target harvest yield in metric tons/kg.",
+                  "Blue Bar (Actual): Harvest volume recorded.",
+                  "Tall Blue Bars: Overperforming crops exceeding expectations."
+                ]}
+                actionTip="Investigate soil nutrients for crops where actual yield falls short of expected yield."
+              />
+            </div>
             {yieldData.length > 0 ? (
               <ResponsiveContainer width="100%" height={250}>
                 <BarChart data={yieldData}>
@@ -223,7 +236,17 @@ const CropAnalyticsDashboard = () => {
 
           {/* Weather Impact by Type */}
           <div className="bg-white rounded-lg shadow-md p-4 sm:p-6">
-            <h2 className="text-base sm:text-lg font-bold text-slate-800 mb-4">Yield Loss by Weather</h2>
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-base sm:text-lg font-bold text-slate-800">Yield Loss by Weather</h2>
+              <ChartInfoTooltip
+                title="Yield Loss by Weather"
+                description="Quantifies crop output losses attributed to environmental weather events."
+                howToRead={[
+                  "Orange Bars: Estimated yield loss across Drought, Heatwaves, Heavy Rain, etc."
+                ]}
+                actionTip="Implement climate mitigations (shading, drip irrigation) for recurring weather threats."
+              />
+            </div>
             {weatherData.length > 0 ? (
               <ResponsiveContainer width="100%" height={250}>
                 <BarChart data={weatherData}>
@@ -254,7 +277,17 @@ const CropAnalyticsDashboard = () => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 mb-6 sm:mb-8">
           {/* ROI Chart */}
           <div className="bg-white rounded-lg shadow-md p-4 sm:p-6">
-            <h2 className="text-base sm:text-lg font-bold text-slate-800 mb-4">Crop ROI Performance</h2>
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-base sm:text-lg font-bold text-slate-800">Crop ROI Performance</h2>
+              <ChartInfoTooltip
+                title="Crop ROI Performance"
+                description="Displays return on investment percentage per crop type based on sales revenue vs input costs."
+                howToRead={[
+                  "Green Line (ROI %): Higher percentages indicate more profitable crop varieties."
+                ]}
+                actionTip="Expand acreage for crop types achieving >50% ROI."
+              />
+            </div>
             {yieldData.length > 0 ? (
               <ResponsiveContainer width="100%" height={250}>
                 <LineChart data={yieldData}>
@@ -288,7 +321,17 @@ const CropAnalyticsDashboard = () => {
 
           {/* Recommendation Status */}
           <div className="bg-white rounded-lg shadow-md p-6">
-            <h2 className="text-lg font-bold text-slate-800 mb-4">Fertilizer Recommendation Status</h2>
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-lg font-bold text-slate-800">Fertilizer Recommendation Status</h2>
+              <ChartInfoTooltip
+                title="Fertilizer Recommendation Status"
+                description="Tracks implementation of AI & soil nutrient fertilizer recommendations."
+                howToRead={[
+                  "Pie Slices: Pending vs Applied fertilizer recommendation counts."
+                ]}
+                actionTip="Execute pending fertilizer treatments before planting cycles."
+              />
+            </div>
             {statusData.length > 0 ? (
               <ResponsiveContainer width="100%" height={300}>
                 <PieChart>

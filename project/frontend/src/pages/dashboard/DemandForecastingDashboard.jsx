@@ -4,6 +4,7 @@ import apiService from "../../services/api";
 import { useUser } from "../../context/UserContext";
 import { useFarmData } from "../../context/FarmDataContext";
 import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
+import ChartInfoTooltip from "../../components/ChartInfoTooltip";
 
 const DemandForecastingDashboard = () => {
   const { token } = useUser();
@@ -135,7 +136,19 @@ const DemandForecastingDashboard = () => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 mb-6 sm:mb-8">
           {/* Demand Trend Chart */}
           <div className="bg-white rounded-lg shadow-md p-4 sm:p-6">
-            <h2 className="text-base sm:text-lg font-bold text-slate-800 mb-4">Demand Prediction Trend</h2>
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-base sm:text-lg font-bold text-slate-800">Demand Prediction Trend</h2>
+              <ChartInfoTooltip
+                title="Demand Prediction Trend"
+                description="This chart projects inventory consumption requirements for each farm input using historical usage algorithms."
+                howToRead={[
+                  "Blue Line (Forecasted Demand): Predicted monthly quantity required.",
+                  "Orange Line (Reorder Point): Trigger threshold where new orders must be placed.",
+                  "Green Line (Safety Stock): Emergency reserve buffer to prevent stockouts."
+                ]}
+                actionTip="Place new orders whenever predicted demand rises above the orange reorder line."
+              />
+            </div>
             {trendData.length > 0 ? (
               <ResponsiveContainer width="100%" height={250}>
                 <LineChart data={trendData}>
@@ -184,7 +197,18 @@ const DemandForecastingDashboard = () => {
 
           {/* Supplier Performance */}
           <div className="bg-white rounded-lg shadow-md p-4 sm:p-6">
-            <h2 className="text-base sm:text-lg font-bold text-slate-800 mb-4">Supplier Performance Index</h2>
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-base sm:text-lg font-bold text-slate-800">Supplier Performance Index</h2>
+              <ChartInfoTooltip
+                title="Supplier Performance Index"
+                description="Measures vendor reliability by evaluating product quality standards and on-time order fulfillment rates."
+                howToRead={[
+                  "Blue Bar (Quality Score): Percentage rating based on item inspection and grade.",
+                  "Green Bar (On-Time %): Percentage of shipments delivered on or before agreed date."
+                ]}
+                actionTip="Prioritize suppliers with >90% quality and on-time delivery ratings for critical farm supplies."
+              />
+            </div>
             {supplierScores.length > 0 ? (
               <ResponsiveContainer width="100%" height={250}>
                 <BarChart data={supplierScores}>
