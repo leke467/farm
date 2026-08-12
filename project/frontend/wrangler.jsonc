@@ -1,6 +1,6 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "livesteads-frontend",
+  "name": "farm",
   "compatibility_date": "2026-08-12",
   "assets": {
     "directory": "./dist",
