@@ -18,7 +18,7 @@ const About = () => {
   const stats = [
     { value: "10,000+", label: "Livestock & Poultry Tracked" },
     { value: "2,500+", label: "Acres of Crops Managed" },
-    { value: "₦200,000+", label: "Farm Produce Logged" },
+    { value: "₦50M+", label: "Farm Produce Logged" },
     { value: "99.9%", label: "System Uptime" },
   ];
 
