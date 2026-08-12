@@ -38,6 +38,8 @@ import CropAnalyticsDashboard from "./pages/dashboard/CropAnalyticsDashboard";
 // Pages - Public
 import Landing from "./pages/public/Landing";
 import Pricing from "./pages/public/Pricing";
+import Features from "./pages/public/Features";
+import About from "./pages/public/About";
 import Subscription from "./pages/dashboard/Subscription";
 
 // Context
@@ -64,7 +66,9 @@ function App() {
         <Routes>
           {/* Public routes */}
           <Route path="/" element={<Landing />} />
+          <Route path="/features" element={<Features />} />
           <Route path="/pricing" element={<Pricing />} />
+          <Route path="/about" element={<About />} />
 
           {/* Auth routes */}
           <Route element={<AuthLayout />}>

@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { FiCheck, FiZap, FiShield, FiStar, FiCreditCard, FiArrowRight, FiCheckCircle } from "react-icons/fi";
-import Logo from "../../components/Logo";
+import Navbar from "../../components/Navbar";
 
 const Pricing = () => {
   const navigate = useNavigate();
@@ -94,32 +94,7 @@ const Pricing = () => {
 
   return (
     <div className="min-h-screen bg-slate-950 text-white font-sans selection:bg-emerald-500 selection:text-white">
-      {/* Navigation */}
-      <nav className="max-w-7xl mx-auto px-6 py-5 flex items-center justify-between border-b border-slate-800/60">
-        <div
-          className="flex items-center gap-3 cursor-pointer group"
-          onClick={() => navigate("/")}
-        >
-          <Logo size={34} />
-          <span className="font-bold text-xl tracking-tight text-white group-hover:text-emerald-400 transition">
-            Livesteads
-          </span>
-        </div>
-        <div className="flex items-center gap-4">
-          <button
-            onClick={() => navigate("/login")}
-            className="text-sm font-semibold text-slate-300 hover:text-white px-4 py-2 rounded-xl transition"
-          >
-            Login
-          </button>
-          <button
-            onClick={() => navigate("/register")}
-            className="text-sm font-semibold bg-emerald-500 hover:bg-emerald-400 text-slate-950 px-5 py-2.5 rounded-xl shadow-lg shadow-emerald-500/20 transition transform active:scale-95"
-          >
-            Get Started Free
-          </button>
-        </div>
-      </nav>
+      <Navbar dark={true} />
 
       {/* Hero Section */}
       <div className="max-w-4xl mx-auto text-center px-6 pt-16 pb-12">

@@ -1,70 +1,12 @@
-import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { FiBarChart2, FiUsers, FiCalendar, FiCloud, FiMenu, FiX } from 'react-icons/fi';
-import Logo from '../../components/Logo';
+import { FiBarChart2, FiUsers, FiCalendar, FiCloud } from 'react-icons/fi';
+import Navbar from '../../components/Navbar';
 
 function Landing() {
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-100 via-green-50 to-green-200">
-      {/* Mobile Menu Button */}
-      <button
-        onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-        className="fixed top-6 right-6 z-50 lg:hidden bg-white rounded-lg p-2 shadow-lg"
-      >
-        {mobileMenuOpen ? <FiX size={24} /> : <FiMenu size={24} />}
-      </button>
-
-      {/* Navigation */}
-      <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        <div className="flex justify-between items-center">
-          <div className="flex items-center gap-2 md:gap-3">
-            <Logo size={36} />
-            <span className="text-lg md:text-xl font-display font-bold text-green-700">
-              Livesteads
-            </span>
-          </div>
-
-          {/* Desktop Navigation */}
-          <div className="hidden lg:flex items-center space-x-4">
-            <Link to="/login" className="text-green-700 hover:text-green-800 font-medium">
-              Sign In
-            </Link>
-            <Link
-              to="/register"
-              className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-colors"
-            >
-              Get Started
-            </Link>
-          </div>
-        </div>
-
-        {/* Mobile Navigation Menu */}
-        {mobileMenuOpen && (
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="flex flex-col gap-4 mt-6 lg:hidden"
-          >
-            <Link
-              to="/login"
-              className="text-green-700 hover:text-green-800 font-medium px-4 py-2"
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              Sign In
-            </Link>
-            <Link
-              to="/register"
-              className="bg-green-600 hover:bg-green-700 text-white px-4 py-3 rounded-lg transition-colors text-center"
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              Get Started
-            </Link>
-          </motion.div>
-        )}
-      </nav>
+      <Navbar dark={false} />
 
       {/* Hero Section */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-20">
