@@ -33,10 +33,10 @@ function Landing() {
                 Start Free Trial
               </Link>
               <Link
-                to="/login"
+                to="/features"
                 className="border-2 border-green-600 text-green-700 hover:bg-green-50 text-lg px-8 py-3 sm:py-4 rounded-lg transition-colors text-center"
               >
-                Learn More
+                Explore Features
               </Link>
             </div>
           </motion.div>
