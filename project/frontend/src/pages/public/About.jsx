@@ -16,10 +16,10 @@ import Navbar from "../../components/Navbar";
 
 const About = () => {
   const stats = [
-    { value: "250,000+", label: "Livestock & Poultry Tracked" },
-    { value: "50,000+", label: "Hectares of Crops Managed" },
-    { value: "₦1.8 Billion", label: "Farm Revenues Logged" },
-    { value: "99.8%", label: "System Uptime Reliability" },
+    { value: "10,000+", label: "Livestock & Poultry Tracked" },
+    { value: "2,500+", label: "Acres of Crops Managed" },
+    { value: "₦150M+", label: "Farm Produce Logged" },
+    { value: "99.9%", label: "System Uptime" },
   ];
 
   const pillars = [
@@ -60,7 +60,7 @@ const About = () => {
         </h1>
 
         <p className="text-lg sm:text-xl text-slate-300 max-w-2xl mx-auto mb-10 leading-relaxed">
-          Livesteads Farm OS is on a mission to digitize agricultural operations across Africa and worldwide—combining livestock tracking, crop analytics, smart feed formulation, and financial intelligence.
+          Livesteads is an intuitive farm management platform built to help farmers track livestock, crop fields, inventory, sales, and daily operations with total clarity.
         </p>
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-4xl mx-auto mt-12">
