@@ -212,6 +212,21 @@ REST_FRAMEWORK = {
 # CORS settings
 CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOWED_ORIGIN_REGEXES = [
+    r"^https://.*\.workers\.dev$",
+    r"^https://.*\.pages\.dev$",
+    r"^https://.*\.netlify\.app$",
+    r"^https://.*\.up\.railway\.app$",
+]
+CSRF_TRUSTED_ORIGINS = [
+    "https://*.workers.dev",
+    "https://*.pages.dev",
+    "https://*.netlify.app",
+    "https://*.up.railway.app",
+    "https://livesteads.com",
+    "http://localhost:3000",
+    "http://localhost:5173",
+]
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 # Custom user model
