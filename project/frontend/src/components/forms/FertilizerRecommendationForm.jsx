@@ -82,15 +82,15 @@ const FertilizerRecommendationForm = ({ onClose, onSuccess, crops = [], cropId =
     try {
       const payload = {
         crop: formData.crop,
-        date: formData.date,
-        fertilizer_type: formData.fertilizer_type,
-        recommended_quantity: parseFloat(formData.recommended_quantity),
-        quantity_unit: formData.quantity_unit,
-        application_method: formData.application_method,
-        yield_increase_percentage: parseFloat(formData.expected_yield_increase),
+        applied_date: formData.date || new Date().toISOString().split("T")[0],
+        recommended_type: formData.fertilizer_type || "NPK 15-15-15",
+        recommended_quantity: parseFloat(formData.recommended_quantity || 50),
+        unit: formData.quantity_unit || "kg",
+        application_timing: formData.application_method || "Early Morning Broadcast",
+        expected_yield_increase: parseFloat(formData.expected_yield_increase || 15),
         estimated_cost: formData.estimated_cost ? parseFloat(formData.estimated_cost) : 0,
-        status: formData.status,
-        notes: formData.notes,
+        status: formData.status || "pending",
+        notes: formData.notes || "",
       };
 
       const response = await apiService.createFertilizerRecommendation(payload);

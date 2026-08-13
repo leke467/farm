@@ -165,53 +165,70 @@ function CropManagement() {
     setApiSuccess("");
 
     try {
+      const formatDateStr = (d) => {
+        if (!d) return new Date().toISOString().split("T")[0];
+        const s = String(d).trim();
+        if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+        try {
+          return new Date(s).toISOString().split("T")[0];
+        } catch {
+          return s.split("T")[0];
+        }
+      };
+
+      const basePlantedDate = formatDateStr(data.planted_date);
+      const baseHarvestDate = formatDateStr(data.expected_harvest_date);
+
       // Create growth stages if adding new crop
       const growthStages = !isEditModalOpen
         ? [
             {
               stage: "planting",
-              date: data.planted_date,
+              date: basePlantedDate,
               completed: true,
               notes: "Initial planting",
             },
             {
               stage: "emergence",
-              date: new Date(
-                new Date(data.planted_date).getTime() + 14 * 24 * 60 * 60 * 1000
-              )
-                .toISOString()
-                .split("T")[0],
+              date: formatDateStr(
+                new Date(
+                  new Date(basePlantedDate).getTime() + 14 * 24 * 60 * 60 * 1000
+                )
+              ),
               completed: false,
               notes: "",
             },
             {
               stage: "maturation",
-              date: new Date(
-                new Date(data.planted_date).getTime() + 30 * 24 * 60 * 60 * 1000
-              )
-                .toISOString()
-                .split("T")[0],
+              date: formatDateStr(
+                new Date(
+                  new Date(basePlantedDate).getTime() + 30 * 24 * 60 * 60 * 1000
+                )
+              ),
               completed: false,
               notes: "",
             },
             {
               stage: "harvest",
-              date: data.expected_harvest_date,
+              date: baseHarvestDate,
               completed: false,
               notes: "",
             },
           ]
         : undefined;
 
+      const todayStr = new Date().toISOString().split("T")[0];
+      const defaultHarvestStr = new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString().split("T")[0];
+
       const cropData = {
         name: data.name,
         field: data.field,
-        area: parseFloat(data.area),
-        planted_date: data.planted_date,
-        expected_harvest_date: data.expected_harvest_date,
-        status: data.status,
-        stage: data.stage,
-        notes: data.notes,
+        area: parseFloat(data.area) || 1.0,
+        planted_date: basePlantedDate && basePlantedDate !== "" ? basePlantedDate : todayStr,
+        expected_harvest_date: baseHarvestDate && baseHarvestDate !== "" ? baseHarvestDate : defaultHarvestStr,
+        status: data.status || 'growing',
+        stage: data.stage || 'Vegetative',
+        notes: data.notes || '',
         ...(growthStages && { growth_stages: growthStages }),
       };
 

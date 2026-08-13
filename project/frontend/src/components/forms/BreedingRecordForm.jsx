@@ -68,12 +68,14 @@ const BreedingRecordForm = ({ onClose, onSuccess, animals = [] }) => {
         sire: formData.sire,
         dam: formData.dam,
         breeding_date: formData.breeding_date,
-        expected_delivery_date: formData.expected_delivery_date,
-        number_of_offspring: parseInt(formData.number_of_offspring),
-        breeding_status: formData.breeding_status,
-        genetics_notes: formData.genetics_notes,
-        notes: formData.notes,
+        number_of_offspring: parseInt(formData.number_of_offspring || 0),
+        breeding_status: formData.breeding_status || "planned",
+        genetics_notes: formData.genetics_notes || "",
+        notes: formData.notes || "",
       };
+      if (formData.expected_delivery_date) {
+        payload.expected_delivery_date = formData.expected_delivery_date;
+      }
 
       const response = await apiService.createBreedingRecord(payload);
 

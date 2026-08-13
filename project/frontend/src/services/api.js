@@ -779,6 +779,16 @@ class ApiService {
       }),
     });
   }
+
+  async askAIAgent(message, farmId = null) {
+    return this.request('/ai-agent/chat/', {
+      method: 'POST',
+      body: JSON.stringify({
+        message,
+        farm_id: farmId,
+      }),
+    });
+  }
 }
 
 // Create and export a singleton instance

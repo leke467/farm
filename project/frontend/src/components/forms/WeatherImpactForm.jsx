@@ -76,14 +76,14 @@ const WeatherImpactForm = ({ onClose, onSuccess, crops = [], cropId = "" }) => {
     try {
       const payload = {
         crop: formData.crop,
-        impact_date: formData.impact_date,
-        impact_type: formData.impact_type,
-        severity: formData.severity,
-        description: formData.description,
-        estimated_yield_loss: parseFloat(formData.estimated_yield_loss),
-        financial_loss: formData.financial_loss ? parseFloat(formData.financial_loss) : 0,
-        recovery_strategy: formData.recovery_strategy,
-        notes: formData.notes,
+        impact_date: formData.impact_date || new Date().toISOString().split("T")[0],
+        impact_type: ["drought", "flood", "frost", "excessive_heat", "wind_damage", "hail", "pest_outbreak", "disease", "other"].includes(formData.impact_type) ? formData.impact_type : "other",
+        severity: ["minor", "moderate", "severe", "critical"].includes(formData.severity) ? formData.severity : "moderate",
+        description: formData.description || "Severe weather event",
+        estimated_yield_loss: parseFloat(formData.estimated_yield_loss || 10),
+        estimated_financial_loss: formData.financial_loss ? parseFloat(formData.financial_loss) : 0,
+        recovery_actions: formData.recovery_strategy || "Apply soil nutrients and irrigation",
+        notes: formData.notes || "",
       };
 
       const response = await apiService.createWeatherImpactRecord(payload);

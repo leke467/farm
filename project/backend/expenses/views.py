@@ -115,6 +115,20 @@ class RevenueListCreateView(generics.ListCreateAPIView):
             ensure_analytics_data_for_farm(f)
         return Revenue.objects.filter(farm__in=user_farms)
 
+    def perform_create(self, serializer):
+        farm_id = self.request.data.get('farm') or self.request.query_params.get('farm') or self.request.query_params.get('farm_id')
+        farm = None
+        if farm_id:
+            try:
+                farm = Farm.objects.get(pk=farm_id)
+            except (Farm.DoesNotExist, ValueError):
+                pass
+        if not farm:
+            farm = Farm.objects.filter(
+                Q(owner=self.request.user) | Q(members__user=self.request.user)
+            ).first()
+        serializer.save(farm=farm)
+
 class RevenueDetailView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = RevenueSerializer
     permission_classes = [permissions.IsAuthenticated]
@@ -182,6 +196,20 @@ class DebtManagementListCreateView(generics.ListCreateAPIView):
             from farms.analytics_generator import ensure_analytics_data_for_farm
             ensure_analytics_data_for_farm(f)
         return DebtManagement.objects.filter(farm__in=user_farms)
+
+    def perform_create(self, serializer):
+        farm_id = self.request.data.get('farm') or self.request.query_params.get('farm') or self.request.query_params.get('farm_id')
+        farm = None
+        if farm_id:
+            try:
+                farm = Farm.objects.get(pk=farm_id)
+            except (Farm.DoesNotExist, ValueError):
+                pass
+        if not farm:
+            farm = Farm.objects.filter(
+                Q(owner=self.request.user) | Q(members__user=self.request.user)
+            ).first()
+        serializer.save(farm=farm)
 
 class DebtManagementDetailView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = DebtManagementSerializer

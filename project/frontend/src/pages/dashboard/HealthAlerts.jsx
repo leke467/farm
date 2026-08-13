@@ -112,7 +112,9 @@ const HealthAlerts = () => {
 
   const onAlertSubmit = async (data) => {
     try {
-      await apiService.post("/animals/health-alerts/", data);
+      const payload = { ...data };
+      if (!payload.due_date) delete payload.due_date;
+      await apiService.post("/animals/health-alerts/", payload);
       setApiSuccess("Health alert created successfully!");
       resetAlert();
       setIsAddAlertModalOpen(false);
@@ -124,7 +126,9 @@ const HealthAlerts = () => {
 
   const onVaccineSubmit = async (data) => {
     try {
-      await apiService.post("/animals/vaccinations/", data);
+      const payload = { ...data };
+      if (!payload.completed_date) delete payload.completed_date;
+      await apiService.post("/animals/vaccinations/", payload);
       setApiSuccess("Vaccination scheduled successfully!");
       resetVaccine();
       setIsAddVaccineModalOpen(false);

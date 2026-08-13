@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { HiEye, HiEyeOff } from "react-icons/hi";
 import { useUser } from "../../context/UserContext";
 import { users } from "../../data/mockData";
 import apiService from "../../services/api";
@@ -9,6 +10,7 @@ function Login() {
     username: "",
     password: "",
   });
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -42,31 +44,44 @@ function Login() {
       return;
     }
 
-    // Real backend login
+    let loginSuccess = false;
+    let mustChangePassword = false;
+
     try {
       const response = await apiService.login({
         username: formData.username,
+        email: formData.username,
         password: formData.password,
       });
-      if (response.token) {
-        const mustChangePassword = Boolean(
+
+      if (response && response.token) {
+        mustChangePassword = Boolean(
           response.user?.must_change_password ?? response.user?.mustChangePassword
         );
 
         handleLogin({
-          username: formData.username,
+          username: response.user?.username || formData.username,
+          email: response.user?.email || formData.username,
           token: response.token,
-          ...response.user, // include user info if available
+          ...response.user,
         });
-        setLoading(false);
-        navigate(mustChangePassword ? "/force-password-change" : "/dashboard");
+
+        loginSuccess = true;
       } else {
-        setError("Invalid username or password");
-        setLoading(false);
+        const errMsg = response?.non_field_errors
+          ? (Array.isArray(response.non_field_errors) ? response.non_field_errors[0] : response.non_field_errors)
+          : (response?.detail || "Invalid username/email or password");
+        setError(errMsg);
       }
     } catch (err) {
-      setError("Invalid username or password");
+      console.error("Login API error:", err);
+      setError("Invalid username/email or password");
+    } finally {
       setLoading(false);
+    }
+
+    if (loginSuccess) {
+      navigate(mustChangePassword ? "/force-password-change" : "/dashboard");
     }
   };
 
@@ -159,16 +174,30 @@ function Login() {
               Forgot password?
             </Link>
           </div>
-          <input
-            id="password"
-            name="password"
-            type="password"
-            required
-            value={formData.password}
-            onChange={handleChange}
-            className="input text-sm sm:text-base py-2 sm:py-2.5"
-            placeholder="Enter your password"
-          />
+          <div className="relative">
+            <input
+              id="password"
+              name="password"
+              type={showPassword ? "text" : "password"}
+              required
+              value={formData.password}
+              onChange={handleChange}
+              className="input text-sm sm:text-base py-2 sm:py-2.5 pr-10"
+              placeholder="Enter your password"
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 transition-colors focus:outline-none"
+              title={showPassword ? "Hide password" : "Show password"}
+            >
+              {showPassword ? (
+                <HiEyeOff className="h-5 w-5" />
+              ) : (
+                <HiEye className="h-5 w-5" />
+              )}
+            </button>
+          </div>
         </div>
 
         <div className="flex items-center justify-between">

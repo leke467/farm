@@ -83,9 +83,6 @@ const FinancialEntryForm = ({ type = "revenue", onClose, onSuccess }) => {
     if (!formData.loan_amount || parseFloat(formData.loan_amount) <= 0) {
       newErrors.loan_amount = "Loan amount must be greater than 0";
     }
-    if (!formData.principal_amount || parseFloat(formData.principal_amount) <= 0) {
-      newErrors.principal_amount = "Principal amount must be greater than 0";
-    }
     if (!formData.interest_rate || parseFloat(formData.interest_rate) < 0) {
       newErrors.interest_rate = "Interest rate must be >= 0";
     }
@@ -139,17 +136,22 @@ const FinancialEntryForm = ({ type = "revenue", onClose, onSuccess }) => {
         };
         response = await apiService.createRevenue(payload);
       } else {
+        const loanAmt = parseFloat(formData.loan_amount || 0);
         const payload = {
+          lender: formData.creditor_name,
           creditor_name: formData.creditor_name,
-          loan_amount: parseFloat(formData.loan_amount),
-          principal_amount: parseFloat(formData.principal_amount),
-          interest_rate: parseFloat(formData.interest_rate),
+          loan_amount: loanAmt,
+          principal_amount: loanAmt,
+          remaining_balance: loanAmt,
+          disbursement_date: formData.loan_date,
           loan_date: formData.loan_date,
           due_date: formData.due_date,
-          monthly_payment: parseFloat(formData.monthly_payment),
-          payment_frequency: formData.payment_frequency,
-          payment_status: formData.payment_status,
-          notes: formData.notes,
+          interest_rate: parseFloat(formData.interest_rate || 0),
+          next_payment_amount: parseFloat(formData.monthly_payment || 0),
+          monthly_payment: parseFloat(formData.monthly_payment || 0),
+          payment_frequency: formData.payment_frequency ? formData.payment_frequency.toLowerCase() : "monthly",
+          status: formData.payment_status === "pending" ? "active" : (formData.payment_status || "active"),
+          notes: formData.notes || "",
         };
         response = await apiService.createDebt(payload);
       }
