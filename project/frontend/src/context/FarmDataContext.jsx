@@ -283,7 +283,7 @@ export function FarmDataProvider({ children }) {
             farmObj = farmList.find((f) => String(f.id) === String(savedFarmId));
           }
           if (!farmObj && pathname) {
-            farmObj = farmList.find((f) => f.name && (pathname.includes(f.name.toLowerCase().replace(/\s+/g, "")) || pathname.includes("adehi")));
+            farmObj = farmList.find((f) => f.name && pathname.includes(f.name.toLowerCase().replace(/\s+/g, "")));
           }
           if (!farmObj) {
             farmObj = farmList.find((f) => f.has_data || (f.animals_count && f.animals_count > 0)) || farmList[0] || null;

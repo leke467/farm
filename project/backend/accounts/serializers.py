@@ -22,7 +22,7 @@ class UserSerializer(serializers.ModelSerializer):
         read_only_fields = ['id', 'is_admin', 'must_change_password', 'created_at']
 
 class FarmRegistrationSerializer(serializers.ModelSerializer):
-    password = serializers.CharField(write_only=True, min_length=8)
+    password = serializers.CharField(write_only=True, min_length=6)
     confirm_password = serializers.CharField(write_only=True)
     role = serializers.CharField(write_only=True, required=False, default='owner')
     # Add farm fields
@@ -45,24 +45,20 @@ class FarmRegistrationSerializer(serializers.ModelSerializer):
         """Username must not be empty and not already exist"""
         if not value or not value.strip():
             raise serializers.ValidationError("Username cannot be empty")
-        if User.objects.filter(username=value).exists():
+        if User.objects.filter(username__iexact=value.strip()).exists():
             raise serializers.ValidationError("Username already exists")
-        return value
+        return value.strip()
     
     def validate_email(self, value):
         """Email must be unique"""
-        if User.objects.filter(email=value).exists():
+        if value and User.objects.filter(email__iexact=value.strip()).exists():
             raise serializers.ValidationError("Email already exists")
-        return value
+        return value.strip()
     
     def validate_password(self, value):
-        """Password must be strong"""
-        if len(value) < 8:
-            raise serializers.ValidationError("Password must be at least 8 characters")
-        if value.isdigit():
-            raise serializers.ValidationError("Password cannot be only numbers")
-        if value.isalpha():
-            raise serializers.ValidationError("Password must contain both letters and numbers")
+        """Password must be at least 6 characters"""
+        if len(value) < 6:
+            raise serializers.ValidationError("Password must be at least 6 characters")
         return value
     
     def validate_farm_name(self, value):

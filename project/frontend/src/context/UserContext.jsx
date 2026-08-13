@@ -36,6 +36,7 @@ export function UserProvider({ children }) {
 
   // Login handler
   const handleLogin = (userData) => {
+    localStorage.removeItem('activeFarmId');
     if (userData?.token) {
       apiService.setToken(userData.token);
     }
@@ -50,6 +51,7 @@ export function UserProvider({ children }) {
     setUser(null);
     localStorage.removeItem('farmUser');
     localStorage.removeItem('authToken');
+    localStorage.removeItem('activeFarmId');
     apiService.removeToken();
     setIsAuthenticated(false);
   };
