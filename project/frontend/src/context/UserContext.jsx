@@ -36,6 +36,9 @@ export function UserProvider({ children }) {
 
   // Login handler
   const handleLogin = (userData) => {
+    if (userData?.token) {
+      apiService.setToken(userData.token);
+    }
     const normalizedUser = normalizeUser(userData);
     setUser(normalizedUser);
     localStorage.setItem('farmUser', JSON.stringify(normalizedUser));
@@ -47,6 +50,7 @@ export function UserProvider({ children }) {
     setUser(null);
     localStorage.removeItem('farmUser');
     localStorage.removeItem('authToken');
+    apiService.removeToken();
     setIsAuthenticated(false);
   };
 

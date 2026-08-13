@@ -11,16 +11,28 @@ from expenses.models import Expense, Revenue, FinancialAnalysis, DebtManagement
 from crops.models import Crop, CropYieldAnalysis, FertilizerRecommendation, WeatherImpactRecord, Harvest
 
 
+def is_demo_farm(farm):
+    if not farm:
+        return False
+    owner = getattr(farm, 'owner', None)
+    if owner:
+        if owner.username in ['demo', 'demo1234'] or getattr(owner, 'is_demo', False):
+            return True
+    if 'demo' in farm.name.lower():
+        return True
+    return False
+
+
 def ensure_analytics_data_for_farm(farm):
     """
-    Auto-generates and synchronizes rich data across ALL tabs for the given farm:
+    Auto-generates and synchronizes rich data across ALL tabs for DEMO farms only:
     1. Baseline Animals, Crops, Inventory, Sales, Expenses, & Audits
     2. Demand Forecasting & Supplier Performance
     3. Animal Productivity & Breeding Records
     4. Financial Overview, Profit & Loss, & Debt Management
     5. Crop Yield Analytics, Fertilizer Recommendations & Weather Impacts
     """
-    if not farm:
+    if not farm or not is_demo_farm(farm):
         return
 
     today = timezone.now().date()
