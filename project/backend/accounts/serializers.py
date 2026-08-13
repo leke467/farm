@@ -133,40 +133,40 @@ class LoginSerializer(serializers.Serializer):
     username = serializers.CharField()
     password = serializers.CharField(write_only=True)
     
-    def validate_username(self, value):
-        """Username must not be empty"""
-        if not value or not value.strip():
-            raise serializers.ValidationError("Username cannot be empty")
-        return value
-    
-    def validate_password(self, value):
-        """Password must not be empty"""
-        if not value or not value.strip():
-            raise serializers.ValidationError("Password cannot be empty")
-        return value
+class LoginSerializer(serializers.Serializer):
+    username = serializers.CharField(required=False, allow_blank=True)
+    email = serializers.CharField(required=False, allow_blank=True)
+    password = serializers.CharField(write_only=True)
     
     def validate(self, attrs):
-        username = attrs.get('username')
+        identifier = (attrs.get('username') or attrs.get('email') or '').strip()
         password = attrs.get('password')
         
-        if username and password:
-            user = authenticate(username=username, password=password)
-            if not user:
-                # Fallback: check if 'username' is an email address
-                try:
-                    user_obj = User.objects.get(email__iexact=username)
-                    user = authenticate(username=user_obj.username, password=password)
-                except (User.DoesNotExist, User.MultipleObjectsReturned):
-                    pass
-
-            if not user:
-                raise serializers.ValidationError({"non_field_errors": "Invalid username or password"})
-            if not user.is_active:
-                raise serializers.ValidationError({"non_field_errors": "User account is disabled"})
-            attrs['user'] = user
-        else:
-            raise serializers.ValidationError({"non_field_errors": "Must include username and password"})
+        if not identifier:
+            raise serializers.ValidationError({"non_field_errors": "Must include username or email"})
+        if not password:
+            raise serializers.ValidationError({"non_field_errors": "Must include password"})
         
+        user = authenticate(username=identifier, password=password)
+        
+        if not user:
+            # Fallback 1: Lookup by email (case-insensitive)
+            user_obj = User.objects.filter(email__iexact=identifier).first()
+            if not user_obj:
+                # Fallback 2: Lookup by username (case-insensitive)
+                user_obj = User.objects.filter(username__iexact=identifier).first()
+            
+            if user_obj:
+                user = authenticate(username=user_obj.username, password=password)
+                if not user and user_obj.check_password(password):
+                    user = user_obj
+
+        if not user:
+            raise serializers.ValidationError({"non_field_errors": "Invalid username/email or password"})
+        if not user.is_active:
+            raise serializers.ValidationError({"non_field_errors": "User account is disabled"})
+        
+        attrs['user'] = user
         return attrs
 
 

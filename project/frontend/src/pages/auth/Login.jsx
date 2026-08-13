@@ -130,7 +130,7 @@ function Login() {
             htmlFor="username"
             className="block text-xs sm:text-sm font-medium text-gray-700 mb-1"
           >
-            Username
+            Username or Email
           </label>
           <input
             id="username"
@@ -140,7 +140,7 @@ function Login() {
             value={formData.username}
             onChange={handleChange}
             className="input text-sm sm:text-base py-2 sm:py-2.5"
-            placeholder="Enter your username"
+            placeholder="Enter your username or email address"
           />
         </div>
 

@@ -129,7 +129,22 @@ def run_tests():
     assert me_g['email'] == 'gamma_user@gmail.com'
     print("Gamma email-username registration and isolation VERIFIED!")
 
-    # 4. Clean up test users
+    # 4. Test login using Username vs Email
+    print("\n4. Testing login using Username vs Email...")
+    client.credentials() # clear headers
+
+    # Login with username 'alpha_user_test'
+    login_by_username = client.post('/api/auth/login/', {'username': 'alpha_user_test', 'password': 'password123'}, format='json')
+    assert login_by_username.status_code == 200, f"Login by username failed: {login_by_username.data}"
+    print("Login by username SUCCESS!")
+
+    # Login with email 'alpha@example.com'
+    login_by_email = client.post('/api/auth/login/', {'username': 'alpha@example.com', 'password': 'password123'}, format='json')
+    assert login_by_email.status_code == 200, f"Login by email failed: {login_by_email.data}"
+    assert login_by_email.data['user']['username'] == 'alpha_user_test'
+    print("Login by email address SUCCESS!")
+
+    # 5. Clean up test users
     User.objects.filter(username__in=['alpha_user_test', 'beta_user_test', 'gamma_user@gmail.com']).delete()
     print("\n=== ALL AUTH ISOLATION TESTS PASSED 100% SUCCESSFULLY! ===")
 
