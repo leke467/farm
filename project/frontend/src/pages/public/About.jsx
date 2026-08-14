@@ -52,7 +52,7 @@ const About = () => {
       {/* Hero */}
       <section className="relative pt-16 pb-20 px-6 max-w-7xl mx-auto text-center">
         <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-semibold uppercase tracking-wider mb-6">
-          <FiHeart /> Built for Agricultural Innovators
+          <FiHeart /> Built by ApexLabs for Agricultural Innovators
         </div>
 
         <h1 className="text-4xl sm:text-6xl font-black tracking-tight text-white max-w-4xl mx-auto leading-tight mb-6">
@@ -60,7 +60,7 @@ const About = () => {
         </h1>
 
         <p className="text-lg sm:text-xl text-slate-300 max-w-2xl mx-auto mb-10 leading-relaxed">
-          Livesteads is an intuitive farm management platform built to help farmers track livestock, crop fields, inventory, sales, and daily operations with total clarity.
+          Livesteads is an intuitive farm management platform built by <span className="text-emerald-400 font-semibold">ApexLabs</span> to help farmers track livestock, crop fields, inventory, sales, and daily operations with total clarity.
         </p>
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-4xl mx-auto mt-12">
@@ -82,10 +82,10 @@ const About = () => {
               Bridging the Gap Between Traditional Farming & Cutting-Edge Technology
             </h2>
             <p className="text-slate-300 text-sm sm:text-base leading-relaxed mb-4">
-              Livesteads was born out of first-hand experience with the challenges facing commercial farm managers: missing inventory records, unoptimized feed spending, unrecorded harvest sales, and lack of real-time profitability visibility.
+              Livesteads was conceptualized and engineered by ApexLabs out of first-hand experience with the challenges facing commercial farm managers: missing inventory records, unoptimized feed spending, unrecorded harvest sales, and lack of real-time profitability visibility.
             </p>
             <p className="text-slate-300 text-sm sm:text-base leading-relaxed">
-              We built Livesteads to give every farmer—whether running 50 acres of maize or 10,000 broiler chickens—the exact software tools needed to maximize yield, streamline labor, and build sustainable agribusinesses.
+              ApexLabs built Livesteads to give every farmer—whether running 50 acres of maize or 10,000 broiler chickens—the exact software tools needed to maximize yield, streamline labor, and build sustainable agribusinesses.
             </p>
           </div>
           <div className="relative">
@@ -93,6 +93,7 @@ const About = () => {
               <div>
                 <FiAward size={56} className="text-emerald-400 mx-auto mb-4" />
                 <h3 className="text-xl font-bold text-white mb-2">Trusted Agricultural Platform</h3>
+                <p className="text-xs text-slate-400 mb-2">Built by ApexLabs</p>
                 <p className="text-xs text-slate-400">Serving commercial mixed farms, poultry integration complexes, and dairy estates.</p>
               </div>
             </div>
@@ -128,7 +129,7 @@ const About = () => {
         <div className="max-w-3xl mx-auto">
           <h2 className="text-3xl font-extrabold text-white mb-4">Transform Your Farm Today</h2>
           <p className="text-slate-300 mb-8">Test our full demo environment or start your 14-day free trial in under 2 minutes.</p>
-          <div className="flex flex-wrap justify-center gap-4">
+          <div className="flex flex-wrap justify-center gap-4 mb-8">
             <Link
               to="/register"
               className="bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold px-8 py-3 rounded-xl transition flex items-center gap-2"
@@ -143,6 +144,9 @@ const About = () => {
               Explore Plans
             </Link>
           </div>
+          <p className="text-xs text-slate-500">
+            Livesteads is designed & engineered by <span className="text-slate-400 font-medium">ApexLabs</span>.
+          </p>
         </div>
       </section>
     </div>

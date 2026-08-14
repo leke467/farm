@@ -241,9 +241,9 @@ function Landing() {
               </ul>
             </div>
           </div>
-          <div className="mt-12 border-t border-green-800 pt-8">
-            <p className="text-sm sm:text-base text-green-400 text-center">
-              © {new Date().getFullYear()} Livesteads.com. All rights reserved.
+          <div className="mt-12 border-t border-green-800 pt-8 text-center">
+            <p className="text-sm sm:text-base text-green-400">
+              © {new Date().getFullYear()} Livesteads.com. Built by <span className="text-white font-semibold">ApexLabs</span>. All rights reserved.
             </p>
           </div>
         </div>
