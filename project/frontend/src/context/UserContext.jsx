@@ -1,4 +1,4 @@
-import { createContext, useContext, useState } from 'react';
+import { createContext, useContext, useState, useEffect } from 'react';
 import apiService from '../services/api';
 
 // Create context
@@ -10,6 +10,8 @@ const normalizeUser = (userData) => {
   const firstName = userData.firstName ?? userData.first_name ?? '';
   const lastName = userData.lastName ?? userData.last_name ?? '';
   const isAdmin = userData.isAdmin ?? userData.is_admin ?? false;
+  const isSuperuser = userData.isSuperuser ?? userData.is_superuser ?? false;
+  const isStaff = userData.isStaff ?? userData.is_staff ?? false;
   const mustChangePassword =
     userData.mustChangePassword ?? userData.must_change_password ?? false;
 
@@ -19,8 +21,12 @@ const normalizeUser = (userData) => {
     lastName,
     first_name: userData.first_name ?? firstName,
     last_name: userData.last_name ?? lastName,
-    isAdmin,
+    isAdmin: isAdmin || isSuperuser || isStaff,
     is_admin: userData.is_admin ?? isAdmin,
+    isSuperuser,
+    is_superuser: userData.is_superuser ?? isSuperuser,
+    isStaff,
+    is_staff: userData.is_staff ?? isStaff,
     mustChangePassword,
     must_change_password: userData.must_change_password ?? mustChangePassword,
   };
@@ -34,6 +40,24 @@ export function UserProvider({ children }) {
   });
   
   const [isAuthenticated, setIsAuthenticated] = useState(!!user);
+
+  useEffect(() => {
+    const token = localStorage.getItem('authToken');
+    if (token) {
+      apiService.setToken(token);
+      apiService.request('/auth/profile/')
+        .then((profile) => {
+          if (profile && profile.id) {
+            setUser((prev) => {
+              const updated = normalizeUser({ ...prev, ...profile });
+              localStorage.setItem('farmUser', JSON.stringify(updated));
+              return updated;
+            });
+          }
+        })
+        .catch(() => {});
+    }
+  }, []);
 
   // Login handler
   const handleLogin = (userData) => {

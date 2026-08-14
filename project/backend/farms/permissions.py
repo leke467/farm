@@ -1,4 +1,4 @@
-from rest_framework.permissions import BasePermission
+from rest_framework.permissions import BasePermission, SAFE_METHODS
 from .models import Farm, FarmMember, RoleMenuPermission, UserMenuPermission
 from django.db.models import Q
 
@@ -119,7 +119,16 @@ def get_effective_permission(farm, user, menu_key):
 
 
 class FarmMenuPermission(BasePermission):
+    message = "Your farm subscription has expired. Please select a plan and renew your subscription to perform operational actions."
+
     def has_permission(self, request, view):
+        # Subscription payment enforcement for write operations (POST, PUT, PATCH, DELETE)
+        if request.method not in SAFE_METHODS and not (request.user.is_superuser or request.user.is_staff):
+            from subscriptions.services import get_user_subscription
+            sub = get_user_subscription(request.user)
+            if not sub or not sub.is_active_subscription():
+                return False
+
         menu_key = getattr(view, 'farm_menu_key', None)
         if not menu_key:
             return True

@@ -789,6 +789,83 @@ class ApiService {
       }),
     });
   }
+
+  // Contact & Superadmin Methods
+  async submitContactMessage(contactData) {
+    return this.request('/reports/contact/', {
+      method: 'POST',
+      body: JSON.stringify(contactData),
+    });
+  }
+
+  async getSuperadminStats() {
+    return this.request('/reports/superadmin/stats/');
+  }
+
+  async getSuperadminUsers(params = {}) {
+    const query = new URLSearchParams(params).toString();
+    return this.request(`/reports/superadmin/users/${query ? `?${query}` : ''}`);
+  }
+
+  async updateSuperadminUser(id, userData) {
+    return this.request(`/reports/superadmin/users/${id}/`, {
+      method: 'PATCH',
+      body: JSON.stringify(userData),
+    });
+  }
+
+  async getSuperadminFarms(params = {}) {
+    const query = new URLSearchParams(params).toString();
+    return this.request(`/reports/superadmin/farms/${query ? `?${query}` : ''}`);
+  }
+
+  async getDisputes(params = {}) {
+    const query = new URLSearchParams(params).toString();
+    return this.request(`/reports/superadmin/disputes/${query ? `?${query}` : ''}`);
+  }
+
+  async createDispute(disputeData) {
+    return this.request('/reports/superadmin/disputes/', {
+      method: 'POST',
+      body: JSON.stringify(disputeData),
+    });
+  }
+
+  async updateDispute(id, disputeData) {
+    return this.request(`/reports/superadmin/disputes/${id}/`, {
+      method: 'PATCH',
+      body: JSON.stringify(disputeData),
+    });
+  }
+
+  async getContactMessages(params = {}) {
+    const query = new URLSearchParams(params).toString();
+    return this.request(`/reports/superadmin/contact-messages/${query ? `?${query}` : ''}`);
+  }
+
+  async updateContactMessage(id, messageData) {
+    return this.request(`/reports/superadmin/contact-messages/${id}/`, {
+      method: 'PATCH',
+      body: JSON.stringify(messageData),
+    });
+  }
+
+  async getSuperadminSubscriptions(params = {}) {
+    const query = new URLSearchParams(params).toString();
+    return this.request(`/reports/superadmin/subscriptions/${query ? `?${query}` : ''}`);
+  }
+
+  async getSuperadminPayments(params = {}) {
+    const query = new URLSearchParams(params).toString();
+    return this.request(`/reports/superadmin/payments/${query ? `?${query}` : ''}`);
+  }
+
+  async manageSubscription(payload) {
+    return this.request('/reports/superadmin/subscriptions/manage/', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+  }
 }
 
 // Create and export a singleton instance

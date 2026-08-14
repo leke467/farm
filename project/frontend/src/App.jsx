@@ -40,6 +40,8 @@ import Landing from "./pages/public/Landing";
 import Pricing from "./pages/public/Pricing";
 import Features from "./pages/public/Features";
 import About from "./pages/public/About";
+import Contact from "./pages/public/Contact";
+import SuperadminDashboard from "./pages/admin/SuperadminDashboard";
 import Subscription from "./pages/dashboard/Subscription";
 
 // Context
@@ -69,6 +71,21 @@ function App() {
           <Route path="/features" element={<Features />} />
           <Route path="/pricing" element={<Pricing />} />
           <Route path="/about" element={<About />} />
+          <Route path="/contact" element={<Contact />} />
+
+          {/* Superadmin Dedicated Route */}
+          <Route
+            path="/admin/dashboard"
+            element={
+              !isAuthenticated ? (
+                <Navigate to="/login" replace />
+              ) : (user?.is_superuser || user?.is_staff) ? (
+                <SuperadminDashboard />
+              ) : (
+                <Navigate to="/dashboard" replace />
+              )
+            }
+          />
 
           {/* Auth routes */}
           <Route element={<AuthLayout />}>
@@ -77,7 +94,13 @@ function App() {
               element={
                 isAuthenticated ? (
                   <Navigate
-                    to={mustChangePassword ? "/force-password-change" : "/dashboard"}
+                    to={
+                      mustChangePassword
+                        ? "/force-password-change"
+                        : (user?.is_superuser || user?.is_staff)
+                        ? "/admin/dashboard"
+                        : "/dashboard"
+                    }
                     replace
                   />
                 ) : (
@@ -90,7 +113,13 @@ function App() {
               element={
                 isAuthenticated ? (
                   <Navigate
-                    to={mustChangePassword ? "/force-password-change" : "/dashboard"}
+                    to={
+                      mustChangePassword
+                        ? "/force-password-change"
+                        : (user?.is_superuser || user?.is_staff)
+                        ? "/admin/dashboard"
+                        : "/dashboard"
+                    }
                     replace
                   />
                 ) : (

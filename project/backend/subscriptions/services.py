@@ -5,6 +5,13 @@ from .gateway import MonnifyGateway
 
 def create_subscription_payment(user, plan_id, idempotency_key, redirect_url=''):
     plan = SubscriptionPlan.objects.get(id=plan_id)
+    
+    # The free trial is strictly available once per account
+    if plan.price == 0 or plan.slug == 'free-trial':
+        has_existing = Subscription.objects.filter(user=user).exists()
+        if has_existing:
+            raise Exception("The 14-day free trial is only available once per account. Please select a paid plan.")
+
     payment_reference = f"sub_{user.id}_{idempotency_key}"
     
     payment = SubscriptionPayment.objects.create(
@@ -81,7 +88,6 @@ def confirm_payment(payment_reference):
 def get_user_subscription(user, farm_id=None):
     today = timezone.now().date()
 
-    # 1. Subscription is PER FARM: First check if user or farm owner has a paid ACTIVE subscription
     try:
         from farms.models import Farm, FarmMember
         from django.db.models import Q
@@ -98,63 +104,52 @@ def get_user_subscription(user, farm_id=None):
         if user.id not in owner_ids:
             owner_ids.append(user.id)
 
-        # Check for paid ACTIVE subscription first across all farm owners
-        active_sub = Subscription.objects.filter(
-            user_id__in=owner_ids,
-            status=Subscription.Status.ACTIVE,
-            end_date__gte=today
+        # Fetch latest subscription for farm owner
+        latest_sub = Subscription.objects.filter(
+            user_id__in=owner_ids
         ).order_by('-created_at').first()
 
-        if active_sub:
-            return active_sub
-
-        # If no active paid sub, check any active trial for farm owners
-        trial_sub = Subscription.objects.filter(
-            user_id__in=owner_ids,
-            status=Subscription.Status.TRIAL,
-            end_date__gte=today
-        ).order_by('-created_at').first()
-
-        if trial_sub:
-            return trial_sub
+        if latest_sub:
+            if latest_sub.end_date < today and latest_sub.status in (Subscription.Status.ACTIVE, Subscription.Status.TRIAL):
+                latest_sub.status = Subscription.Status.EXPIRED
+                latest_sub.save(update_fields=['status', 'updated_at'])
+            return latest_sub
     except Exception as e:
         pass
 
-    # 2. Direct user subscription check
+    # Direct user subscription check
     sub = Subscription.objects.filter(user=user).order_by('-created_at').first()
-    if sub and sub.status in (Subscription.Status.ACTIVE, Subscription.Status.TRIAL) and sub.end_date >= today:
-        return sub
-
-    # 3. Fallback: mark expired if past end_date
     if sub:
-        if sub.status in (Subscription.Status.ACTIVE, Subscription.Status.TRIAL) and sub.end_date < today:
+        if sub.end_date < today and sub.status in (Subscription.Status.ACTIVE, Subscription.Status.TRIAL):
             sub.status = Subscription.Status.EXPIRED
             sub.save(update_fields=['status', 'updated_at'])
         return sub
 
-    # Auto-create 14-Day Free Trial for user
+    # Auto-create 14-Day Free Trial ONLY if no subscription record exists at all
     trial_plan = SubscriptionPlan.objects.filter(slug='free-trial').first() or SubscriptionPlan.objects.filter(is_active=True).order_by('price').first()
     if trial_plan:
         start_date = user.date_joined.date() if hasattr(user, 'date_joined') and user.date_joined else timezone.now().date()
         end_date = start_date + datetime.timedelta(days=trial_plan.trial_days or 14)
-        status = Subscription.Status.TRIAL if end_date >= timezone.now().date() else Subscription.Status.EXPIRED
-
+        status_val = Subscription.Status.TRIAL if end_date >= timezone.now().date() else Subscription.Status.EXPIRED
+        
         sub = Subscription.objects.create(
             user=user,
             plan=trial_plan,
-            status=status,
+            status=status_val,
             start_date=start_date,
             end_date=end_date,
             is_auto_renew=False
         )
         return sub
+
     return None
 
 
 def cancel_subscription(user):
     sub = get_user_subscription(user)
     if sub:
+        sub.status = Subscription.Status.CANCELLED
         sub.is_auto_renew = False
-        sub.save(update_fields=['is_auto_renew', 'updated_at'])
+        sub.save(update_fields=['status', 'is_auto_renew', 'updated_at'])
         return sub
     return None

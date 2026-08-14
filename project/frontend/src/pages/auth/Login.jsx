@@ -46,6 +46,7 @@ function Login() {
 
     let loginSuccess = false;
     let mustChangePassword = false;
+    let isSuperAdmin = false;
 
     try {
       const response = await apiService.login({
@@ -57,6 +58,9 @@ function Login() {
       if (response && response.token) {
         mustChangePassword = Boolean(
           response.user?.must_change_password ?? response.user?.mustChangePassword
+        );
+        isSuperAdmin = Boolean(
+          response.user?.is_superuser || response.user?.is_staff
         );
 
         handleLogin({
@@ -81,7 +85,13 @@ function Login() {
     }
 
     if (loginSuccess) {
-      navigate(mustChangePassword ? "/force-password-change" : "/dashboard");
+      if (mustChangePassword) {
+        navigate("/force-password-change");
+      } else if (isSuperAdmin) {
+        navigate("/admin/dashboard");
+      } else {
+        navigate("/dashboard");
+      }
     }
   };
 

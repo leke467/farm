@@ -207,9 +207,9 @@ function Landing() {
                   </a>
                 </li>
                 <li>
-                  <a href="#" className="text-sm sm:text-base text-green-100 hover:text-white">
-                    Contact
-                  </a>
+                  <Link to="/contact" className="text-sm sm:text-base text-green-100 hover:text-white">
+                    Contact Us
+                  </Link>
                 </li>
                 <li>
                   <a href="#" className="text-sm sm:text-base text-green-100 hover:text-white">

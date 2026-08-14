@@ -1,19 +1,22 @@
 import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { FiMenu, FiX, FiArrowRight, FiZap, FiCheckCircle } from "react-icons/fi";
+import { FiMenu, FiX, FiArrowRight, FiZap, FiCheckCircle, FiShield } from "react-icons/fi";
 import Logo from "./Logo";
+import { useUser } from "../context/UserContext";
 
 function Navbar({ dark = false }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
+  const { user } = useUser();
 
   const navLinks = [
     { name: "Home", path: "/" },
     { name: "Features", path: "/features" },
     { name: "Plans & Pricing", path: "/pricing" },
     { name: "About Us", path: "/about" },
+    { name: "Contact Us", path: "/contact" },
   ];
 
   const isActive = (path) => {
@@ -71,6 +74,16 @@ function Navbar({ dark = false }) {
 
           {/* Desktop Right CTA Buttons */}
           <div className="hidden md:flex items-center gap-3">
+            {(user?.is_superuser || user?.is_staff) && (
+              <Link
+                to="/admin/dashboard"
+                className="text-xs font-bold bg-purple-600 hover:bg-purple-500 text-white px-3.5 py-2 rounded-xl transition flex items-center gap-1.5 shadow-md shadow-purple-600/20"
+              >
+                <FiShield size={14} />
+                <span>Superadmin Portal</span>
+              </Link>
+            )}
+
             <Link
               to="/login"
               className={`text-sm font-semibold px-4 py-2 rounded-xl transition ${

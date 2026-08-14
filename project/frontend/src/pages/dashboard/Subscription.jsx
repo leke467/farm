@@ -127,31 +127,52 @@ const Subscription = () => {
     }
   };
 
+  const calculateDaysRemaining = (endDateStr) => {
+    if (!endDateStr) return 0;
+    const end = new Date(endDateStr);
+    const today = new Date();
+    const diffTime = end - today;
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return diffDays > 0 ? diffDays : 0;
+  };
+
   const getStatusBadge = (status) => {
     const s = String(status || "trial").toLowerCase();
     if (s === "active") {
       return (
-        <span className="px-3 py-1 bg-emerald-100 text-emerald-800 border border-emerald-300 font-extrabold text-xs rounded-full uppercase tracking-wider">
+        <span className="px-3 py-1 bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-extrabold text-xs rounded-full uppercase tracking-wider">
           Active Subscription
+        </span>
+      );
+    }
+    if (s === "cancelled") {
+      return (
+        <span className="px-3 py-1 bg-rose-500/20 text-rose-300 border border-rose-500/30 font-extrabold text-xs rounded-full uppercase tracking-wider">
+          Subscription Cancelled
         </span>
       );
     }
     if (s === "expired") {
       return (
-        <span className="px-3 py-1 bg-rose-100 text-rose-800 border border-rose-300 font-extrabold text-xs rounded-full uppercase tracking-wider">
+        <span className="px-3 py-1 bg-rose-500/20 text-rose-300 border border-rose-500/30 font-extrabold text-xs rounded-full uppercase tracking-wider">
           Subscription Expired
         </span>
       );
     }
     return (
-      <span className="px-3 py-1 bg-sky-100 text-sky-800 border border-sky-300 font-extrabold text-xs rounded-full uppercase tracking-wider">
-        14-Day Free Trial
+      <span className="px-3 py-1 bg-sky-500/20 text-sky-300 border border-sky-500/30 font-extrabold text-xs rounded-full uppercase tracking-wider">
+        Free Trial
       </span>
     );
   };
 
+  const hasUsedTrial = Boolean(subscription);
+
   const filteredPlans = plans.filter((p) => {
-    if (p.slug === "free-trial") return true;
+    // Completely remove Free Trial card if user has already used it
+    if (p.slug === "free-trial" || Number(p.price) === 0) {
+      return !hasUsedTrial;
+    }
     if (billingCycle === "yearly") return p.billing_cycle === "yearly" || p.slug.includes("yearly");
     return p.billing_cycle === "monthly" || p.slug.includes("monthly");
   });
@@ -192,7 +213,11 @@ const Subscription = () => {
             <p className="text-slate-400 text-xs mt-1">
               {subscription?.status === "active"
                 ? "Your farm operational features are fully active."
-                : "You are currently enjoying your 14-day free trial."}
+                : subscription?.status === "cancelled"
+                ? "Your subscription auto-renewal is turned off. Access remains active until your plan end date."
+                : subscription?.status === "expired"
+                ? "Your subscription has expired. Upgrade below to restore full feature access."
+                : "You are currently enjoying your free trial."}
             </p>
           </div>
           <div className="flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/30 px-3.5 py-2 rounded-xl text-emerald-400 text-xs font-bold">
@@ -200,7 +225,7 @@ const Subscription = () => {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 text-sm">
+        <div className="grid grid-cols-1 sm:grid-cols-4 gap-6 text-sm">
           <div>
             <p className="text-slate-400 text-xs">Plan Price</p>
             <p className="text-lg font-bold text-emerald-400 mt-0.5">
@@ -216,9 +241,16 @@ const Subscription = () => {
             </p>
           </div>
           <div>
+            <p className="text-slate-400 text-xs">Days Remaining</p>
+            <p className="text-lg font-black text-amber-400 mt-0.5 flex items-center gap-1.5">
+              <FiClock size={16} />
+              <span>{subscription?.days_remaining ?? calculateDaysRemaining(subscription?.end_date)} Days</span>
+            </p>
+          </div>
+          <div>
             <p className="text-slate-400 text-xs">Auto-Renewal</p>
             <p className="text-lg font-bold text-white mt-0.5">
-              {subscription?.is_auto_renew || subscription?.autoRenew ? "Enabled" : "Disabled"}
+              {subscription?.is_auto_renew && subscription?.status === "active" ? "Enabled" : "Disabled"}
             </p>
           </div>
         </div>
@@ -337,10 +369,17 @@ const Subscription = () => {
                   >
                     Current Active Plan
                   </button>
+                ) : plan.price === 0 || plan.slug === "free-trial" ? (
+                  <button
+                    disabled
+                    className="w-full py-3.5 bg-slate-100 text-slate-400 font-bold text-xs rounded-2xl cursor-not-allowed border border-slate-200"
+                  >
+                    Free Trial Already Used
+                  </button>
                 ) : (
                   <button
                     onClick={() => handleSubscribeMonnify(plan)}
-                    disabled={actionLoading || plan.price === 0}
+                    disabled={actionLoading}
                     className="w-full py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs rounded-2xl shadow-lg shadow-emerald-600/20 transition active:scale-95 flex items-center justify-center gap-2"
                   >
                     <FiCreditCard className="text-base" />

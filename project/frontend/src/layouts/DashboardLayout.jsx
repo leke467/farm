@@ -25,6 +25,7 @@ import {
   FiShoppingBag,
   FiCreditCard,
   FiCheckCircle,
+  FiLock,
 } from "react-icons/fi";
 import { motion } from "framer-motion";
 
@@ -631,7 +632,80 @@ function DashboardLayout() {
         </header>
 
         {/* Main Content */}
-        <main className="flex-1 overflow-y-auto bg-gray-50 p-3.5 sm:p-6 lg:p-8">
+        <main className="flex-1 overflow-y-auto bg-gray-50 p-3.5 sm:p-6 lg:p-8 relative">
+          {/* MAIN CONTENT BACKDROP BLUR PAYWALL LOCKOUT MODAL (FIXED VIEWPORT COVERAGE & HALF BLUR) */}
+          {(!user?.is_superuser && !user?.is_staff && subscription && (subscription.status === "expired" || (subscription.status === "cancelled" && (subscription.days_remaining === 0 || subscription.is_active === false)) || subscription.is_active === false)) && !location.pathname.includes("/subscription") && (
+            <div className="fixed top-16 bottom-0 left-0 md:left-64 right-0 z-40 bg-white/80 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
+              <div className="bg-slate-900 border border-slate-800 rounded-3xl max-w-lg w-full p-8 text-center shadow-2xl space-y-6 relative overflow-hidden">
+                {/* Ambient Background Glow */}
+                <div className="absolute -top-20 -left-20 w-40 h-40 bg-rose-500/10 rounded-full blur-3xl pointer-events-none" />
+                <div className="absolute -bottom-20 -right-20 w-40 h-40 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
+
+                <div className="w-16 h-16 bg-rose-500/20 text-rose-400 border border-rose-500/30 rounded-2xl flex items-center justify-center mx-auto shadow-lg shadow-rose-500/20">
+                  <FiLock size={32} />
+                </div>
+
+                <div className="space-y-2">
+                  <h2 className="text-2xl font-black text-white tracking-tight">
+                    Farm Access Locked
+                  </h2>
+                  <p className="text-xs text-slate-400 max-w-md mx-auto leading-relaxed">
+                    Your subscription for <span className="text-white font-bold">{activeFarm?.name || "your farm"}</span> has expired. All operational tabs, animal tracking, crop scheduling, and financial tools are currently suspended.
+                  </p>
+                </div>
+
+                <div className="bg-slate-950 p-4 rounded-2xl border border-slate-800 text-xs space-y-2 text-left">
+                  <div className="flex justify-between items-center text-slate-400">
+                    <span>Account Status:</span>
+                    <span className="text-rose-400 font-bold uppercase tracking-wider bg-rose-500/10 border border-rose-500/20 px-2.5 py-0.5 rounded-full text-[10px]">
+                      {subscription?.status || "Expired"}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center text-slate-400">
+                    <span>Plan Access Ended:</span>
+                    <span className="text-white font-semibold">{subscription?.end_date || "Trial / Plan Period Ended"}</span>
+                  </div>
+                </div>
+
+                <div className="space-y-3 pt-2">
+                  <button
+                    onClick={() => navigate(`/${currentSlug}/subscription`)}
+                    className="w-full bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-black py-4 rounded-2xl text-xs uppercase tracking-wider shadow-xl shadow-emerald-500/20 transition flex items-center justify-center gap-2 cursor-pointer"
+                  >
+                    <FiCreditCard size={18} /> Choose Plan & Renew Subscription
+                  </button>
+
+                  <div className="flex gap-2 pt-1">
+                    {farms && farms.length > 1 && (
+                      <select
+                        onChange={(e) => {
+                          const selected = farms.find((f) => String(f.id) === e.target.value);
+                          if (selected) {
+                            setActiveFarm(selected);
+                            navigate(`/${toFarmSlug(selected.name)}/dashboard`);
+                          }
+                        }}
+                        className="flex-1 bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-300 focus:outline-none focus:border-emerald-500"
+                      >
+                        <option value="">Switch to Another Farm...</option>
+                        {farms.map((f) => (
+                          <option key={f.id} value={f.id}>{f.name}</option>
+                        ))}
+                      </select>
+                    )}
+
+                    <button
+                      onClick={handleLogout}
+                      className="bg-slate-800 hover:bg-slate-700 text-slate-300 px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5"
+                    >
+                      <FiLogOut size={14} /> Logout
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
