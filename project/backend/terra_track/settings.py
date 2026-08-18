@@ -5,7 +5,13 @@ Django settings for terra_track project.
 from pathlib import Path
 from decouple import config
 import os
+import sys
 import dj_database_url
+
+if hasattr(sys.stdout, 'reconfigure'):
+    sys.stdout.reconfigure(encoding='utf-8')
+if hasattr(sys.stderr, 'reconfigure'):
+    sys.stderr.reconfigure(encoding='utf-8')
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -218,6 +224,8 @@ CORS_ALLOWED_ORIGIN_REGEXES = [
     r"^https://.*\.pages\.dev$",
     r"^https://.*\.netlify\.app$",
     r"^https://.*\.up\.railway\.app$",
+    r"^http://localhost:[0-9]+$",
+    r"^http://127\.0\.0\.1:[0-9]+$",
 ]
 CSRF_TRUSTED_ORIGINS = [
     "https://*.workers.dev",
@@ -227,6 +235,9 @@ CSRF_TRUSTED_ORIGINS = [
     "https://livesteads.com",
     "http://localhost:3000",
     "http://localhost:5173",
+    "http://localhost:5174",
+    "http://127.0.0.1:5173",
+    "http://127.0.0.1:5174",
 ]
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 

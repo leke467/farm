@@ -88,6 +88,9 @@ def confirm_payment(payment_reference):
 def get_user_subscription(user, farm_id=None):
     today = timezone.now().date()
 
+    if not user or not hasattr(user, 'id'):
+        return None
+
     try:
         from farms.models import Farm, FarmMember
         from django.db.models import Q
@@ -97,7 +100,12 @@ def get_user_subscription(user, farm_id=None):
             try:
                 farm_ids.append(int(farm_id))
             except (ValueError, TypeError):
-                pass
+                clean_slug = str(farm_id).strip().replace('-', ' ')
+                farm_obj = Farm.objects.filter(
+                    Q(name__iexact=clean_slug) | Q(name__icontains=clean_slug) | Q(owner=user)
+                ).first()
+                if farm_obj:
+                    farm_ids.append(farm_obj.id)
 
         farms = Farm.objects.filter(Q(id__in=farm_ids) | Q(owner=user))
         owner_ids = list(farms.values_list('owner_id', flat=True))
