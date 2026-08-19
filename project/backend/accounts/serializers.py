@@ -129,7 +129,14 @@ class FarmRegistrationSerializer(serializers.ModelSerializer):
         # Seed default categories for the new farm
         from farms.management.commands.seed_default_categories import seed_farm_categories
         seed_farm_categories(farm)
-        
+
+        # Dispatch Brevo welcome email to new farm owner
+        try:
+            from terra_track.email_service import send_welcome_email
+            send_welcome_email(user, farm.name)
+        except Exception:
+            pass
+
         return user
 
 class LoginSerializer(serializers.Serializer):

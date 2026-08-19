@@ -287,4 +287,9 @@ MONNIFY = {
     'SECRET_KEY': config('MONNIFY_SECRET_KEY', default=''),
     'CONTRACT_CODE': config('MONNIFY_CONTRACT_CODE', default=''),
     'BASE_URL': config('MONNIFY_BASE_URL', default='https://sandbox.monnify.com'),
-}
+}
+
+# Brevo Email Configuration
+BREVO_API_KEY = config('BREVO_API_KEY', default='')
+BREVO_SENDER_EMAIL = config('BREVO_SENDER_EMAIL', default='livesteads@apexlabs.it.com')
+DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='livesteads@apexlabs.it.com')

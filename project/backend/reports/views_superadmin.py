@@ -40,7 +40,12 @@ def public_contact_view(request):
     """Public endpoint for submitting contact form messages"""
     serializer = ContactMessageSerializer(data=request.data)
     if serializer.is_valid():
-        serializer.save()
+        msg = serializer.save()
+        try:
+            from terra_track.email_service import send_contact_inquiry_email
+            send_contact_inquiry_email(msg)
+        except Exception:
+            pass
         return Response({
             'success': True,
             'message': 'Thank you! Your message has been received. Our team will contact you shortly.'
