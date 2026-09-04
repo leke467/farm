@@ -122,17 +122,18 @@ class FarmMenuPermission(BasePermission):
     message = "Your farm subscription has expired. Please select a plan and renew your subscription to perform operational actions."
 
     def has_permission(self, request, view):
+        farm = self._get_farm(request, view)
+
         # Subscription payment enforcement for write operations (POST, PUT, PATCH, DELETE)
         if request.method not in SAFE_METHODS and not (request.user.is_superuser or request.user.is_staff):
             from subscriptions.services import get_user_subscription
-            sub = get_user_subscription(request.user)
+            sub = get_user_subscription(request.user, farm_id=farm.id if farm else None)
             if not sub or not sub.is_active_subscription():
                 return False
 
         menu_key = getattr(view, 'farm_menu_key', None)
         if not menu_key:
             return True
-        farm = self._get_farm(request, view)
         if not farm:
             return True
         required_perm = METHOD_PERMISSION_MAP.get(request.method, 'can_view')
@@ -153,7 +154,17 @@ class FarmMenuPermission(BasePermission):
     def _get_farm(self, request, view):
         farm_id = view.kwargs.get('farm_id') or request.query_params.get('farm') or request.query_params.get('farm_id')
         if not farm_id and hasattr(request, 'data') and isinstance(request.data, dict):
-            farm_id = request.data.get('farm')
+            farm_id = request.data.get('farm') or request.data.get('farm_id')
+            if not farm_id and ('animal' in request.data or 'animal_id' in request.data):
+                animal_id = request.data.get('animal') or request.data.get('animal_id')
+                try:
+                    from animals.models import Animal
+                    animal = Animal.objects.filter(pk=animal_id).first()
+                    if animal:
+                        return animal.farm
+                except Exception:
+                    pass
+
         if farm_id:
             try:
                 return Farm.objects.get(pk=farm_id)
