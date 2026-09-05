@@ -103,8 +103,15 @@ class FarmCategory(models.Model):
 
 MENU_CHOICES = [
     ('dashboard', 'Dashboard'),
-    ('animals', 'Animals'),
-    ('crops', 'Crops'),
+    ('animals', 'Animals (Main Menu)'),
+    ('animals-overview', '↳ Animals: Overview'),
+    ('animals-feed', '↳ Animals: Feed Logs'),
+    ('animals-breeding', '↳ Animals: Breeding Logs'),
+    ('crops', 'Crops (Main Menu)'),
+    ('crops-overview', '↳ Crops: Overview'),
+    ('crops-harvest', '↳ Crops: Harvest & Yield Logs'),
+    ('crops-fertilizer', '↳ Crops: Fertilizer Records'),
+    ('crops-weather', '↳ Crops: Weather Impact Logs'),
     ('tasks', 'Tasks'),
     ('inventory', 'Inventory (Main Menu)'),
     ('inventory-overview', '↳ Inventory: Overview'),
