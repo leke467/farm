@@ -26,12 +26,26 @@ import {
   FiMinusCircle,
   FiClock,
   FiTag,
+  FiCompass,
+  FiArrowRight,
 } from "react-icons/fi";
 import apiService from "../../services/api";
 import { useUser } from "../../context/UserContext";
+import { useFarmData } from "../../context/FarmDataContext";
+import { toFarmSlug } from "../../utils/formatters";
 
 const SuperadminDashboard = () => {
   const { user } = useUser();
+  const { setActiveFarm } = useFarmData();
+  const navigate = useNavigate();
+
+  const handleEnterFarm = (farm) => {
+    if (!farm) return;
+    if (setActiveFarm) setActiveFarm(farm);
+    localStorage.setItem("activeFarmId", farm.id);
+    const slug = toFarmSlug(farm.name);
+    navigate(`/${slug}/dashboard`);
+  };
 
   const [activeTab, setActiveTab] = useState("overview");
 
@@ -367,10 +381,10 @@ const SuperadminDashboard = () => {
 
           <div className="flex items-center gap-3">
             <Link
-              to="/testfarm/dashboard"
-              className="bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold px-4 py-2 rounded-xl transition border border-slate-700 flex items-center gap-1.5"
+              to="/admin/select-farm"
+              className="bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs font-black px-4 py-2.5 rounded-xl transition shadow-lg shadow-emerald-500/20 flex items-center gap-2"
             >
-              <FiHome size={14} /> Switch to Farm View
+              <FiCompass size={16} /> Select / Switch Farm Workspace
             </Link>
             <div className="text-right hidden sm:block">
               <p className="text-xs font-bold text-white">{user?.first_name || user?.username || "Admin"}</p>
@@ -469,16 +483,19 @@ const SuperadminDashboard = () => {
                 </p>
               </div>
 
-              <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl">
+              <div
+                onClick={() => navigate("/admin/select-farm")}
+                className="bg-slate-900 border border-slate-800 p-6 rounded-2xl cursor-pointer hover:border-cyan-500/50 transition group"
+              >
                 <div className="flex justify-between items-center mb-4">
-                  <span className="text-xs font-bold uppercase tracking-wider text-slate-400">Registered Farms</span>
-                  <div className="w-10 h-10 bg-cyan-500/10 text-cyan-400 rounded-xl flex items-center justify-center">
+                  <span className="text-xs font-bold uppercase tracking-wider text-slate-400 group-hover:text-cyan-400 transition">Registered Farms</span>
+                  <div className="w-10 h-10 bg-cyan-500/10 text-cyan-400 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
                     <FiHome size={20} />
                   </div>
                 </div>
                 <div className="text-3xl font-black text-white mb-1">{stats?.farms?.total || 0}</div>
-                <p className="text-xs text-slate-400">
-                  {stats?.agriculture?.animals || 0} Animals • {stats?.agriculture?.crops || 0} Crop Batches
+                <p className="text-xs text-cyan-400 font-semibold flex items-center gap-1">
+                  Click to select farm workspace <FiArrowRight size={12} />
                 </p>
               </div>
 
@@ -877,7 +894,13 @@ const SuperadminDashboard = () => {
                       <td className="p-3 text-slate-400 capitalize">{f.farm_type || "Mixed"}</td>
                       <td className="p-3 text-emerald-400 font-bold">{f.animals_count} Head</td>
                       <td className="p-3 text-cyan-400 font-bold">{f.crops_count} Batches</td>
-                      <td className="p-3 text-right">
+                      <td className="p-3 text-right space-x-2">
+                        <button
+                          onClick={() => handleEnterFarm(f)}
+                          className="bg-indigo-500/20 hover:bg-indigo-500/30 text-indigo-300 font-bold px-3 py-1.5 rounded-lg text-xs"
+                        >
+                          <FiArrowRight className="inline mr-1" /> Enter Workspace
+                        </button>
                         <button
                           onClick={() => {
                             setSubModalTarget({ farm_id: f.id, username: f.owner_name, email: f.owner_email });
