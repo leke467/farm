@@ -7,28 +7,28 @@ const UserContext = createContext();
 const normalizeUser = (userData) => {
   if (!userData) return null;
 
-  const firstName = userData.firstName ?? userData.first_name ?? '';
-  const lastName = userData.lastName ?? userData.last_name ?? '';
-  const isAdmin = userData.isAdmin ?? userData.is_admin ?? false;
-  const isSuperuser = userData.isSuperuser ?? userData.is_superuser ?? false;
-  const isStaff = userData.isStaff ?? userData.is_staff ?? false;
+  const first_name = userData.first_name || userData.firstName || '';
+  const last_name = userData.last_name || userData.lastName || '';
+  const isAdmin = Boolean(userData.is_admin ?? userData.isAdmin ?? false);
+  const isSuperuser = Boolean(userData.is_superuser ?? userData.isSuperuser ?? false);
+  const isStaff = Boolean(userData.is_staff ?? userData.isStaff ?? false);
   const mustChangePassword =
-    userData.mustChangePassword ?? userData.must_change_password ?? false;
+    Boolean(userData.must_change_password ?? userData.mustChangePassword ?? false);
 
   return {
     ...userData,
-    firstName,
-    lastName,
-    first_name: userData.first_name ?? firstName,
-    last_name: userData.last_name ?? lastName,
+    first_name,
+    last_name,
+    firstName: first_name,
+    lastName: last_name,
     isAdmin: isAdmin || isSuperuser || isStaff,
-    is_admin: userData.is_admin ?? isAdmin,
+    is_admin: isAdmin || isSuperuser || isStaff,
     isSuperuser,
-    is_superuser: userData.is_superuser ?? isSuperuser,
+    is_superuser: isSuperuser,
     isStaff,
-    is_staff: userData.is_staff ?? isStaff,
+    is_staff: isStaff,
     mustChangePassword,
-    must_change_password: userData.must_change_password ?? mustChangePassword,
+    must_change_password: mustChangePassword,
   };
 };
 

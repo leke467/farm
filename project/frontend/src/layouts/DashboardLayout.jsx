@@ -126,8 +126,8 @@ function DashboardLayout() {
     }));
   };
 
-  const firstName = user?.firstName || user?.first_name || "";
-  const lastName = user?.lastName || user?.last_name || "";
+  const firstName = user?.first_name || user?.firstName || "";
+  const lastName = user?.last_name || user?.lastName || "";
   const username = user?.username || "";
   const displayName =
     [firstName, lastName].filter(Boolean).join(" ") || username || "User";

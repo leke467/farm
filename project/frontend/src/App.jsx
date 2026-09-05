@@ -80,7 +80,7 @@ function App() {
             element={
               !isAuthenticated ? (
                 <Navigate to="/login" replace />
-              ) : (user?.is_superuser || user?.is_staff) ? (
+              ) : (user?.is_superuser || user?.is_staff || user?.is_admin || user?.isAdmin) ? (
                 <SuperadminFarmSelect />
               ) : (
                 <Navigate to="/dashboard" replace />
@@ -92,7 +92,7 @@ function App() {
             element={
               !isAuthenticated ? (
                 <Navigate to="/login" replace />
-              ) : (user?.is_superuser || user?.is_staff) ? (
+              ) : (user?.is_superuser || user?.is_staff || user?.is_admin || user?.isAdmin) ? (
                 <SuperadminFarmSelect />
               ) : (
                 <Navigate to="/dashboard" replace />
@@ -104,7 +104,7 @@ function App() {
             element={
               !isAuthenticated ? (
                 <Navigate to="/login" replace />
-              ) : (user?.is_superuser || user?.is_staff) ? (
+              ) : (user?.is_superuser || user?.is_staff || user?.is_admin || user?.isAdmin) ? (
                 <SuperadminDashboard />
               ) : (
                 <Navigate to="/dashboard" replace />
@@ -122,8 +122,8 @@ function App() {
                     to={
                       mustChangePassword
                         ? "/force-password-change"
-                        : (user?.is_superuser || user?.is_staff)
-                        ? "/admin/dashboard"
+                        : (user?.is_superuser || user?.is_staff || user?.is_admin || user?.isAdmin)
+                        ? "/admin/select-farm"
                         : "/dashboard"
                     }
                     replace
@@ -141,8 +141,8 @@ function App() {
                     to={
                       mustChangePassword
                         ? "/force-password-change"
-                        : (user?.is_superuser || user?.is_staff)
-                        ? "/admin/dashboard"
+                        : (user?.is_superuser || user?.is_staff || user?.is_admin || user?.isAdmin)
+                        ? "/admin/select-farm"
                         : "/dashboard"
                     }
                     replace
