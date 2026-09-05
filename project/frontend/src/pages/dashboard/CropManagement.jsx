@@ -381,41 +381,6 @@ function CropManagement() {
               Add Crop
             </button>
           </div>
-
-          <div className="flex space-x-1 items-center bg-gray-200/70 p-1 rounded-xl w-full sm:w-auto justify-start sm:justify-center overflow-x-auto whitespace-nowrap">
-            <button
-              className={`flex-1 sm:flex-none px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors ${
-                viewTab === "crops" ? "bg-white text-gray-900 shadow-xs" : "text-gray-600 hover:text-gray-900"
-              }`}
-              onClick={() => setViewTab("crops")}
-            >
-              Crops ({safeCrops.length})
-            </button>
-            <button
-              className={`flex-1 sm:flex-none px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors ${
-                viewTab === "harvest_logs" ? "bg-white text-gray-900 shadow-xs" : "text-gray-600 hover:text-gray-900"
-              }`}
-              onClick={() => setViewTab("harvest_logs")}
-            >
-              🌾 Yield Logs ({yieldAnalysis.length})
-            </button>
-            <button
-              className={`flex-1 sm:flex-none px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors ${
-                viewTab === "fertilizer_logs" ? "bg-white text-gray-900 shadow-xs" : "text-gray-600 hover:text-gray-900"
-              }`}
-              onClick={() => setViewTab("fertilizer_logs")}
-            >
-              🌱 Fert ({recommendations.length})
-            </button>
-            <button
-              className={`flex-1 sm:flex-none px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors ${
-                viewTab === "weather_logs" ? "bg-white text-gray-900 shadow-xs" : "text-gray-600 hover:text-gray-900"
-              }`}
-              onClick={() => setViewTab("weather_logs")}
-            >
-              ⛅ Weather ({weatherImpacts.length})
-            </button>
-          </div>
         </div>
       </div>
 

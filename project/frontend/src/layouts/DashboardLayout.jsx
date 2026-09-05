@@ -145,7 +145,6 @@ function DashboardLayout() {
       name: "Animals", 
       icon: <FiUsers size={20} />,
       subItems: [
-        { key: "animals-overview", path: `/${currentSlug}/animals`, name: "Overview" },
         { key: "animals-feed", path: `/${currentSlug}/animals?tab=feed_logs`, name: "Feed Logs" },
         { key: "animals-breeding", path: `/${currentSlug}/animals?tab=breeding_logs`, name: "Breeding Logs" },
       ]
@@ -156,7 +155,6 @@ function DashboardLayout() {
       name: "Crops", 
       icon: <FiGrid size={20} />,
       subItems: [
-        { key: "crops-overview", path: `/${currentSlug}/crops`, name: "Overview" },
         { key: "crops-harvest", path: `/${currentSlug}/crops?tab=harvest_logs`, name: "Harvest & Yield Logs" },
         { key: "crops-fertilizer", path: `/${currentSlug}/crops?tab=fertilizer_logs`, name: "Fertilizer Records" },
         { key: "crops-weather", path: `/${currentSlug}/crops?tab=weather_logs`, name: "Weather Impact Logs" },
@@ -169,7 +167,6 @@ function DashboardLayout() {
       name: "Inventory", 
       icon: <FiPackage size={20} />,
       subItems: [
-        { key: "inventory-overview", path: `/${currentSlug}/inventory`, name: "Overview" },
         { key: "inventory-audits", path: `/${currentSlug}/inventory/audits`, name: "Audits" },
         { key: "inventory-costs", path: `/${currentSlug}/inventory/costs`, name: "Cost Analysis" },
       ]
@@ -317,8 +314,15 @@ function DashboardLayout() {
                   <div key={item.path}>
                     {item.subItems ? (
                       <>
-                        <button
-                          onClick={() => toggleExpandItem(item.key)}
+                        <Link
+                          to={item.path}
+                          onClick={() => {
+                            setExpandedItems((prev) => ({
+                              ...prev,
+                              [item.key]: true,
+                            }));
+                            setSidebarOpen(false);
+                          }}
                           className={`w-full flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors ${
                             isParentActive
                               ? "bg-primary-50 text-primary-600 font-semibold"
@@ -327,10 +331,17 @@ function DashboardLayout() {
                         >
                           <span className="mr-3">{item.icon}</span>
                           {item.name}
-                          <span className="ml-auto text-xs">
+                          <span
+                            className="ml-auto text-xs p-1 hover:bg-gray-200/60 rounded"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              toggleExpandItem(item.key);
+                            }}
+                          >
                             {isExpanded ? "▼" : "▶"}
                           </span>
-                        </button>
+                        </Link>
                         {isExpanded && (
                           <div className="pl-8 space-y-1">
                             {item.subItems.map((subItem) => {
