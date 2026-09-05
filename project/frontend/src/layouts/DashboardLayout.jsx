@@ -635,10 +635,10 @@ function DashboardLayout() {
         <main className="flex-1 overflow-y-auto bg-gray-50 p-3.5 sm:p-6 lg:p-8 relative">
           {/* MAIN CONTENT BACKDROP BLUR PAYWALL LOCKOUT MODAL (FIXED VIEWPORT COVERAGE & HALF BLUR) */}
           {(!user?.is_superuser && !user?.is_staff && subscription && (
+            subscription.is_active === false ||
             String(subscription.status).toLowerCase() === "expired" ||
             String(subscription.status).toLowerCase() === "cancelled" ||
-            subscription.is_active === false ||
-            (subscription.days_remaining !== undefined && subscription.days_remaining <= 0 && String(subscription.status).toLowerCase() !== "active" && String(subscription.status).toLowerCase() !== "trial")
+            (subscription.days_remaining !== undefined && Number(subscription.days_remaining) <= 0)
           )) && !location.pathname.includes("/subscription") && (
             <div className="fixed top-16 bottom-0 left-0 md:left-64 right-0 z-40 bg-white/80 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
               <div className="bg-slate-900 border border-slate-800 rounded-3xl max-w-lg w-full p-8 text-center shadow-2xl space-y-6 relative overflow-hidden">

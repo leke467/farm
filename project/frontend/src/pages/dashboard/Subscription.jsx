@@ -6,12 +6,57 @@ import { useUser } from "../../context/UserContext";
 import { useFarmData } from "../../context/FarmDataContext";
 import { useToast } from "../../context/ToastContext";
 
+const DEFAULT_PLANS = [
+  {
+    id: 2,
+    name: "Pro Monthly",
+    slug: "pro-monthly",
+    price: 8000,
+    original_price: 10000,
+    billing_cycle: "monthly",
+    duration_days: 30,
+    discount_badge: "₦2,000 OFF (20% OFF)",
+    features: [
+      "Unlimited Farm Locations",
+      "Unlimited Animal & Flock Tracking",
+      "Unlimited Crop Management",
+      "Full Sales & Profit Analytics",
+      "AI Agronomist Agent Insights",
+      "Priority Customer Support",
+    ],
+    is_active: true,
+    is_popular: false,
+  },
+  {
+    id: 3,
+    name: "Pro Yearly",
+    slug: "pro-yearly",
+    price: 90000,
+    original_price: 120000,
+    billing_cycle: "yearly",
+    duration_days: 365,
+    discount_badge: "SAVE ₦30,000 (25% OFF)",
+    features: [
+      "Best Value — Equals ₦7,500 / month!",
+      "2 Months Absolutely FREE",
+      "Unlimited Farm Locations",
+      "Unlimited Animal & Flock Tracking",
+      "Unlimited Crop Management",
+      "Full Sales & Profit Analytics",
+      "AI Agronomist Agent Insights",
+      "VIP Priority 24/7 Support",
+    ],
+    is_active: true,
+    is_popular: true,
+  },
+];
+
 const Subscription = () => {
   const { user } = useUser();
   const { activeFarm } = useFarmData();
   const { toast } = useToast();
   const [subscription, setSubscription] = useState(null);
-  const [plans, setPlans] = useState([]);
+  const [plans, setPlans] = useState(DEFAULT_PLANS);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -72,10 +117,15 @@ const Subscription = () => {
 
       if (subData) setSubscription(subData);
       const rawPlans = Array.isArray(plansData) ? plansData : plansData?.results || [];
-      if (rawPlans.length > 0) setPlans(rawPlans);
+      if (rawPlans.length > 0) {
+        setPlans(rawPlans);
+      } else {
+        setPlans(DEFAULT_PLANS);
+      }
     } catch (err) {
       console.error("Error fetching subscription data:", err);
       setError(err._error || "Failed to load subscription information.");
+      setPlans(DEFAULT_PLANS);
     } finally {
       setLoading(false);
     }

@@ -13,6 +13,13 @@ from .gateway import MonnifyGateway
 @permission_classes([AllowAny])
 def plans_list(request):
     plans = SubscriptionPlan.objects.filter(is_active=True)
+    if not plans.exists():
+        try:
+            from django.core.management import call_command
+            call_command('seed_subscription_plans')
+            plans = SubscriptionPlan.objects.filter(is_active=True)
+        except Exception:
+            pass
     serializer = SubscriptionPlanSerializer(plans, many=True)
     return Response(serializer.data)
 
