@@ -45,6 +45,13 @@ function AnimalCard({ animal, onEdit, onDelete, onLogFeed, onRecordProduction, o
     }
   };
   
+  // Format date helper
+  const formatDate = (dateStr) => {
+    if (!dateStr) return 'N/A';
+    const d = new Date(dateStr);
+    return isNaN(d.getTime()) ? 'N/A' : d.toLocaleDateString();
+  };
+
   return (
     <motion.div 
       className="bg-white rounded-xl shadow-md overflow-hidden"
@@ -54,15 +61,19 @@ function AnimalCard({ animal, onEdit, onDelete, onLogFeed, onRecordProduction, o
     >
       {/* Card Header */}
       <div className="p-6 border-b">
-        <div className="flex justify-between items-start">
-          <div>
-            <div className="flex items-center">
-              <h3 className="text-xl font-bold">{animal.name}</h3>
-              <span className={`ml-3 badge ${getStatusColor(animal.status)}`}>
-                {animal.status}
-              </span>
+        <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
+          <div className="flex-1 min-w-0">
+            <div className="flex flex-wrap items-center gap-2">
+              <h3 className="text-xl font-bold text-gray-900 leading-snug break-words">
+                {animal.name}
+              </h3>
+              {animal.status && (
+                <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold uppercase tracking-wider shrink-0 ${getStatusColor(animal.status)}`}>
+                  {animal.status}
+                </span>
+              )}
             </div>
-            <div className="mt-1 text-gray-600">
+            <div className="mt-1 text-sm text-gray-600">
               {animal.isGroup ? (
                 <span>{animal.count} {animal.breed} {animal.type}</span>
               ) : (
@@ -70,11 +81,12 @@ function AnimalCard({ animal, onEdit, onDelete, onLogFeed, onRecordProduction, o
               )}
             </div>
           </div>
-          <div className="flex items-center space-x-2">
+
+          <div className="flex flex-wrap items-center gap-1.5 shrink-0">
             {onRecordProduction && (
               <button
                 onClick={() => onRecordProduction(animal)}
-                className="px-2.5 py-1 text-xs font-bold text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border border-emerald-300 rounded-lg flex items-center gap-1 transition-colors shadow-2xs"
+                className="px-2.5 py-1 text-xs font-bold text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border border-emerald-300 rounded-lg flex items-center gap-1 transition-colors shadow-2xs cursor-pointer"
                 title="Record Milk, Eggs, Wool, or Yield from this animal"
               >
                 <span>🥛 Yield</span>
@@ -83,7 +95,7 @@ function AnimalCard({ animal, onEdit, onDelete, onLogFeed, onRecordProduction, o
             {onAddBreeding && (
               <button
                 onClick={() => onAddBreeding(animal)}
-                className="px-2.5 py-1 text-xs font-bold text-indigo-800 bg-indigo-50 hover:bg-indigo-100 border border-indigo-300 rounded-lg flex items-center gap-1 transition-colors shadow-2xs"
+                className="px-2.5 py-1 text-xs font-bold text-indigo-800 bg-indigo-50 hover:bg-indigo-100 border border-indigo-300 rounded-lg flex items-center gap-1 transition-colors shadow-2xs cursor-pointer"
                 title="Record breeding event or mating log for this animal"
               >
                 <span>🧬 Breeding</span>
@@ -91,19 +103,19 @@ function AnimalCard({ animal, onEdit, onDelete, onLogFeed, onRecordProduction, o
             )}
             <button 
               onClick={() => onEdit(animal)}
-              className="p-2 text-gray-500 hover:text-primary-500 hover:bg-primary-50 rounded-full"
+              className="p-1.5 text-gray-500 hover:text-primary-600 hover:bg-primary-50 rounded-lg transition-colors cursor-pointer"
               aria-label="Edit animal"
               title="Edit animal"
             >
-              <FiEdit2 size={18} />
+              <FiEdit2 size={16} />
             </button>
             <button 
               onClick={() => onDelete(animal.id)}
-              className="p-2 text-gray-500 hover:text-error-500 hover:bg-error-50 rounded-full"
+              className="p-1.5 text-gray-500 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"
               aria-label="Delete animal"
               title="Delete animal"
             >
-              <FiTrash2 size={18} />
+              <FiTrash2 size={16} />
             </button>
           </div>
         </div>
@@ -114,34 +126,38 @@ function AnimalCard({ animal, onEdit, onDelete, onLogFeed, onRecordProduction, o
             <>
               <div>
                 <p className="text-gray-500 mb-1">Count</p>
-                <p className="font-medium">{animal.count}</p>
+                <p className="font-medium">{animal.count ?? 'N/A'}</p>
               </div>
               <div>
                 <p className="text-gray-500 mb-1">Average Weight</p>
-                <p className="font-medium">{animal.avgWeight} {animal.type === 'Fish' ? 'lb' : 'kg'}</p>
+                <p className="font-medium">
+                  {animal.avgWeight || animal.avg_weight ? `${animal.avgWeight || animal.avg_weight} ${animal.type === 'Fish' ? 'lb' : 'kg'}` : 'N/A'}
+                </p>
               </div>
               <div>
                 <p className="text-gray-500 mb-1">Established</p>
-                <p className="font-medium">{new Date(animal.establishedDate || animal.birthDate).toLocaleDateString()}</p>
+                <p className="font-medium">{formatDate(animal.establishedDate || animal.established_date || animal.birthDate || animal.birth_date)}</p>
               </div>
             </>
           ) : (
             <>
               <div>
                 <p className="text-gray-500 mb-1">Age</p>
-                <p className="font-medium">{calculateAge(animal.birthDate)}</p>
+                <p className="font-medium">{calculateAge(animal.birthDate || animal.birth_date)}</p>
               </div>
               <div>
                 <p className="text-gray-500 mb-1">Weight</p>
-                <p className="font-medium">{animal.weight} {animal.type === 'Fish' ? 'lb' : 'kg'}</p>
+                <p className="font-medium">
+                  {animal.weight ? `${animal.weight} ${animal.type === 'Fish' ? 'lb' : 'kg'}` : 'N/A'}
+                </p>
               </div>
               <div>
                 <p className="text-gray-500 mb-1">Gender</p>
-                <p className="font-medium">{animal.gender}</p>
+                <p className="font-medium">{animal.gender || 'N/A'}</p>
               </div>
               <div>
                 <p className="text-gray-500 mb-1">Birth Date</p>
-                <p className="font-medium">{new Date(animal.birthDate).toLocaleDateString()}</p>
+                <p className="font-medium">{formatDate(animal.birthDate || animal.birth_date)}</p>
               </div>
             </>
           )}
