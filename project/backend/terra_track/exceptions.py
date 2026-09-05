@@ -43,10 +43,11 @@ def custom_exception_handler(exc, context):
         
         # Permission denied
         elif response.status_code == status.HTTP_403_FORBIDDEN:
+            detail_msg = getattr(exc, 'detail', None) or (response.data.get('detail') if isinstance(response.data, dict) else None) or "You don't have permission to perform this action"
             return Response(
                 {
                     "status": "error",
-                    "message": "You don't have permission to perform this action"
+                    "message": str(detail_msg)
                 },
                 status=status.HTTP_403_FORBIDDEN
             )
