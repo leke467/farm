@@ -1,28 +1,7 @@
 // Mock data for the farm management application
 
-// Users data (for demo purposes)
-export const users = [
-  {
-    id: '1',
-    username: 'admin',
-    password: 'admin123',
-    firstName: 'Default',
-    lastName: 'Admin',
-    email: 'admin@terra-track.com',
-    role: 'Admin',
-    lastLogin: '2026-09-05T08:30:00'
-  },
-  {
-    id: '2',
-    username: 'demo1234',
-    password: 'password1234',
-    firstName: 'John',
-    lastName: 'Doe',
-    email: 'john@example.com',
-    role: 'Manager',
-    lastLogin: '2023-05-03T16:45:00'
-  }
-];
+// Users data (empty - all users authenticate live with Django backend)
+export const users = [];
 
 // Rest of the mock data remains unchanged
 export const animals = [

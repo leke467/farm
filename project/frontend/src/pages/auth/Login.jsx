@@ -2,7 +2,6 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { HiEye, HiEyeOff } from "react-icons/hi";
 import { useUser } from "../../context/UserContext";
-import { users } from "../../data/mockData";
 import apiService from "../../services/api";
 
 function Login() {
@@ -108,20 +107,8 @@ function Login() {
         return;
       }
     } catch (err) {
-      // Fallback to mock demo user if offline
-    }
-
-    const demoUser = users.find(
-      (u) => u.username === demoUsername || u.password === demoPassword
-    );
-    if (demoUser) {
-      const { password, ...userData } = demoUser;
-      userData.isDemo = true;
-      handleLogin(userData);
-      setLoading(false);
-      navigate("/dashboard");
-    } else {
-      setError("Demo login failed. Please try again.");
+      console.error("Demo button login error:", err);
+      setError("Failed to authenticate demo credentials with server.");
       setLoading(false);
     }
   };
