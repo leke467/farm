@@ -1,6 +1,5 @@
 from decimal import Decimal
 from rest_framework import generics, permissions, status
-from farms.permissions import FarmMenuPermission
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
@@ -8,6 +7,8 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import SearchFilter, OrderingFilter
 from django.utils import timezone
 from django.db.models import Q, F
+from farms.models import Farm
+from farms.permissions import FarmMenuPermission, get_user_farms_queryset
 from .models import (InventoryItem, InventoryTransaction, StockMovement, 
                      InventoryAudit, AuditLineItem, InventoryCostTracking,
                      DemandForecast, SupplierPerformance)
@@ -15,7 +16,6 @@ from .serializers import (InventoryItemDetailedSerializer, InventoryTransactionS
                           StockMovementSerializer, InventoryAuditSerializer, 
                           AuditLineItemSerializer, InventoryCostTrackingSerializer,
                           DemandForecastSerializer, SupplierPerformanceSerializer)
-from farms.models import Farm
 
 class InventoryItemListCreateView(generics.ListCreateAPIView):
     serializer_class = InventoryItemDetailedSerializer
@@ -28,9 +28,7 @@ class InventoryItemListCreateView(generics.ListCreateAPIView):
     ordering = ['name']
     
     def get_queryset(self):
-        user_farms = Farm.objects.filter(
-            Q(owner=self.request.user) | Q(members__user=self.request.user)
-        ).distinct()
+        user_farms = get_user_farms_queryset(self.request.user)
         if not user_farms.exists():
             return InventoryItem.objects.none()
         return InventoryItem.objects.filter(farm__in=user_farms)
@@ -40,13 +38,11 @@ class InventoryItemListCreateView(generics.ListCreateAPIView):
         farm = None
         if farm_id:
             try:
-                farm = Farm.objects.get(pk=farm_id)
-            except (Farm.DoesNotExist, ValueError):
+                farm = get_user_farms_queryset(self.request.user).filter(pk=farm_id).first()
+            except (ValueError, TypeError):
                 pass
         if not farm:
-            farm = Farm.objects.filter(
-                Q(owner=self.request.user) | Q(members__user=self.request.user)
-            ).first()
+            farm = get_user_farms_queryset(self.request.user).first()
         serializer.save(farm=farm)
 
 class InventoryItemDetailView(generics.RetrieveUpdateDestroyAPIView):
@@ -55,9 +51,7 @@ class InventoryItemDetailView(generics.RetrieveUpdateDestroyAPIView):
     farm_menu_key = 'inventory'
     
     def get_queryset(self):
-        user_farms = Farm.objects.filter(
-            Q(owner=self.request.user) | Q(members__user=self.request.user)
-        ).distinct()
+        user_farms = get_user_farms_queryset(self.request.user)
         if not user_farms.exists():
             return InventoryItem.objects.none()
         return InventoryItem.objects.filter(farm__in=user_farms)
@@ -73,9 +67,7 @@ class InventoryTransactionListCreateView(generics.ListCreateAPIView):
     ordering = ['-transaction_date']
     
     def get_queryset(self):
-        user_farms = Farm.objects.filter(
-            Q(owner=self.request.user) | Q(members__user=self.request.user)
-        ).distinct()
+        user_farms = get_user_farms_queryset(self.request.user)
         farm_id = self.request.query_params.get('farm')
         if farm_id:
             return InventoryTransaction.objects.filter(item__farm_id=farm_id, item__farm__in=user_farms)
@@ -100,11 +92,8 @@ class InventoryTransactionDetailView(generics.RetrieveUpdateDestroyAPIView):
     farm_menu_key = 'inventory'
     
     def get_queryset(self):
-        return InventoryTransaction.objects.filter(
-            item__farm__in=Farm.objects.filter(
-                Q(owner=self.request.user) | Q(members__user=self.request.user)
-            )
-        )
+        user_farms = get_user_farms_queryset(self.request.user)
+        return InventoryTransaction.objects.filter(item__farm__in=user_farms)
 
 class StockMovementListCreateView(generics.ListCreateAPIView):
     serializer_class = StockMovementSerializer
@@ -117,11 +106,8 @@ class StockMovementListCreateView(generics.ListCreateAPIView):
     ordering = ['-movement_date']
     
     def get_queryset(self):
-        return StockMovement.objects.filter(
-            item__farm__in=Farm.objects.filter(
-                Q(owner=self.request.user) | Q(members__user=self.request.user)
-            )
-        )
+        user_farms = get_user_farms_queryset(self.request.user)
+        return StockMovement.objects.filter(item__farm__in=user_farms)
 
 class InventoryAuditListCreateView(generics.ListCreateAPIView):
     serializer_class = InventoryAuditSerializer
@@ -133,9 +119,7 @@ class InventoryAuditListCreateView(generics.ListCreateAPIView):
     ordering = ['-audit_date']
     
     def get_queryset(self):
-        user_farms = Farm.objects.filter(
-            Q(owner=self.request.user) | Q(members__user=self.request.user)
-        ).distinct()
+        user_farms = get_user_farms_queryset(self.request.user)
         if not user_farms.exists():
             return InventoryAudit.objects.none()
         farm_id = self.request.query_params.get('farm')
@@ -148,13 +132,11 @@ class InventoryAuditListCreateView(generics.ListCreateAPIView):
         farm = None
         if farm_id:
             try:
-                farm = Farm.objects.get(pk=farm_id)
-            except (Farm.DoesNotExist, ValueError):
+                farm = get_user_farms_queryset(self.request.user).filter(pk=farm_id).first()
+            except (ValueError, TypeError):
                 pass
         if not farm:
-            farm = Farm.objects.filter(
-                Q(owner=self.request.user) | Q(members__user=self.request.user)
-            ).first()
+            farm = get_user_farms_queryset(self.request.user).first()
         serializer.save(farm=farm, created_by=self.request.user.username or self.request.user.email)
 
 class InventoryAuditDetailView(generics.RetrieveUpdateDestroyAPIView):
@@ -163,9 +145,7 @@ class InventoryAuditDetailView(generics.RetrieveUpdateDestroyAPIView):
     farm_menu_key = 'inventory'
     
     def get_queryset(self):
-        user_farms = Farm.objects.filter(
-            Q(owner=self.request.user) | Q(members__user=self.request.user)
-        ).distinct()
+        user_farms = get_user_farms_queryset(self.request.user)
         if not user_farms.exists():
             return InventoryAudit.objects.none()
         return InventoryAudit.objects.filter(farm__in=user_farms)
@@ -174,9 +154,7 @@ class InventoryAuditDetailView(generics.RetrieveUpdateDestroyAPIView):
 @permission_classes([permissions.IsAuthenticated])
 def low_stock_items_view(request):
     """Get all low stock items for user's farms"""
-    user_farms = Farm.objects.filter(
-        Q(owner=request.user) | Q(members__user=request.user)
-    ).distinct()
+    user_farms = get_user_farms_queryset(request.user)
     items = InventoryItem.objects.filter(
         farm__in=user_farms,
         quantity__lte=F('min_quantity')
@@ -188,9 +166,7 @@ def low_stock_items_view(request):
 @permission_classes([permissions.IsAuthenticated])
 def inventory_dashboard_view(request):
     """Get inventory dashboard summary"""
-    user_farms = Farm.objects.filter(
-        Q(owner=request.user) | Q(members__user=request.user)
-    ).distinct()
+    user_farms = get_user_farms_queryset(request.user)
     
     all_items = InventoryItem.objects.filter(farm__in=user_farms)
     
@@ -214,9 +190,7 @@ class DemandForecastListView(generics.ListAPIView):
     ordering = ['-forecast_accuracy']
     
     def get_queryset(self):
-        user_farms = Farm.objects.filter(
-            Q(owner=self.request.user) | Q(members__user=self.request.user)
-        ).distinct()
+        user_farms = get_user_farms_queryset(self.request.user)
         farm_param = self.request.query_params.get('farm') or self.request.query_params.get('farm_id')
         if farm_param:
             try:
@@ -235,9 +209,7 @@ class DemandForecastDetailView(generics.RetrieveUpdateAPIView):
     permission_classes = [permissions.IsAuthenticated]
     
     def get_queryset(self):
-        user_farms = Farm.objects.filter(
-            Q(owner=self.request.user) | Q(members__user=self.request.user)
-        ).distinct()
+        user_farms = get_user_farms_queryset(self.request.user)
         return DemandForecast.objects.filter(farm__in=user_farms)
 
 
@@ -245,9 +217,7 @@ class DemandForecastDetailView(generics.RetrieveUpdateAPIView):
 @permission_classes([permissions.IsAuthenticated])
 def forecast_optimization_view(request):
     """Get optimization recommendations based on forecasts"""
-    user_farms = Farm.objects.filter(
-        Q(owner=request.user) | Q(members__user=request.user)
-    ).distinct()
+    user_farms = get_user_farms_queryset(request.user)
     
     forecasts = DemandForecast.objects.filter(farm__in=user_farms)
     recommendations = []
@@ -297,9 +267,7 @@ class SupplierPerformanceListCreateView(generics.ListCreateAPIView):
     ordering = ['-quality_rating']
     
     def get_queryset(self):
-        user_farms = Farm.objects.filter(
-            Q(owner=self.request.user) | Q(members__user=self.request.user)
-        ).distinct()
+        user_farms = get_user_farms_queryset(self.request.user)
         farm_param = self.request.query_params.get('farm') or self.request.query_params.get('farm_id')
         if farm_param:
             try:
@@ -318,9 +286,7 @@ class SupplierPerformanceDetailView(generics.RetrieveUpdateDestroyAPIView):
     permission_classes = [permissions.IsAuthenticated]
     
     def get_queryset(self):
-        user_farms = Farm.objects.filter(
-            Q(owner=self.request.user) | Q(members__user=self.request.user)
-        ).distinct()
+        user_farms = get_user_farms_queryset(self.request.user)
         return SupplierPerformance.objects.filter(farm__in=user_farms)
 
 
@@ -332,9 +298,7 @@ def supplier_comparison_view(request):
     if not item_id:
         return Response({'error': 'item parameter required'}, status=status.HTTP_400_BAD_REQUEST)
     
-    user_farms = Farm.objects.filter(
-        Q(owner=request.user) | Q(members__user=request.user)
-    ).distinct()
+    user_farms = get_user_farms_queryset(request.user)
     
     suppliers = SupplierPerformance.objects.filter(
         farm__in=user_farms,

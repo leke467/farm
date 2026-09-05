@@ -3,12 +3,10 @@ from rest_framework.response import Response
 from rest_framework import status
 from django.shortcuts import get_object_or_404
 from .models import FarmCategory, Farm, FarmMember
-from .serializers import FarmSerializer # Will need to adjust if we have a specific serializer for categories
+from .serializers import FarmSerializer
 from rest_framework.decorators import api_view, permission_classes
-from .permissions import FarmMenuPermission
+from .permissions import FarmMenuPermission, user_has_farm_access
 
-# Define a simple serializer inline or assume one exists in serializers.py. 
-# We'll just define it inline for categories since it's a new thing.
 from rest_framework import serializers
 
 class FarmCategorySerializer(serializers.ModelSerializer):
@@ -23,17 +21,26 @@ def farm_categories_view(request, farm_id):
     farm = get_object_or_404(Farm, pk=farm_id)
     
     # Check access
-    if farm.owner_id != request.user.id and not FarmMember.objects.filter(farm=farm, user=request.user).exists():
+    if not user_has_farm_access(farm, request.user):
         return Response({'detail': 'Not found.'}, status=status.HTTP_404_NOT_FOUND)
     
     if request.method == 'GET':
         categories = FarmCategory.objects.filter(farm=farm)
+        category_type = request.query_params.get('category_type')
+        if category_type:
+            categories = categories.filter(category_type=category_type)
         serializer = FarmCategorySerializer(categories, many=True)
         return Response(serializer.data)
         
     elif request.method == 'POST':
-        # mutations require owner/manager role
-        if farm.owner_id != request.user.id:
+        # mutations require owner/manager/admin role
+        is_admin = (
+            getattr(request.user, 'is_superuser', False)
+            or getattr(request.user, 'is_staff', False)
+            or getattr(request.user, 'is_admin', False)
+            or farm.owner_id == request.user.id
+        )
+        if not is_admin:
             membership = FarmMember.objects.filter(farm=farm, user=request.user).first()
             if not membership or membership.role not in ['owner', 'manager']:
                 return Response({'detail': 'You do not have permission to perform this action.'}, status=status.HTTP_403_FORBIDDEN)
@@ -51,11 +58,17 @@ def farm_category_detail_view(request, farm_id, category_id):
     farm = get_object_or_404(Farm, pk=farm_id)
     
     # Check access
-    if farm.owner_id != request.user.id and not FarmMember.objects.filter(farm=farm, user=request.user).exists():
+    if not user_has_farm_access(farm, request.user):
         return Response({'detail': 'Not found.'}, status=status.HTTP_404_NOT_FOUND)
         
-    # mutations require owner/manager role
-    if farm.owner_id != request.user.id:
+    # mutations require owner/manager/admin role
+    is_admin = (
+        getattr(request.user, 'is_superuser', False)
+        or getattr(request.user, 'is_staff', False)
+        or getattr(request.user, 'is_admin', False)
+        or farm.owner_id == request.user.id
+    )
+    if not is_admin:
         membership = FarmMember.objects.filter(farm=farm, user=request.user).first()
         if not membership or membership.role not in ['owner', 'manager']:
             return Response({'detail': 'You do not have permission to perform this action.'}, status=status.HTTP_403_FORBIDDEN)

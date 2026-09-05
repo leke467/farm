@@ -1,5 +1,5 @@
 from rest_framework import generics, permissions
-from farms.permissions import FarmMenuPermission
+from farms.permissions import FarmMenuPermission, get_user_farms_queryset
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import SearchFilter, OrderingFilter
 from django.db.models import Q
@@ -24,9 +24,7 @@ class AnimalListCreateView(generics.ListCreateAPIView):
     ordering = ['-created_at']
     
     def get_queryset(self):
-        user_farms = Farm.objects.filter(
-            Q(owner=self.request.user) | Q(members__user=self.request.user)
-        ).distinct()
+        user_farms = get_user_farms_queryset(self.request.user)
         if not user_farms.exists():
             return Animal.objects.none()
         return Animal.objects.filter(farm__in=user_farms)
@@ -40,9 +38,7 @@ class AnimalListCreateView(generics.ListCreateAPIView):
             except (Farm.DoesNotExist, ValueError):
                 pass
         if not farm:
-            farm = Farm.objects.filter(
-                Q(owner=self.request.user) | Q(members__user=self.request.user)
-            ).first()
+            farm = get_user_farms_queryset(self.request.user).first()
         serializer.save(farm=farm)
 
 class AnimalDetailView(generics.RetrieveUpdateDestroyAPIView):
@@ -51,9 +47,7 @@ class AnimalDetailView(generics.RetrieveUpdateDestroyAPIView):
     farm_menu_key = 'animals'
     
     def get_queryset(self):
-        user_farms = Farm.objects.filter(
-            Q(owner=self.request.user) | Q(members__user=self.request.user)
-        ).distinct()
+        user_farms = get_user_farms_queryset(self.request.user)
         if not user_farms.exists():
             return Animal.objects.none()
         return Animal.objects.filter(farm__in=user_farms)
@@ -84,9 +78,7 @@ class WeightRecordListCreateView(generics.ListCreateAPIView):
         animal_id = self.kwargs.get('animal_id')
         return WeightRecord.objects.filter(
             animal_id=animal_id,
-            animal__farm__in=Farm.objects.filter(
-                Q(owner=self.request.user) | Q(members__user=self.request.user)
-            )
+            animal__farm__in=get_user_farms_queryset(self.request.user)
         )
 
 class MedicalRecordListCreateView(generics.ListCreateAPIView):
@@ -95,9 +87,7 @@ class MedicalRecordListCreateView(generics.ListCreateAPIView):
     farm_menu_key = 'animals'
     
     def get_queryset(self):
-        user_farms = Farm.objects.filter(
-            Q(owner=self.request.user) | Q(members__user=self.request.user)
-        )
+        user_farms = get_user_farms_queryset(self.request.user)
         animal_id = self.kwargs.get('animal_id') or self.request.query_params.get('animal') or self.request.query_params.get('animal_id')
         if animal_id:
             return MedicalRecord.objects.filter(animal_id=animal_id, animal__farm__in=user_farms)
@@ -114,9 +104,7 @@ class FeedMixListCreateView(generics.ListCreateAPIView):
     search_fields = ['name', 'description']
     
     def get_queryset(self):
-        user_farms = Farm.objects.filter(
-            Q(owner=self.request.user) | Q(members__user=self.request.user)
-        )
+        user_farms = get_user_farms_queryset(self.request.user)
         farm_id = self.request.query_params.get('farm')
         if farm_id:
             return FeedMix.objects.filter(farm_id=farm_id, farm__in=user_farms)
@@ -131,9 +119,7 @@ class FeedMixListCreateView(generics.ListCreateAPIView):
             except (Farm.DoesNotExist, ValueError):
                 pass
         if not farm:
-            farm = Farm.objects.filter(
-                Q(owner=self.request.user) | Q(members__user=self.request.user)
-            ).first()
+            farm = get_user_farms_queryset(self.request.user).first()
         serializer.save(farm=farm)
 
 class FeedMixDetailView(generics.RetrieveUpdateDestroyAPIView):
@@ -142,9 +128,7 @@ class FeedMixDetailView(generics.RetrieveUpdateDestroyAPIView):
     farm_menu_key = 'animals'
     
     def get_queryset(self):
-        user_farms = Farm.objects.filter(
-            Q(owner=self.request.user) | Q(members__user=self.request.user)
-        )
+        user_farms = get_user_farms_queryset(self.request.user)
         return FeedMix.objects.filter(farm__in=user_farms)
 
 class RecurringFeedScheduleListCreateView(generics.ListCreateAPIView):
@@ -153,9 +137,7 @@ class RecurringFeedScheduleListCreateView(generics.ListCreateAPIView):
     farm_menu_key = 'animals'
     
     def get_queryset(self):
-        user_farms = Farm.objects.filter(
-            Q(owner=self.request.user) | Q(members__user=self.request.user)
-        )
+        user_farms = get_user_farms_queryset(self.request.user)
         farm_id = self.request.query_params.get('farm')
         if farm_id:
             return RecurringFeedSchedule.objects.filter(farm_id=farm_id, farm__in=user_farms)
@@ -170,9 +152,7 @@ class RecurringFeedScheduleListCreateView(generics.ListCreateAPIView):
             except (Farm.DoesNotExist, ValueError):
                 pass
         if not farm:
-            farm = Farm.objects.filter(
-                Q(owner=self.request.user) | Q(members__user=self.request.user)
-            ).first()
+            farm = get_user_farms_queryset(self.request.user).first()
         serializer.save(farm=farm)
 
 class RecurringFeedScheduleDetailView(generics.RetrieveUpdateDestroyAPIView):
@@ -181,9 +161,7 @@ class RecurringFeedScheduleDetailView(generics.RetrieveUpdateDestroyAPIView):
     farm_menu_key = 'animals'
     
     def get_queryset(self):
-        user_farms = Farm.objects.filter(
-            Q(owner=self.request.user) | Q(members__user=self.request.user)
-        )
+        user_farms = get_user_farms_queryset(self.request.user)
         return RecurringFeedSchedule.objects.filter(farm__in=user_farms)
 
 class FeedRecordListCreateView(generics.ListCreateAPIView):
@@ -192,9 +170,7 @@ class FeedRecordListCreateView(generics.ListCreateAPIView):
     farm_menu_key = 'animals'
     
     def get_queryset(self):
-        user_farms = Farm.objects.filter(
-            Q(owner=self.request.user) | Q(members__user=self.request.user)
-        )
+        user_farms = get_user_farms_queryset(self.request.user)
         animal_id = self.kwargs.get('animal_id') or self.request.query_params.get('animal') or self.request.query_params.get('animal_id')
         if animal_id:
             return FeedRecord.objects.filter(animal_id=animal_id, animal__farm__in=user_farms)
@@ -215,9 +191,7 @@ class FeedRecordListCreateView(generics.ListCreateAPIView):
 
         # 1. Handle Recurring Feed Schedule Creation
         if feed_record.is_recurring and feed_record.end_date:
-            farm = animal.farm if animal else Farm.objects.filter(
-                Q(owner=self.request.user) | Q(members__user=self.request.user)
-            ).first()
+            farm = animal.farm if animal else get_user_farms_queryset(self.request.user).first()
             if farm:
                 RecurringFeedSchedule.objects.create(
                     farm=farm,
@@ -243,11 +217,9 @@ class FeedRecordListCreateView(generics.ListCreateAPIView):
             if not farm:
                 farm_id = self.request.data.get('farm') or self.request.query_params.get('farm')
                 if farm_id:
-                    farm = Farm.objects.filter(pk=farm_id).first()
+                    farm = get_user_farms_queryset(self.request.user).filter(pk=farm_id).first()
                 if not farm:
-                    farm = Farm.objects.filter(
-                        Q(owner=self.request.user) | Q(members__user=self.request.user)
-                    ).first()
+                    farm = get_user_farms_queryset(self.request.user).first()
 
             if not farm:
                 return
@@ -309,9 +281,7 @@ class FeedRecordDetailView(generics.RetrieveUpdateDestroyAPIView):
     farm_menu_key = 'animals'
     
     def get_queryset(self):
-        user_farms = Farm.objects.filter(
-            Q(owner=self.request.user) | Q(members__user=self.request.user)
-        )
+        user_farms = get_user_farms_queryset(self.request.user)
         return FeedRecord.objects.filter(animal__farm__in=user_farms)
 
 class VaccinationListCreateView(generics.ListCreateAPIView):
@@ -326,9 +296,7 @@ class VaccinationListCreateView(generics.ListCreateAPIView):
     
     def get_queryset(self):
         return Vaccination.objects.filter(
-            animal__farm__in=Farm.objects.filter(
-                Q(owner=self.request.user) | Q(members__user=self.request.user)
-            )
+            animal__farm__in=get_user_farms_queryset(self.request.user)
         )
 
 class VaccinationDetailView(generics.RetrieveUpdateDestroyAPIView):
@@ -338,9 +306,7 @@ class VaccinationDetailView(generics.RetrieveUpdateDestroyAPIView):
     
     def get_queryset(self):
         return Vaccination.objects.filter(
-            animal__farm__in=Farm.objects.filter(
-                Q(owner=self.request.user) | Q(members__user=self.request.user)
-            )
+            animal__farm__in=get_user_farms_queryset(self.request.user)
         )
 
 class BreedingCalendarListCreateView(generics.ListCreateAPIView):
@@ -355,9 +321,7 @@ class BreedingCalendarListCreateView(generics.ListCreateAPIView):
     
     def get_queryset(self):
         return BreedingCalendar.objects.filter(
-            animal__farm__in=Farm.objects.filter(
-                Q(owner=self.request.user) | Q(members__user=self.request.user)
-            )
+            animal__farm__in=get_user_farms_queryset(self.request.user)
         )
 
 class BreedingCalendarDetailView(generics.RetrieveUpdateDestroyAPIView):
@@ -367,9 +331,7 @@ class BreedingCalendarDetailView(generics.RetrieveUpdateDestroyAPIView):
     
     def get_queryset(self):
         return BreedingCalendar.objects.filter(
-            animal__farm__in=Farm.objects.filter(
-                Q(owner=self.request.user) | Q(members__user=self.request.user)
-            )
+            animal__farm__in=get_user_farms_queryset(self.request.user)
         )
 
 class HealthAlertListCreateView(generics.ListCreateAPIView):
@@ -384,9 +346,7 @@ class HealthAlertListCreateView(generics.ListCreateAPIView):
     
     def get_queryset(self):
         return HealthAlert.objects.filter(
-            animal__farm__in=Farm.objects.filter(
-                Q(owner=self.request.user) | Q(members__user=self.request.user)
-            )
+            animal__farm__in=get_user_farms_queryset(self.request.user)
         )
 
 class BreedingRecordListCreateView(generics.ListCreateAPIView):
@@ -400,9 +360,7 @@ class BreedingRecordListCreateView(generics.ListCreateAPIView):
 
     def get_queryset(self):
         farm_param = self.request.query_params.get('farm') or self.request.query_params.get('farm_id')
-        user_farms = Farm.objects.filter(
-            Q(owner=self.request.user) | Q(members__user=self.request.user)
-        )
+        user_farms = get_user_farms_queryset(self.request.user)
         if farm_param:
             user_farms = user_farms.filter(id=farm_param)
 
@@ -417,9 +375,7 @@ class BreedingRecordDetailView(generics.RetrieveUpdateDestroyAPIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
-        user_farms = Farm.objects.filter(
-            Q(owner=self.request.user) | Q(members__user=self.request.user)
-        )
+        user_farms = get_user_farms_queryset(self.request.user)
         return BreedingRecord.objects.filter(
             Q(breeding__animal__farm__in=user_farms) |
             Q(sire_animal__farm__in=user_farms) |
@@ -438,9 +394,7 @@ class ProductionRecordListCreateView(generics.ListCreateAPIView):
 
     def get_queryset(self):
         return ProductionRecord.objects.filter(
-            animal__farm__in=Farm.objects.filter(
-                Q(owner=self.request.user) | Q(members__user=self.request.user)
-            )
+            animal__farm__in=get_user_farms_queryset(self.request.user)
         )
 
     def perform_create(self, serializer):
@@ -496,9 +450,7 @@ class ProductionRecordDetailView(generics.RetrieveUpdateDestroyAPIView):
 
     def get_queryset(self):
         return ProductionRecord.objects.filter(
-            animal__farm__in=Farm.objects.filter(
-                Q(owner=self.request.user) | Q(members__user=self.request.user)
-            )
+            animal__farm__in=get_user_farms_queryset(self.request.user)
         )
 
 class AnimalProductionMetricsListView(generics.ListAPIView):
@@ -511,9 +463,7 @@ class AnimalProductionMetricsListView(generics.ListAPIView):
     ordering = ['-annual_revenue']
 
     def get_queryset(self):
-        user_farms = Farm.objects.filter(
-            Q(owner=self.request.user) | Q(members__user=self.request.user)
-        ).distinct()
+        user_farms = get_user_farms_queryset(self.request.user)
         for f in user_farms:
             from farms.analytics_generator import ensure_analytics_data_for_farm
             ensure_analytics_data_for_farm(f)
@@ -526,9 +476,7 @@ class AnimalProductionMetricsDetailView(generics.RetrieveAPIView):
 
     def get_queryset(self):
         return AnimalProductionMetrics.objects.filter(
-            animal__farm__in=Farm.objects.filter(
-                Q(owner=self.request.user) | Q(members__user=self.request.user)
-            )
+            animal__farm__in=get_user_farms_queryset(self.request.user)
         )
 
 class HealthAlertDetailView(generics.RetrieveUpdateDestroyAPIView):
@@ -538,7 +486,5 @@ class HealthAlertDetailView(generics.RetrieveUpdateDestroyAPIView):
     
     def get_queryset(self):
         return HealthAlert.objects.filter(
-            animal__farm__in=Farm.objects.filter(
-                Q(owner=self.request.user) | Q(members__user=self.request.user)
-            )
+            animal__farm__in=get_user_farms_queryset(self.request.user)
         )

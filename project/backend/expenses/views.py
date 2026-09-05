@@ -1,5 +1,5 @@
 from rest_framework import generics, permissions, status
-from farms.permissions import FarmMenuPermission
+from farms.permissions import FarmMenuPermission, get_user_farms_queryset
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import SearchFilter, OrderingFilter
 from rest_framework.decorators import api_view, permission_classes
@@ -21,9 +21,7 @@ class ExpenseListCreateView(generics.ListCreateAPIView):
     ordering = ['-date']
     
     def get_queryset(self):
-        user_farms = Farm.objects.filter(
-            Q(owner=self.request.user) | Q(members__user=self.request.user)
-        ).distinct()
+        user_farms = get_user_farms_queryset(self.request.user)
         queryset = Expense.objects.filter(farm__in=user_farms)
         farm_param = self.request.query_params.get('farm') or self.request.query_params.get('farm_id')
         if farm_param:
@@ -47,13 +45,11 @@ class ExpenseListCreateView(generics.ListCreateAPIView):
         farm = None
         if farm_id:
             try:
-                farm = Farm.objects.get(pk=farm_id)
-            except (Farm.DoesNotExist, ValueError):
+                farm = get_user_farms_queryset(self.request.user).filter(pk=farm_id).first()
+            except (ValueError, TypeError):
                 pass
         if not farm:
-            farm = Farm.objects.filter(
-                Q(owner=self.request.user) | Q(members__user=self.request.user)
-            ).first()
+            farm = get_user_farms_queryset(self.request.user).first()
         serializer.save(farm=farm)
 
 class ExpenseDetailView(generics.RetrieveUpdateDestroyAPIView):
@@ -62,9 +58,7 @@ class ExpenseDetailView(generics.RetrieveUpdateDestroyAPIView):
     farm_menu_key = 'expenses'
     
     def get_queryset(self):
-        user_farms = Farm.objects.filter(
-            Q(owner=self.request.user) | Q(members__user=self.request.user)
-        ).distinct()
+        user_farms = get_user_farms_queryset(self.request.user)
         if not user_farms.exists():
             return Expense.objects.none()
         return Expense.objects.filter(farm__in=user_farms)
@@ -75,9 +69,7 @@ class BudgetListCreateView(generics.ListCreateAPIView):
     farm_menu_key = 'expenses'
     
     def get_queryset(self):
-        user_farms = Farm.objects.filter(
-            Q(owner=self.request.user) | Q(members__user=self.request.user)
-        ).distinct()
+        user_farms = get_user_farms_queryset(self.request.user)
         return Budget.objects.filter(farm__in=user_farms)
 
 class BudgetDetailView(generics.RetrieveUpdateDestroyAPIView):
@@ -86,9 +78,7 @@ class BudgetDetailView(generics.RetrieveUpdateDestroyAPIView):
     farm_menu_key = 'expenses'
     
     def get_queryset(self):
-        user_farms = Farm.objects.filter(
-            Q(owner=self.request.user) | Q(members__user=self.request.user)
-        ).distinct()
+        user_farms = get_user_farms_queryset(self.request.user)
         return Budget.objects.filter(farm__in=user_farms)
 
 class RevenueListCreateView(generics.ListCreateAPIView):
@@ -101,9 +91,7 @@ class RevenueListCreateView(generics.ListCreateAPIView):
     ordering = ['-date']
 
     def get_queryset(self):
-        user_farms = Farm.objects.filter(
-            Q(owner=self.request.user) | Q(members__user=self.request.user)
-        ).distinct()
+        user_farms = get_user_farms_queryset(self.request.user)
         farm_param = self.request.query_params.get('farm') or self.request.query_params.get('farm_id')
         if farm_param:
             try:
@@ -120,13 +108,11 @@ class RevenueListCreateView(generics.ListCreateAPIView):
         farm = None
         if farm_id:
             try:
-                farm = Farm.objects.get(pk=farm_id)
-            except (Farm.DoesNotExist, ValueError):
+                farm = get_user_farms_queryset(self.request.user).filter(pk=farm_id).first()
+            except (ValueError, TypeError):
                 pass
         if not farm:
-            farm = Farm.objects.filter(
-                Q(owner=self.request.user) | Q(members__user=self.request.user)
-            ).first()
+            farm = get_user_farms_queryset(self.request.user).first()
         serializer.save(farm=farm)
 
 class RevenueDetailView(generics.RetrieveUpdateDestroyAPIView):
@@ -134,9 +120,7 @@ class RevenueDetailView(generics.RetrieveUpdateDestroyAPIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
-        user_farms = Farm.objects.filter(
-            Q(owner=self.request.user) | Q(members__user=self.request.user)
-        ).distinct()
+        user_farms = get_user_farms_queryset(self.request.user)
         return Revenue.objects.filter(farm__in=user_farms)
 
 class FinancialAnalysisListCreateView(generics.ListCreateAPIView):
@@ -149,9 +133,7 @@ class FinancialAnalysisListCreateView(generics.ListCreateAPIView):
     ordering = ['-year', '-month']
 
     def get_queryset(self):
-        user_farms = Farm.objects.filter(
-            Q(owner=self.request.user) | Q(members__user=self.request.user)
-        ).distinct()
+        user_farms = get_user_farms_queryset(self.request.user)
         farm_param = self.request.query_params.get('farm') or self.request.query_params.get('farm_id')
         if farm_param:
             try:
@@ -168,9 +150,7 @@ class FinancialAnalysisDetailView(generics.RetrieveUpdateDestroyAPIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
-        user_farms = Farm.objects.filter(
-            Q(owner=self.request.user) | Q(members__user=self.request.user)
-        ).distinct()
+        user_farms = get_user_farms_queryset(self.request.user)
         return FinancialAnalysis.objects.filter(farm__in=user_farms)
 
 class DebtManagementListCreateView(generics.ListCreateAPIView):
@@ -183,9 +163,7 @@ class DebtManagementListCreateView(generics.ListCreateAPIView):
     ordering = ['-due_date']
 
     def get_queryset(self):
-        user_farms = Farm.objects.filter(
-            Q(owner=self.request.user) | Q(members__user=self.request.user)
-        ).distinct()
+        user_farms = get_user_farms_queryset(self.request.user)
         farm_param = self.request.query_params.get('farm') or self.request.query_params.get('farm_id')
         if farm_param:
             try:
@@ -202,13 +180,11 @@ class DebtManagementListCreateView(generics.ListCreateAPIView):
         farm = None
         if farm_id:
             try:
-                farm = Farm.objects.get(pk=farm_id)
-            except (Farm.DoesNotExist, ValueError):
+                farm = get_user_farms_queryset(self.request.user).filter(pk=farm_id).first()
+            except (ValueError, TypeError):
                 pass
         if not farm:
-            farm = Farm.objects.filter(
-                Q(owner=self.request.user) | Q(members__user=self.request.user)
-            ).first()
+            farm = get_user_farms_queryset(self.request.user).first()
         serializer.save(farm=farm)
 
 class DebtManagementDetailView(generics.RetrieveUpdateDestroyAPIView):
@@ -216,9 +192,7 @@ class DebtManagementDetailView(generics.RetrieveUpdateDestroyAPIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
-        user_farms = Farm.objects.filter(
-            Q(owner=self.request.user) | Q(members__user=self.request.user)
-        ).distinct()
+        user_farms = get_user_farms_queryset(self.request.user)
         return DebtManagement.objects.filter(farm__in=user_farms)
 
 @api_view(['GET'])
@@ -227,9 +201,7 @@ def expense_summary_view(request):
     current_year = datetime.now().year
     current_month = datetime.now().month
     
-    user_farms = Farm.objects.filter(
-        Q(owner=request.user) | Q(members__user=request.user)
-    ).distinct()
+    user_farms = get_user_farms_queryset(request.user)
     
     # Total expenses this year
     year_total = Expense.objects.filter(

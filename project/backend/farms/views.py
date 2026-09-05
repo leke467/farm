@@ -12,6 +12,7 @@ from .serializers import (
     RolePermissionBulkUpdateSerializer,
     UserPermissionBulkUpdateSerializer,
 )
+from .permissions import get_user_farms_queryset, user_has_farm_access
 
 
 PERMISSION_FIELDS = ['can_view', 'can_create', 'can_edit', 'can_delete']
@@ -134,10 +135,14 @@ DEFAULT_ROLE_PERMISSIONS = {
 
 
 def has_farm_access(farm, user):
-    return farm.owner_id == user.id or FarmMember.objects.filter(farm=farm, user=user).exists()
+    return user_has_farm_access(farm, user)
 
 
 def get_user_role_for_farm(farm, user):
+    if not user or not user.is_authenticated:
+        return 'viewer'
+    if getattr(user, 'is_superuser', False) or getattr(user, 'is_staff', False) or getattr(user, 'is_admin', False):
+        return 'owner'
     if farm.owner_id == user.id:
         return 'owner'
     membership = FarmMember.objects.filter(farm=farm, user=user).first()
@@ -217,10 +222,7 @@ class FarmListCreateView(generics.ListCreateAPIView):
     permission_classes = [permissions.IsAuthenticated]
     
     def get_queryset(self):
-        return Farm.objects.filter(
-            models.Q(owner=self.request.user) | 
-            models.Q(members__user=self.request.user)
-        ).annotate(
+        return get_user_farms_queryset(self.request.user).annotate(
             num_animals=models.Count('animals', distinct=True)
         ).order_by('-num_animals', 'id').distinct()
 
@@ -229,10 +231,7 @@ class FarmDetailView(generics.RetrieveUpdateDestroyAPIView):
     permission_classes = [permissions.IsAuthenticated]
     
     def get_queryset(self):
-        return Farm.objects.filter(
-            models.Q(owner=self.request.user) | 
-            models.Q(members__user=self.request.user)
-        ).distinct()
+        return get_user_farms_queryset(self.request.user)
 
     def update(self, request, *args, **kwargs):
         if request.user.username in ['demo', 'demo1234'] or getattr(request.user, 'is_demo', False):
@@ -253,10 +252,7 @@ class FarmDetailView(generics.RetrieveUpdateDestroyAPIView):
 @api_view(['GET'])
 @permission_classes([permissions.IsAuthenticated])
 def user_farms_view(request):
-    farms = Farm.objects.filter(
-        models.Q(owner=request.user) | 
-        models.Q(members__user=request.user)
-    ).annotate(
+    farms = get_user_farms_queryset(request.user).annotate(
         num_animals=models.Count('animals', distinct=True)
     ).order_by('-num_animals', 'id').distinct()
     serializer = FarmSerializer(farms, many=True, context={'request': request})
@@ -268,11 +264,7 @@ def user_farms_view(request):
 def farm_members_view(request, farm_id):
     farm = get_object_or_404(Farm, pk=farm_id)
 
-    has_farm_access = (
-        farm.owner_id == request.user.id
-        or FarmMember.objects.filter(farm=farm, user=request.user).exists()
-    )
-    if not has_farm_access:
+    if not has_farm_access(farm, request.user):
         return Response({'detail': 'Not found.'}, status=status.HTTP_404_NOT_FOUND)
 
     if request.method == 'GET':
@@ -282,7 +274,13 @@ def farm_members_view(request, farm_id):
         serializer = FarmMemberSerializer(page, many=True)
         return paginator.get_paginated_response(serializer.data)
 
-    if not request.user.is_admin:
+    is_admin = (
+        getattr(request.user, 'is_superuser', False)
+        or getattr(request.user, 'is_staff', False)
+        or getattr(request.user, 'is_admin', False)
+        or farm.owner_id == request.user.id
+    )
+    if not is_admin:
         return Response(
             {'detail': 'Only admin users can create farm members.'},
             status=status.HTTP_403_FORBIDDEN,
@@ -338,7 +336,13 @@ def farm_role_permissions_view(request, farm_id, role):
     farm = get_object_or_404(Farm, pk=farm_id)
     if not has_farm_access(farm, request.user):
         return Response({'detail': 'Not found.'}, status=status.HTTP_404_NOT_FOUND)
-    if not request.user.is_admin:
+    is_admin = (
+        getattr(request.user, 'is_superuser', False)
+        or getattr(request.user, 'is_staff', False)
+        or getattr(request.user, 'is_admin', False)
+        or farm.owner_id == request.user.id
+    )
+    if not is_admin:
         return Response({'detail': 'Only admins can manage role permissions.'}, status=status.HTTP_403_FORBIDDEN)
 
     valid_roles = {key for key, _ in FarmMember.ROLE_CHOICES}
@@ -376,7 +380,13 @@ def farm_user_permissions_view(request, farm_id, user_id):
     farm = get_object_or_404(Farm, pk=farm_id)
     if not has_farm_access(farm, request.user):
         return Response({'detail': 'Not found.'}, status=status.HTTP_404_NOT_FOUND)
-    if not request.user.is_admin:
+    is_admin = (
+        getattr(request.user, 'is_superuser', False)
+        or getattr(request.user, 'is_staff', False)
+        or getattr(request.user, 'is_admin', False)
+        or farm.owner_id == request.user.id
+    )
+    if not is_admin:
         return Response({'detail': 'Only admins can manage user permissions.'}, status=status.HTTP_403_FORBIDDEN)
 
     target_membership = FarmMember.objects.filter(farm=farm, user_id=user_id).select_related('user').first()

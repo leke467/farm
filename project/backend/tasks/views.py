@@ -1,5 +1,5 @@
 from rest_framework import generics, permissions
-from farms.permissions import FarmMenuPermission
+from farms.permissions import FarmMenuPermission, get_user_farms_queryset
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import SearchFilter, OrderingFilter
 from django.utils import timezone
@@ -19,9 +19,7 @@ class TaskListCreateView(generics.ListCreateAPIView):
     ordering = ['due_date']
     
     def get_queryset(self):
-        user_farms = Farm.objects.filter(
-            Q(owner=self.request.user) | Q(members__user=self.request.user)
-        ).distinct()
+        user_farms = get_user_farms_queryset(self.request.user)
         if not user_farms.exists():
             return Task.objects.none()
         return Task.objects.filter(farm__in=user_farms)
@@ -32,9 +30,7 @@ class TaskDetailView(generics.RetrieveUpdateDestroyAPIView):
     farm_menu_key = 'tasks'
     
     def get_queryset(self):
-        user_farms = Farm.objects.filter(
-            Q(owner=self.request.user) | Q(members__user=self.request.user)
-        ).distinct()
+        user_farms = get_user_farms_queryset(self.request.user)
         if not user_farms.exists():
             return Task.objects.none()
         return Task.objects.filter(farm__in=user_farms)
@@ -52,11 +48,10 @@ class TaskCommentListCreateView(generics.ListCreateAPIView):
     
     def get_queryset(self):
         task_id = self.kwargs.get('task_id')
+        user_farms = get_user_farms_queryset(self.request.user)
         return TaskComment.objects.filter(
             task_id=task_id,
-            task__farm__in=Farm.objects.filter(
-                Q(owner=self.request.user) | Q(members__user=self.request.user)
-            )
+            task__farm__in=user_farms
         )
     
     def perform_create(self, serializer):

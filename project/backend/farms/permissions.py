@@ -101,7 +101,39 @@ DEFAULT_ROLE_PERMISSIONS = {
 }
 
 
+def get_user_farms_queryset(user):
+    """
+    Returns a queryset of Farm objects accessible by the user.
+    Superusers, staff, and admins have access to all farms.
+    Standard users have access to farms they own or are members of.
+    """
+    if not user or not user.is_authenticated:
+        return Farm.objects.none()
+    if getattr(user, 'is_superuser', False) or getattr(user, 'is_staff', False) or getattr(user, 'is_admin', False):
+        return Farm.objects.all()
+    return Farm.objects.filter(
+        Q(owner=user) | Q(members__user=user)
+    ).distinct()
+
+
+def user_has_farm_access(farm, user):
+    """
+    Checks if a user has access to a specific farm.
+    Superusers, staff, and admin have access to all farms.
+    Standard users must own the farm or be in FarmMember.
+    """
+    if not user or not user.is_authenticated or not farm:
+        return False
+    if getattr(user, 'is_superuser', False) or getattr(user, 'is_staff', False) or getattr(user, 'is_admin', False):
+        return True
+    return farm.owner_id == user.id or FarmMember.objects.filter(farm=farm, user=user).exists()
+
+
 def get_user_farm_role(farm, user):
+    if not user or not user.is_authenticated:
+        return None
+    if getattr(user, 'is_superuser', False) or getattr(user, 'is_staff', False) or getattr(user, 'is_admin', False):
+        return 'owner'
     if farm.owner_id == user.id:
         return 'owner'
     membership = FarmMember.objects.filter(farm=farm, user=user).first()
@@ -114,9 +146,7 @@ def get_effective_permission(farm, user, menu_key):
     if farm.owner_id == user.id or getattr(user, 'is_superuser', False) or getattr(user, 'is_admin', False) or getattr(user, 'is_staff', False) or getattr(user, 'is_demo', False) or user.username in ['demo', 'demo1234']:
         return {'can_view': True, 'can_create': True, 'can_edit': True, 'can_delete': True}
 
-    user_farms = Farm.objects.filter(
-        Q(owner=user) | Q(members__user=user)
-    ).distinct()
+    user_farms = get_user_farms_queryset(user)
 
     if user_farms.exists():
         role = get_user_farm_role(farm, user)
@@ -198,9 +228,7 @@ class FarmMenuPermission(BasePermission):
                 return Farm.objects.get(pk=farm_id)
             except (Farm.DoesNotExist, ValueError):
                 pass
-        user_farms = Farm.objects.filter(
-            Q(owner=request.user) | Q(members__user=request.user)
-        ).distinct()
+        user_farms = get_user_farms_queryset(request.user)
         return user_farms.first()
 
     def _get_farm_from_object(self, obj):

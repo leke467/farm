@@ -11,17 +11,16 @@ from farms.models import Farm
 
 def get_user_farm(request):
     """Helper to resolve the target farm for the user."""
-    from django.db.models import Q
-    farm_id = request.query_params.get('farm_id') or request.query_params.get('farm') or request.data.get('farm_id')
+    from farms.permissions import get_user_farms_queryset
+    user_farms = get_user_farms_queryset(request.user)
+    farm_id = request.query_params.get('farm_id') or request.query_params.get('farm') or (request.data.get('farm_id') if hasattr(request, 'data') and isinstance(request.data, dict) else None)
     if farm_id:
         try:
-            return Farm.objects.get(pk=farm_id)
-        except (Farm.DoesNotExist, ValueError):
+            target = user_farms.filter(pk=farm_id).first()
+            if target:
+                return target
+        except (ValueError, TypeError):
             pass
-            
-    user_farms = Farm.objects.filter(
-        Q(owner=request.user) | Q(members__user=request.user)
-    ).distinct()
 
     for farm in user_farms:
         if farm.animals.exists() or farm.crops.exists() or farm.inventory.exists() or farm.expenses.exists():

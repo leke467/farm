@@ -1,5 +1,5 @@
 from rest_framework import generics, permissions
-from farms.permissions import FarmMenuPermission
+from farms.permissions import FarmMenuPermission, get_user_farms_queryset
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import SearchFilter, OrderingFilter
 from django.db.models import Q
@@ -18,9 +18,7 @@ class CropListCreateView(generics.ListCreateAPIView):
     ordering = ['-created_at']
     
     def get_queryset(self):
-        user_farms = Farm.objects.filter(
-            Q(owner=self.request.user) | Q(members__user=self.request.user)
-        ).distinct()
+        user_farms = get_user_farms_queryset(self.request.user)
         if not user_farms.exists():
             return Crop.objects.none()
         return Crop.objects.filter(farm__in=user_farms)
@@ -31,9 +29,7 @@ class CropDetailView(generics.RetrieveUpdateDestroyAPIView):
     farm_menu_key = 'crops'
     
     def get_queryset(self):
-        user_farms = Farm.objects.filter(
-            Q(owner=self.request.user) | Q(members__user=self.request.user)
-        ).distinct()
+        user_farms = get_user_farms_queryset(self.request.user)
         if not user_farms.exists():
             return Crop.objects.none()
         return Crop.objects.filter(farm__in=user_farms)
@@ -45,11 +41,10 @@ class GrowthStageListCreateView(generics.ListCreateAPIView):
     
     def get_queryset(self):
         crop_id = self.kwargs.get('crop_id')
+        user_farms = get_user_farms_queryset(self.request.user)
         return GrowthStage.objects.filter(
             crop_id=crop_id,
-            crop__farm__in=Farm.objects.filter(
-                Q(owner=self.request.user) | Q(members__user=self.request.user)
-            )
+            crop__farm__in=user_farms
         )
 class CropYieldAnalysisListCreateView(generics.ListCreateAPIView):
     serializer_class = CropYieldAnalysisSerializer
@@ -61,9 +56,7 @@ class CropYieldAnalysisListCreateView(generics.ListCreateAPIView):
     ordering = ['-last_updated']
 
     def get_queryset(self):
-        user_farms = Farm.objects.filter(
-            Q(owner=self.request.user) | Q(members__user=self.request.user)
-        ).distinct()
+        user_farms = get_user_farms_queryset(self.request.user)
         farm_param = self.request.query_params.get('farm') or self.request.query_params.get('farm_id')
         if farm_param:
             try:
@@ -80,11 +73,8 @@ class CropYieldAnalysisDetailView(generics.RetrieveUpdateDestroyAPIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
-        return CropYieldAnalysis.objects.filter(
-            crop__farm__in=Farm.objects.filter(
-                Q(owner=self.request.user) | Q(members__user=self.request.user)
-            )
-        )
+        user_farms = get_user_farms_queryset(self.request.user)
+        return CropYieldAnalysis.objects.filter(crop__farm__in=user_farms)
 
 class FertilizerRecommendationListCreateView(generics.ListCreateAPIView):
     serializer_class = FertilizerRecommendationSerializer
@@ -96,9 +86,7 @@ class FertilizerRecommendationListCreateView(generics.ListCreateAPIView):
     ordering = ['-created_at']
 
     def get_queryset(self):
-        user_farms = Farm.objects.filter(
-            Q(owner=self.request.user) | Q(members__user=self.request.user)
-        ).distinct()
+        user_farms = get_user_farms_queryset(self.request.user)
         farm_param = self.request.query_params.get('farm') or self.request.query_params.get('farm_id')
         if farm_param:
             try:
@@ -115,11 +103,8 @@ class FertilizerRecommendationDetailView(generics.RetrieveUpdateDestroyAPIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
-        return FertilizerRecommendation.objects.filter(
-            crop__farm__in=Farm.objects.filter(
-                Q(owner=self.request.user) | Q(members__user=self.request.user)
-            )
-        )
+        user_farms = get_user_farms_queryset(self.request.user)
+        return FertilizerRecommendation.objects.filter(crop__farm__in=user_farms)
 
 class WeatherImpactRecordListCreateView(generics.ListCreateAPIView):
     serializer_class = WeatherImpactRecordSerializer
@@ -131,9 +116,7 @@ class WeatherImpactRecordListCreateView(generics.ListCreateAPIView):
     ordering = ['-impact_date']
 
     def get_queryset(self):
-        user_farms = Farm.objects.filter(
-            Q(owner=self.request.user) | Q(members__user=self.request.user)
-        ).distinct()
+        user_farms = get_user_farms_queryset(self.request.user)
         farm_param = self.request.query_params.get('farm') or self.request.query_params.get('farm_id')
         if farm_param:
             try:
@@ -150,11 +133,8 @@ class WeatherImpactRecordDetailView(generics.RetrieveUpdateDestroyAPIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
-        return WeatherImpactRecord.objects.filter(
-            crop__farm__in=Farm.objects.filter(
-                Q(owner=self.request.user) | Q(members__user=self.request.user)
-            )
-        )
+        user_farms = get_user_farms_queryset(self.request.user)
+        return WeatherImpactRecord.objects.filter(crop__farm__in=user_farms)
 class CropActivityListCreateView(generics.ListCreateAPIView):
     serializer_class = CropActivitySerializer
     permission_classes = [permissions.IsAuthenticated, FarmMenuPermission]
@@ -162,11 +142,10 @@ class CropActivityListCreateView(generics.ListCreateAPIView):
     
     def get_queryset(self):
         crop_id = self.kwargs.get('crop_id')
+        user_farms = get_user_farms_queryset(self.request.user)
         return CropActivity.objects.filter(
             crop_id=crop_id,
-            crop__farm__in=Farm.objects.filter(
-                Q(owner=self.request.user) | Q(members__user=self.request.user)
-            )
+            crop__farm__in=user_farms
         )
 
 class HarvestListCreateView(generics.ListCreateAPIView):
@@ -176,9 +155,8 @@ class HarvestListCreateView(generics.ListCreateAPIView):
     
     def get_queryset(self):
         crop_id = self.kwargs.get('crop_id')
+        user_farms = get_user_farms_queryset(self.request.user)
         return Harvest.objects.filter(
             crop_id=crop_id,
-            crop__farm__in=Farm.objects.filter(
-                Q(owner=self.request.user) | Q(members__user=self.request.user)
-            )
+            crop__farm__in=user_farms
         )

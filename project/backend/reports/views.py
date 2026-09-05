@@ -8,6 +8,7 @@ from crops.models import Crop
 from expenses.models import Expense
 from inventory.models import InventoryItem
 from farms.models import Farm
+from farms.permissions import get_user_farms_queryset
 from .models import Report
 from .serializers import ReportSerializer
 
@@ -16,9 +17,7 @@ class ReportListCreateView(generics.ListCreateAPIView):
     permission_classes = [permissions.IsAuthenticated]
     
     def get_queryset(self):
-        user_farms = Farm.objects.filter(
-            Q(owner=self.request.user) | Q(members__user=self.request.user)
-        ).distinct()
+        user_farms = get_user_farms_queryset(self.request.user)
         return Report.objects.filter(farm__in=user_farms)
 
 class ReportDetailView(generics.RetrieveDestroyAPIView):
@@ -26,15 +25,11 @@ class ReportDetailView(generics.RetrieveDestroyAPIView):
     permission_classes = [permissions.IsAuthenticated]
     
     def get_queryset(self):
-        user_farms = Farm.objects.filter(
-            Q(owner=self.request.user) | Q(members__user=self.request.user)
-        ).distinct()
+        user_farms = get_user_farms_queryset(self.request.user)
         return Report.objects.filter(farm__in=user_farms)
 
 def get_user_farms_for_request(request):
-    user_farms = Farm.objects.filter(
-        Q(owner=request.user) | Q(members__user=request.user)
-    ).distinct()
+    user_farms = get_user_farms_queryset(request.user)
     farm_id = request.GET.get('farm') or request.query_params.get('farm')
     if farm_id:
         try:
