@@ -88,7 +88,7 @@ function Login() {
       if (mustChangePassword) {
         navigate("/force-password-change");
       } else if (isSuperAdmin) {
-        navigate("/admin/dashboard");
+        navigate("/admin/select-farm");
       } else {
         navigate("/dashboard");
       }

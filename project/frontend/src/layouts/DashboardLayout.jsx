@@ -398,7 +398,18 @@ function DashboardLayout() {
                 </div>
               </div>
 
-              <div className="flex items-center space-x-4">
+              <div className="flex items-center space-x-3">
+                {(user?.is_superuser || user?.is_staff) && (
+                  <button
+                    onClick={() => navigate("/admin/select-farm")}
+                    className="hidden sm:flex items-center gap-1.5 px-3 py-2 bg-purple-50 hover:bg-purple-100 border border-purple-200 text-purple-700 font-bold text-xs rounded-xl transition-all cursor-pointer shadow-2xs"
+                    title="Switch Farm Workspace (Superadmin Launcher)"
+                  >
+                    <FiCompass className="text-purple-600" size={14} />
+                    <span>Switch Farm</span>
+                  </button>
+                )}
+
                 <div className="hidden md:flex items-center px-4 py-2 bg-primary-50 rounded-lg text-primary-700">
                   <FiCalendar className="mr-2" />
                   <span>
@@ -600,6 +611,30 @@ function DashboardLayout() {
                               <FiCreditCard className="text-emerald-600 text-sm" />
                               <span className="font-semibold text-gray-800">Subscription & Billing</span>
                             </button>
+                          )}
+                          {(user?.is_superuser || user?.is_staff) && (
+                            <>
+                              <button
+                                onClick={() => {
+                                  setProfileOpen(false);
+                                  navigate("/admin/select-farm");
+                                }}
+                                className="w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl hover:bg-purple-50 text-purple-700 transition"
+                              >
+                                <FiCompass className="text-purple-600 text-sm" />
+                                <span className="font-semibold text-purple-900">Switch Farm Workspace</span>
+                              </button>
+                              <button
+                                onClick={() => {
+                                  setProfileOpen(false);
+                                  navigate("/admin/dashboard");
+                                }}
+                                className="w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl hover:bg-purple-50 text-purple-700 transition"
+                              >
+                                <FiShield className="text-purple-600 text-sm" />
+                                <span className="font-semibold text-purple-900">Platform Admin Panel</span>
+                              </button>
+                            </>
                           )}
                           <button
                             onClick={() => {

@@ -58,6 +58,8 @@ class SuperadminFarmSerializer(serializers.ModelSerializer):
     owner_email = serializers.CharField(source='owner.email', read_only=True)
     animals_count = serializers.SerializerMethodField()
     crops_count = serializers.SerializerMethodField()
+    subscription_status = serializers.SerializerMethodField()
+    subscription_plan_name = serializers.SerializerMethodField()
 
     class Meta:
         model = Farm
@@ -74,6 +76,20 @@ class SuperadminFarmSerializer(serializers.ModelSerializer):
 
     def get_crops_count(self, obj):
         return getattr(obj, 'crops', None).count() if hasattr(obj, 'crops') else 0
+
+    def get_subscription_status(self, obj):
+        if not obj.owner:
+            return "unknown"
+        from subscriptions.services import get_user_subscription
+        sub = get_user_subscription(obj.owner, farm_id=obj.id)
+        return sub.status if sub else "expired"
+
+    def get_subscription_plan_name(self, obj):
+        if not obj.owner:
+            return "Free Trial"
+        from subscriptions.services import get_user_subscription
+        sub = get_user_subscription(obj.owner, farm_id=obj.id)
+        return sub.plan.name if sub and sub.plan else "Free Trial"
 
 
 from subscriptions.models import Subscription, SubscriptionPlan, SubscriptionPayment

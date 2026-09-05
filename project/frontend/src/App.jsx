@@ -42,6 +42,7 @@ import Features from "./pages/public/Features";
 import About from "./pages/public/About";
 import Contact from "./pages/public/Contact";
 import SuperadminDashboard from "./pages/admin/SuperadminDashboard";
+import SuperadminFarmSelect from "./pages/admin/SuperadminFarmSelect";
 import Subscription from "./pages/dashboard/Subscription";
 
 // Context
@@ -73,7 +74,31 @@ function App() {
           <Route path="/about" element={<About />} />
           <Route path="/contact" element={<Contact />} />
 
-          {/* Superadmin Dedicated Route */}
+          {/* Superadmin Dedicated Routes */}
+          <Route
+            path="/admin/select-farm"
+            element={
+              !isAuthenticated ? (
+                <Navigate to="/login" replace />
+              ) : (user?.is_superuser || user?.is_staff) ? (
+                <SuperadminFarmSelect />
+              ) : (
+                <Navigate to="/dashboard" replace />
+              )
+            }
+          />
+          <Route
+            path="/admin/farms"
+            element={
+              !isAuthenticated ? (
+                <Navigate to="/login" replace />
+              ) : (user?.is_superuser || user?.is_staff) ? (
+                <SuperadminFarmSelect />
+              ) : (
+                <Navigate to="/dashboard" replace />
+              )
+            }
+          />
           <Route
             path="/admin/dashboard"
             element={
