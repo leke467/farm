@@ -26,6 +26,8 @@ import {
   FiCreditCard,
   FiCheckCircle,
   FiLock,
+  FiCompass,
+  FiShield,
 } from "react-icons/fi";
 import { motion } from "framer-motion";
 
