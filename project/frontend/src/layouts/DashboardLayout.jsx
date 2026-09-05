@@ -139,8 +139,29 @@ function DashboardLayout() {
 
   const menuItems = [
     { key: "dashboard", path: `/${currentSlug}/dashboard`, name: "Dashboard", icon: <FiHome size={20} /> },
-    { key: "animals", path: `/${currentSlug}/animals`, name: "Animals", icon: <FiUsers size={20} /> },
-    { key: "crops", path: `/${currentSlug}/crops`, name: "Crops", icon: <FiGrid size={20} /> },
+    { 
+      key: "animals", 
+      path: `/${currentSlug}/animals`, 
+      name: "Animals", 
+      icon: <FiUsers size={20} />,
+      subItems: [
+        { key: "animals-overview", path: `/${currentSlug}/animals`, name: "Overview" },
+        { key: "animals-feed", path: `/${currentSlug}/animals?tab=feed_logs`, name: "Feed Logs" },
+        { key: "animals-breeding", path: `/${currentSlug}/animals?tab=breeding_logs`, name: "Breeding Logs" },
+      ]
+    },
+    { 
+      key: "crops", 
+      path: `/${currentSlug}/crops`, 
+      name: "Crops", 
+      icon: <FiGrid size={20} />,
+      subItems: [
+        { key: "crops-overview", path: `/${currentSlug}/crops`, name: "Overview" },
+        { key: "crops-harvest", path: `/${currentSlug}/crops?tab=harvest_logs`, name: "Harvest & Yield Logs" },
+        { key: "crops-fertilizer", path: `/${currentSlug}/crops?tab=fertilizer_logs`, name: "Fertilizer Records" },
+        { key: "crops-weather", path: `/${currentSlug}/crops?tab=weather_logs`, name: "Weather Impact Logs" },
+      ]
+    },
     { key: "tasks", path: `/${currentSlug}/tasks`, name: "Tasks", icon: <FiCalendar size={20} /> },
     { 
       key: "inventory", 
@@ -288,59 +309,71 @@ function DashboardLayout() {
           {/* Navigation */}
           <nav className="mt-5 px-4 flex-1 overflow-y-auto">
             <div className="space-y-1">
-              {visibleMenuItems.map((item) => (
-                <div key={item.path}>
-                  {item.subItems ? (
-                    <>
-                      <button
-                        onClick={() => toggleExpandItem(item.key)}
-                        className={`w-full flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors ${
-                          location.pathname.startsWith(item.path)
+              {visibleMenuItems.map((item) => {
+                const isParentActive = location.pathname.startsWith(item.path);
+                const isExpanded = expandedItems[item.key] ?? isParentActive;
+
+                return (
+                  <div key={item.path}>
+                    {item.subItems ? (
+                      <>
+                        <button
+                          onClick={() => toggleExpandItem(item.key)}
+                          className={`w-full flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors ${
+                            isParentActive
+                              ? "bg-primary-50 text-primary-600 font-semibold"
+                              : "text-gray-700 hover:bg-gray-100"
+                          }`}
+                        >
+                          <span className="mr-3">{item.icon}</span>
+                          {item.name}
+                          <span className="ml-auto text-xs">
+                            {isExpanded ? "▼" : "▶"}
+                          </span>
+                        </button>
+                        {isExpanded && (
+                          <div className="pl-8 space-y-1">
+                            {item.subItems.map((subItem) => {
+                              const currentFull = location.pathname + location.search;
+                              const isSubActive = subItem.path.includes("?")
+                                ? currentFull === subItem.path
+                                : location.pathname === subItem.path && !location.search;
+
+                              return (
+                                <Link
+                                  key={subItem.path}
+                                  to={subItem.path}
+                                  onClick={() => setSidebarOpen(false)}
+                                  className={`flex items-center px-4 py-2 text-xs font-medium rounded-lg transition-colors ${
+                                    isSubActive
+                                      ? "bg-primary-100 text-primary-600 font-bold"
+                                      : "text-gray-600 hover:bg-gray-100"
+                                  }`}
+                                >
+                                  {subItem.name}
+                                </Link>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </>
+                    ) : (
+                      <Link
+                        to={item.path}
+                        onClick={() => setSidebarOpen(false)}
+                        className={`flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors ${
+                          location.pathname === item.path
                             ? "bg-primary-50 text-primary-600"
                             : "text-gray-700 hover:bg-gray-100"
                         }`}
                       >
                         <span className="mr-3">{item.icon}</span>
                         {item.name}
-                        <span className="ml-auto">
-                          {expandedItems[item.key] ? "▼" : "▶"}
-                        </span>
-                      </button>
-                      {expandedItems[item.key] && (
-                        <div className="pl-8 space-y-1">
-                          {item.subItems.map((subItem) => (
-                            <Link
-                              key={subItem.path}
-                              to={subItem.path}
-                              onClick={() => setSidebarOpen(false)}
-                              className={`flex items-center px-4 py-2 text-xs font-medium rounded-lg transition-colors ${
-                                location.pathname === subItem.path
-                                  ? "bg-primary-100 text-primary-600"
-                                  : "text-gray-600 hover:bg-gray-100"
-                              }`}
-                            >
-                              {subItem.name}
-                            </Link>
-                          ))}
-                        </div>
-                      )}
-                    </>
-                  ) : (
-                    <Link
-                      to={item.path}
-                      onClick={() => setSidebarOpen(false)}
-                      className={`flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors ${
-                        location.pathname === item.path
-                          ? "bg-primary-50 text-primary-600"
-                          : "text-gray-700 hover:bg-gray-100"
-                      }`}
-                    >
-                      <span className="mr-3">{item.icon}</span>
-                      {item.name}
-                    </Link>
-                  )}
-                </div>
-              ))}
+                      </Link>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           </nav>
 

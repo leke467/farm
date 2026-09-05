@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import { useForm, Controller } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import {
@@ -45,6 +46,7 @@ function AnimalManagement() {
   } = useFarmData();
 
   const { toast } = useToast();
+  const location = useLocation();
 
   const [searchTerm, setSearchTerm] = useState("");
   const [currentFilter, setCurrentFilter] = useState("all");
@@ -55,7 +57,19 @@ function AnimalManagement() {
   const [selectedFeedAnimal, setSelectedFeedAnimal] = useState(null);
   const [feedRecords, setFeedRecords] = useState([]);
   const [inventoryItems, setInventoryItems] = useState([]);
-  const [viewTab, setViewTab] = useState("animals"); // "animals" | "feed_logs"
+  const [viewTab, setViewTab] = useState("animals"); // "animals" | "feed_logs" | "breeding_logs"
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const tab = params.get("tab");
+    if (tab === "feed_logs" || tab === "feed") {
+      setViewTab("feed_logs");
+    } else if (tab === "breeding_logs" || tab === "breeding") {
+      setViewTab("breeding_logs");
+    } else {
+      setViewTab("animals");
+    }
+  }, [location.search]);
   const [currentAnimal, setCurrentAnimal] = useState(null);
   const [isGroupForm, setIsGroupForm] = useState(false);
   const [apiError, setApiError] = useState("");

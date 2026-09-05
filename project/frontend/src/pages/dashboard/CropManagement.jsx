@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import { useForm, Controller } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { FiPlus, FiSearch, FiCalendar, FiEdit2, FiTrash2 } from "react-icons/fi";
@@ -25,6 +26,7 @@ import { useToast } from "../../context/ToastContext";
 function CropManagement() {
   const { activeFarm, crops, addCrop, updateCrop, deleteCrop } = useFarmData();
   const { toast } = useToast();
+  const location = useLocation();
 
   const [searchTerm, setSearchTerm] = useState("");
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -43,6 +45,20 @@ function CropManagement() {
   const [showYieldForm, setShowYieldForm] = useState(false);
   const [selectedCropForModal, setSelectedCropForModal] = useState(null);
   const [viewTab, setViewTab] = useState("crops"); // "crops" | "harvest_logs" | "fertilizer_logs" | "weather_logs"
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const tab = params.get("tab");
+    if (tab === "harvest_logs" || tab === "harvest" || tab === "yield") {
+      setViewTab("harvest_logs");
+    } else if (tab === "fertilizer_logs" || tab === "fertilizer" || tab === "recommendations") {
+      setViewTab("fertilizer_logs");
+    } else if (tab === "weather_logs" || tab === "weather") {
+      setViewTab("weather_logs");
+    } else {
+      setViewTab("crops");
+    }
+  }, [location.search]);
 
   const fetchCropLogs = async () => {
     if (activeFarm?.id) {
