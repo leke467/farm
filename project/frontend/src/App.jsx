@@ -3,6 +3,7 @@ import {
   Routes,
   Route,
   Navigate,
+  useParams,
 } from "react-router-dom";
 import "./App.css";
 
@@ -55,6 +56,11 @@ function FarmSlugRedirect({ target = "dashboard" }) {
   const { activeFarm } = useFarmData();
   const slug = toFarmSlug(activeFarm?.name || "farmname");
   return <Navigate to={`/${slug}/${target}`} replace />;
+}
+
+function FarmAnalyticsRedirect() {
+  const { farmSlug } = useParams();
+  return <Navigate to={`/${farmSlug}/analytics/financial`} replace />;
 }
 
 function App() {
@@ -194,10 +200,12 @@ function App() {
             <Route path="/:farmSlug/subscription" element={<Subscription />} />
 
             {/* Phase 2 Analytics Dashboards */}
+            <Route path="/:farmSlug/analytics" element={<FarmAnalyticsRedirect />} />
             <Route path="/:farmSlug/analytics/forecasting" element={<DemandForecastingDashboard />} />
             <Route path="/:farmSlug/analytics/animals" element={<AnimalProductivityDashboard />} />
             <Route path="/:farmSlug/analytics/financial" element={<FinancialOverviewDashboard />} />
             <Route path="/:farmSlug/analytics/crops" element={<CropAnalyticsDashboard />} />
+            <Route path="/:farmSlug/analytics/*" element={<FarmAnalyticsRedirect />} />
 
             {/* Fallback routes without slug (e.g. /dashboard) -> automatically redirects to /:activeFarmSlug/dashboard */}
             <Route path="/dashboard" element={<FarmSlugRedirect target="dashboard" />} />
@@ -213,11 +221,21 @@ function App() {
             <Route path="/health" element={<FarmSlugRedirect target="health" />} />
             <Route path="/settings" element={<FarmSlugRedirect target="settings" />} />
             <Route path="/subscription" element={<FarmSlugRedirect target="subscription" />} />
+            <Route path="/analytics" element={<FarmSlugRedirect target="analytics/financial" />} />
             <Route path="/analytics/*" element={<FarmSlugRedirect target="analytics/financial" />} />
           </Route>
 
             {/* Catch all route */}
-            <Route path="*" element={<Navigate to="/" replace />} />
+            <Route
+              path="*"
+              element={
+                isAuthenticated ? (
+                  <Navigate to="/dashboard" replace />
+                ) : (
+                  <Navigate to="/" replace />
+                )
+              }
+            />
           </Routes>
         </Router>
       );
