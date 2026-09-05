@@ -30,20 +30,6 @@ function Login() {
     setLoading(true);
     setError("");
 
-    // Demo login (mock data)
-    const demoUser = users.find(
-      (u) =>
-        u.username === formData.username && u.password === formData.password
-    );
-    if (demoUser) {
-      const { password, ...userData } = demoUser;
-      userData.isDemo = true; // Mark as demo
-      handleLogin(userData);
-      setLoading(false);
-      navigate("/dashboard");
-      return;
-    }
-
     let loginSuccess = false;
     let mustChangePassword = false;
     let isSuperAdmin = false;
@@ -60,7 +46,7 @@ function Login() {
           response.user?.must_change_password ?? response.user?.mustChangePassword
         );
         isSuperAdmin = Boolean(
-          response.user?.is_superuser || response.user?.is_staff
+          response.user?.is_superuser || response.user?.is_staff || response.user?.is_admin || response.user?.isAdmin
         );
 
         handleLogin({
@@ -109,13 +95,16 @@ function Login() {
         const mustChangePassword = Boolean(
           response.user?.must_change_password ?? response.user?.mustChangePassword
         );
+        const isSuper = Boolean(
+          response.user?.is_superuser || response.user?.is_staff || response.user?.is_admin || response.user?.isAdmin
+        );
         handleLogin({
           username: demoUsername,
           token: response.token,
           ...response.user,
         });
         setLoading(false);
-        navigate(mustChangePassword ? "/force-password-change" : "/dashboard");
+        navigate(mustChangePassword ? "/force-password-change" : isSuper ? "/admin/select-farm" : "/dashboard");
         return;
       }
     } catch (err) {

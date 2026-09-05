@@ -6,11 +6,11 @@ export const users = [
     id: '1',
     username: 'admin',
     password: 'admin123',
-    firstName: 'Sarah',
-    lastName: 'Johnson',
-    email: 'sarah@example.com',
+    firstName: 'Default',
+    lastName: 'Admin',
+    email: 'admin@terra-track.com',
     role: 'Admin',
-    lastLogin: '2023-05-04T08:30:00'
+    lastLogin: '2026-09-05T08:30:00'
   },
   {
     id: '2',
