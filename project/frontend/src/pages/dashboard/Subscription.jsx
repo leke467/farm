@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { FiCheckCircle, FiShield, FiZap, FiStar, FiCreditCard, FiClock, FiCheck, FiArrowRight } from "react-icons/fi";
+import { FiCheckCircle, FiShield, FiZap, FiStar, FiCreditCard, FiClock, FiCheck, FiArrowRight, FiTag } from "react-icons/fi";
 import apiService from "../../services/api";
 import { useUser } from "../../context/UserContext";
 import { useFarmData } from "../../context/FarmDataContext";
@@ -62,6 +62,13 @@ const Subscription = () => {
   const [error, setError] = useState(null);
   const [successMsg, setSuccessMsg] = useState(null);
   const [billingCycle, setBillingCycle] = useState("yearly"); // 'monthly' | 'yearly'
+
+  // Coupon state
+  const [couponCode, setCouponCode] = useState("");
+  const [applyingCoupon, setApplyingCoupon] = useState(false);
+  const [appliedCoupon, setAppliedCoupon] = useState(null);
+  const [couponMsg, setCouponMsg] = useState(null);
+  const [couponError, setCouponError] = useState(null);
 
   const location = useLocation();
   const navigate = useNavigate();
@@ -131,6 +138,29 @@ const Subscription = () => {
     }
   };
 
+  const handleApplyCoupon = async (planId) => {
+    if (!couponCode.trim()) return;
+    setApplyingCoupon(true);
+    setCouponMsg(null);
+    setCouponError(null);
+    try {
+      const res = await apiService.applyCoupon(couponCode.trim(), planId);
+      if (res && res.valid) {
+        setAppliedCoupon(res);
+        setCouponMsg(res.message || `Coupon "${res.code}" applied!`);
+        toast.success(`Coupon "${res.code}" applied!`);
+      } else {
+        setCouponError(res?.message || "Invalid coupon code.");
+        setAppliedCoupon(null);
+      }
+    } catch (err) {
+      setCouponError(err._error || err.message || "Invalid or expired coupon code.");
+      setAppliedCoupon(null);
+    } finally {
+      setApplyingCoupon(false);
+    }
+  };
+
   const handleSubscribeMonnify = async (plan) => {
     setActionLoading(true);
     setError(null);
@@ -139,18 +169,24 @@ const Subscription = () => {
       const idempotencyKey = `sub_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
       const planId = plan.id || (plan.slug === "pro-yearly" ? 3 : 2);
       const redirectUrl = `${window.location.origin}${window.location.pathname}`;
-      const response = await apiService.subscribe(planId, idempotencyKey, redirectUrl);
+      const codeToPass = appliedCoupon?.code || (couponCode.trim() ? couponCode.trim() : null);
+
+      const response = await apiService.subscribe(planId, idempotencyKey, redirectUrl, codeToPass);
 
       if (response && response.checkout_url) {
         toast.success("Redirecting to Monnify checkout...");
         window.location.href = response.checkout_url;
+      } else if (response && response.status === "active") {
+        toast.success(response.message || "Subscription activated with coupon!");
+        setSuccessMsg(response.message || "Subscription activated!");
+        fetchData();
       } else if (response && response.payment_reference) {
         toast.info("Verifying payment reference...");
         await apiService.verifySubscriptionPayment(response.payment_reference);
         toast.success("Subscription processed!");
         fetchData();
       } else {
-        setError(response?._error || response?.detail || "Failed to initialize Monnify checkout. Please try again.");
+        setError(response?._error || response?.detail || "Failed to initialize checkout. Please try again.");
       }
     } catch (err) {
       console.error("Monnify subscription error:", err);
@@ -348,6 +384,50 @@ const Subscription = () => {
           </div>
         </div>
 
+        {/* Promo / Coupon Code Input Box */}
+        <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 text-white space-y-4">
+          <div className="flex items-center gap-2">
+            <FiTag className="text-emerald-400 text-lg" />
+            <h3 className="text-sm font-bold">Have a Promo Code or Discount Coupon?</h3>
+          </div>
+          <div className="flex flex-col sm:flex-row gap-3">
+            <input
+              type="text"
+              value={couponCode}
+              onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+              placeholder="Enter promo code (e.g. FARM2026)"
+              className="flex-1 bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-white font-mono uppercase focus:outline-none focus:border-emerald-500"
+            />
+            <button
+              onClick={() => {
+                const defaultPlanId = filteredPlans[0]?.id || 2;
+                handleApplyCoupon(defaultPlanId);
+              }}
+              disabled={applyingCoupon || !couponCode.trim()}
+              className="bg-emerald-500 hover:bg-emerald-400 disabled:opacity-50 text-slate-950 font-bold px-6 py-2.5 rounded-xl text-xs transition"
+            >
+              {applyingCoupon ? "Validating..." : "Apply Code"}
+            </button>
+          </div>
+
+          {couponMsg && (
+            <div className="p-3 bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-xs font-semibold rounded-xl flex items-center justify-between">
+              <span>✓ {couponMsg}</span>
+              {appliedCoupon?.calculated_discount && (
+                <span className="font-bold text-emerald-400">
+                  Discount: ₦{Number(appliedCoupon.calculated_discount).toLocaleString()}
+                </span>
+              )}
+            </div>
+          )}
+
+          {couponError && (
+            <div className="p-3 bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs font-semibold rounded-xl">
+              ✕ {couponError}
+            </div>
+          )}
+        </div>
+
         {/* Plans List Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {filteredPlans.map((plan) => {
@@ -355,6 +435,7 @@ const Subscription = () => {
             const isCurrent = subscription?.plan?.id === plan.id || subscription?.plan?.slug === plan.slug;
             const originalPrice = plan.original_price ? Number(plan.original_price) : isYearly ? 120000 : 10000;
             const currentPrice = Number(plan.price || 0);
+            const finalPrice = appliedCoupon ? Number(appliedCoupon.final_price) : currentPrice;
 
             return (
               <div
@@ -383,13 +464,13 @@ const Subscription = () => {
 
                   <div className="my-4">
                     <div className="flex items-baseline gap-2">
-                      {originalPrice > currentPrice && (
+                      {(originalPrice > currentPrice || appliedCoupon) && (
                         <span className="text-slate-400 line-through text-base font-bold">
-                          ₦{originalPrice.toLocaleString()}
+                          ₦{(appliedCoupon ? currentPrice : originalPrice).toLocaleString()}
                         </span>
                       )}
                       <span className="text-3xl font-black text-emerald-700">
-                        ₦{currentPrice.toLocaleString()}
+                        ₦{finalPrice.toLocaleString()}
                       </span>
                       <span className="text-slate-500 text-xs font-semibold">
                         / {isYearly ? "year" : "month"}
@@ -433,7 +514,11 @@ const Subscription = () => {
                     className="w-full py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs rounded-2xl shadow-lg shadow-emerald-600/20 transition active:scale-95 flex items-center justify-center gap-2"
                   >
                     <FiCreditCard className="text-base" />
-                    <span>Pay ₦{currentPrice.toLocaleString()} with Monnify</span>
+                    <span>
+                      {finalPrice === 0
+                        ? "Activate Plan FREE with Coupon"
+                        : `Pay ₦${finalPrice.toLocaleString()} with Monnify`}
+                    </span>
                     <FiArrowRight />
                   </button>
                 )}

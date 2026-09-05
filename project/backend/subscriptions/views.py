@@ -4,10 +4,12 @@ from rest_framework.response import Response
 from rest_framework import status
 from django.views.decorators.csrf import csrf_exempt
 
-from .models import SubscriptionPlan, Subscription, SubscriptionPayment, WebhookEvent
-from .serializers import SubscriptionPlanSerializer, SubscriptionSerializer, SubscriptionPaymentSerializer
+from .models import SubscriptionPlan, Subscription, SubscriptionPayment, WebhookEvent, Coupon
+from .serializers import SubscriptionPlanSerializer, SubscriptionSerializer, SubscriptionPaymentSerializer, CouponSerializer
 from .services import create_subscription_payment, confirm_payment, get_user_subscription, cancel_subscription
 from .gateway import MonnifyGateway
+from reports.views_superadmin import IsSuperUserOrStaff
+from rest_framework import generics
 
 @api_view(['GET'])
 @permission_classes([AllowAny])
@@ -46,15 +48,74 @@ def subscribe(request):
     plan_id = request.data.get('plan_id')
     idempotency_key = request.data.get('idempotency_key')
     redirect_url = request.data.get('redirect_url', '')
+    coupon_code = request.data.get('coupon_code', None)
     
     if not plan_id or not idempotency_key:
         return Response({"detail": "plan_id and idempotency_key are required."}, status=status.HTTP_400_BAD_REQUEST)
         
     try:
-        data = create_subscription_payment(request.user, plan_id, idempotency_key, redirect_url=redirect_url)
+        data = create_subscription_payment(request.user, plan_id, idempotency_key, redirect_url=redirect_url, coupon_code=coupon_code)
         return Response(data, status=status.HTTP_201_CREATED)
     except Exception as e:
         return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def apply_coupon(request):
+    code = request.data.get('code')
+    plan_id = request.data.get('plan_id')
+
+    if not code:
+        return Response({"valid": False, "detail": "Coupon code is required."}, status=status.HTTP_400_BAD_REQUEST)
+
+    coupon = Coupon.objects.filter(code__iexact=str(code).strip()).first()
+    if not coupon:
+        return Response({"valid": False, "detail": "Invalid coupon code."}, status=status.HTTP_404_NOT_FOUND)
+
+    is_valid, msg = coupon.is_valid_coupon()
+    if not is_valid:
+        return Response({"valid": False, "detail": msg}, status=status.HTTP_400_BAD_REQUEST)
+
+    plan = SubscriptionPlan.objects.filter(id=plan_id).first() if plan_id else None
+    original_price = float(plan.price) if plan else 0.0
+    discount_amount = 0.0
+    final_price = original_price
+
+    if coupon.discount_type == Coupon.DiscountType.PERCENTAGE:
+        discount_amount = (original_price * float(coupon.discount_value)) / 100.0
+        final_price = max(0.0, original_price - discount_amount)
+    elif coupon.discount_type == Coupon.DiscountType.FLAT:
+        discount_amount = float(coupon.discount_value)
+        final_price = max(0.0, original_price - discount_amount)
+    elif coupon.discount_type == Coupon.DiscountType.TRIAL_EXTENSION:
+        discount_amount = original_price
+        final_price = 0.0
+
+    return Response({
+        "valid": True,
+        "code": coupon.code,
+        "discount_type": coupon.discount_type,
+        "discount_value": float(coupon.discount_value),
+        "discount_amount": discount_amount,
+        "original_price": original_price,
+        "final_price": final_price,
+        "description": coupon.description,
+        "message": f"Coupon '{coupon.code}' applied successfully!"
+    })
+
+class SuperadminCouponListCreateAPIView(generics.ListCreateAPIView):
+    serializer_class = CouponSerializer
+    permission_classes = [IsSuperUserOrStaff]
+    queryset = Coupon.objects.all().order_by('-created_at')
+
+    def perform_create(self, serializer):
+        code = serializer.validated_data.get('code', '').strip().upper()
+        serializer.save(code=code)
+
+class SuperadminCouponDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
+    serializer_class = CouponSerializer
+    permission_classes = [IsSuperUserOrStaff]
+    queryset = Coupon.objects.all()
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])

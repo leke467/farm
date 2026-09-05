@@ -9,4 +9,7 @@ urlpatterns = [
     path('verify/<str:reference>/', views.verify_payment, name='verify-payment'),
     path('cancel/', views.cancel_subscription_view, name='cancel-subscription'),
     path('webhook/monnify/', views.monnify_webhook, name='monnify-webhook'),
+    path('apply-coupon/', views.apply_coupon, name='apply-coupon'),
+    path('coupons/', views.SuperadminCouponListCreateAPIView.as_view(), name='superadmin-coupon-list-create'),
+    path('coupons/<int:pk>/', views.SuperadminCouponDetailAPIView.as_view(), name='superadmin-coupon-detail'),
 ]

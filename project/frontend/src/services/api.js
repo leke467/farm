@@ -727,10 +727,10 @@ class ApiService {
     return this.request(`/subscriptions/me/${query}`);
   }
 
-  async subscribe(planId, idempotencyKey, redirectUrl = '') {
+  async subscribe(planId, idempotencyKey, redirectUrl = '', couponCode = null) {
     return this.request('/subscriptions/subscribe/', {
       method: 'POST',
-      body: JSON.stringify({ plan_id: planId, idempotency_key: idempotencyKey, redirect_url: redirectUrl }),
+      body: JSON.stringify({ plan_id: planId, idempotency_key: idempotencyKey, redirect_url: redirectUrl, coupon_code: couponCode }),
     });
   }
 
@@ -745,6 +745,37 @@ class ApiService {
   async cancelSubscription() {
     return this.request('/subscriptions/cancel/', {
       method: 'POST',
+    });
+  }
+
+  async applyCoupon(code, planId = null) {
+    return this.request('/subscriptions/apply-coupon/', {
+      method: 'POST',
+      body: JSON.stringify({ code, plan_id: planId }),
+    });
+  }
+
+  async getSuperadminCoupons() {
+    return this.request('/subscriptions/coupons/');
+  }
+
+  async createSuperadminCoupon(couponData) {
+    return this.request('/subscriptions/coupons/', {
+      method: 'POST',
+      body: JSON.stringify(couponData),
+    });
+  }
+
+  async updateSuperadminCoupon(id, couponData) {
+    return this.request(`/subscriptions/coupons/${id}/`, {
+      method: 'PATCH',
+      body: JSON.stringify(couponData),
+    });
+  }
+
+  async deleteSuperadminCoupon(id) {
+    return this.request(`/subscriptions/coupons/${id}/`, {
+      method: 'DELETE',
     });
   }
 

@@ -94,3 +94,39 @@ class WebhookEvent(models.Model):
 
     class Meta:
         ordering = ['-created_at']
+
+
+class Coupon(models.Model):
+    class DiscountType(models.TextChoices):
+        PERCENTAGE = 'percentage', 'Percentage Discount (%)'
+        FLAT = 'flat', 'Flat Amount Discount (₦)'
+        TRIAL_EXTENSION = 'trial_extension', 'Trial Extension (Days)'
+
+    code = models.CharField(max_length=50, unique=True)
+    discount_type = models.CharField(max_length=20, choices=DiscountType.choices, default=DiscountType.PERCENTAGE)
+    discount_value = models.DecimalField(max_digits=10, decimal_places=2, default=0)  # e.g. 20 for 20% or 5000 for ₦5,000
+    duration_days_extension = models.IntegerField(default=0)  # e.g. 30 extra free days
+    max_uses = models.IntegerField(default=999999)
+    times_used = models.IntegerField(default=0)
+    valid_from = models.DateTimeField(default=timezone.now)
+    valid_until = models.DateTimeField(null=True, blank=True)
+    is_active = models.BooleanField(default=True)
+    description = models.CharField(max_length=255, blank=True, default='')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.code} ({self.discount_type})"
+
+    def is_valid_coupon(self):
+        if not self.is_active:
+            return False, "Coupon code is inactive or disabled."
+        if self.times_used >= self.max_uses:
+            return False, "Coupon usage limit has been reached."
+        if self.valid_until and self.valid_until < timezone.now():
+            return False, "Coupon code has expired."
+        return True, "Valid coupon."
+

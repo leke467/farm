@@ -3,7 +3,7 @@ from django.utils import timezone
 from .models import SubscriptionPlan, Subscription, SubscriptionPayment
 from .gateway import MonnifyGateway
 
-def create_subscription_payment(user, plan_id, idempotency_key, redirect_url=''):
+def create_subscription_payment(user, plan_id, idempotency_key, redirect_url='', coupon_code=None):
     plan = SubscriptionPlan.objects.get(id=plan_id)
     
     # The free trial is strictly available once per account
@@ -12,14 +12,38 @@ def create_subscription_payment(user, plan_id, idempotency_key, redirect_url='')
         if has_existing:
             raise Exception("The 14-day free trial is only available once per account. Please select a paid plan.")
 
+    final_price = plan.price
+    applied_coupon = None
+
+    if coupon_code:
+        from .models import Coupon
+        coupon = Coupon.objects.filter(code__iexact=str(coupon_code).strip()).first()
+        if coupon:
+            is_valid, msg = coupon.is_valid_coupon()
+            if not is_valid:
+                raise Exception(msg)
+
+            if coupon.discount_type == Coupon.DiscountType.PERCENTAGE:
+                discount_amount = (plan.price * coupon.discount_value) / 100
+                final_price = max(0, plan.price - discount_amount)
+            elif coupon.discount_type == Coupon.DiscountType.FLAT:
+                final_price = max(0, plan.price - coupon.discount_value)
+            elif coupon.discount_type == Coupon.DiscountType.TRIAL_EXTENSION:
+                final_price = 0  # 100% free extension
+
+            applied_coupon = coupon
+            coupon.times_used += 1
+            coupon.save(update_fields=['times_used', 'updated_at'])
+
     payment_reference = f"sub_{user.id}_{idempotency_key}"
     
     payment = SubscriptionPayment.objects.create(
         user=user,
         plan=plan,
-        amount=plan.price,
+        amount=final_price,
         idempotency_key=idempotency_key,
-        payment_reference=payment_reference
+        payment_reference=payment_reference,
+        metadata={'coupon_code': applied_coupon.code if applied_coupon else None}
     )
     
     if not redirect_url:
@@ -27,11 +51,11 @@ def create_subscription_payment(user, plan_id, idempotency_key, redirect_url='')
 
     gateway = MonnifyGateway()
     result = gateway.initialize_transaction(
-        amount=plan.price,
+        amount=final_price,
         customer_name=user.get_full_name() or user.username,
         customer_email=user.email,
         payment_reference=payment_reference,
-        payment_description=f"Subscription to {plan.name}",
+        payment_description=f"Subscription to {plan.name}" + (f" ({applied_coupon.code})" if applied_coupon else ""),
         redirect_url=redirect_url,
     )
     

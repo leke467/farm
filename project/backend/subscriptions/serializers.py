@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import SubscriptionPlan, Subscription, SubscriptionPayment
+from .models import SubscriptionPlan, Subscription, SubscriptionPayment, Coupon
 
 from django.utils import timezone
 
@@ -28,3 +28,10 @@ class SubscriptionPaymentSerializer(serializers.ModelSerializer):
     class Meta:
         model = SubscriptionPayment
         fields = '__all__'
+
+
+class CouponSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Coupon
+        fields = '__all__'
+
