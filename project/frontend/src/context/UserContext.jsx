@@ -9,9 +9,10 @@ const normalizeUser = (userData) => {
 
   const first_name = userData.first_name || userData.firstName || '';
   const last_name = userData.last_name || userData.lastName || '';
-  const isAdmin = Boolean(userData.is_admin ?? userData.isAdmin ?? false);
-  const isSuperuser = Boolean(userData.is_superuser ?? userData.isSuperuser ?? false);
-  const isStaff = Boolean(userData.is_staff ?? userData.isStaff ?? false);
+  const isDemo = userData.username === 'demo' || userData.username === 'demo1234' || Boolean(userData.isDemo);
+  const isAdmin = !isDemo && Boolean(userData.is_admin ?? userData.isAdmin ?? false);
+  const isSuperuser = !isDemo && Boolean(userData.is_superuser ?? userData.isSuperuser ?? false);
+  const isStaff = !isDemo && Boolean(userData.is_staff ?? userData.isStaff ?? false);
   const mustChangePassword =
     Boolean(userData.must_change_password ?? userData.mustChangePassword ?? false);
 
@@ -21,6 +22,7 @@ const normalizeUser = (userData) => {
     last_name,
     firstName: first_name,
     lastName: last_name,
+    isDemo,
     isAdmin: isAdmin || isSuperuser || isStaff,
     is_admin: isAdmin || isSuperuser || isStaff,
     isSuperuser,

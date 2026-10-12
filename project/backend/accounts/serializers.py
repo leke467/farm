@@ -102,9 +102,9 @@ class FarmRegistrationSerializer(serializers.ModelSerializer):
         farm_data = {k: validated_data.pop(k, None) for k in farm_fields}
         validated_data.pop('confirm_password')
         
-        # Registration always creates an owner
+        # Registration creates a farm owner, not a platform administrator
         validated_data.pop('role', None)
-        validated_data['is_admin'] = True
+        validated_data['is_admin'] = False
         
         user = User.objects.create_user(**validated_data)
         # Create farm with provided details

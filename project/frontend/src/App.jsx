@@ -70,6 +70,11 @@ function App() {
       user?.mustChangePassword ?? user?.must_change_password
     );
 
+    const isSuperadminUser =
+      !user?.isDemo &&
+      !["demo", "demo1234"].includes(user?.username) &&
+      Boolean(user?.is_superuser || user?.is_staff || user?.is_admin || user?.isAdmin);
+
     return (
       <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
         <Routes>
@@ -86,7 +91,7 @@ function App() {
             element={
               !isAuthenticated ? (
                 <Navigate to="/login" replace />
-              ) : (user?.is_superuser || user?.is_staff || user?.is_admin || user?.isAdmin) ? (
+              ) : isSuperadminUser ? (
                 <SuperadminFarmSelect />
               ) : (
                 <Navigate to="/dashboard" replace />
@@ -98,7 +103,7 @@ function App() {
             element={
               !isAuthenticated ? (
                 <Navigate to="/login" replace />
-              ) : (user?.is_superuser || user?.is_staff || user?.is_admin || user?.isAdmin) ? (
+              ) : isSuperadminUser ? (
                 <SuperadminFarmSelect />
               ) : (
                 <Navigate to="/dashboard" replace />
@@ -110,7 +115,7 @@ function App() {
             element={
               !isAuthenticated ? (
                 <Navigate to="/login" replace />
-              ) : (user?.is_superuser || user?.is_staff || user?.is_admin || user?.isAdmin) ? (
+              ) : isSuperadminUser ? (
                 <SuperadminDashboard />
               ) : (
                 <Navigate to="/dashboard" replace />
@@ -128,7 +133,7 @@ function App() {
                     to={
                       mustChangePassword
                         ? "/force-password-change"
-                        : (user?.is_superuser || user?.is_staff || user?.is_admin || user?.isAdmin)
+                        : isSuperadminUser
                         ? "/admin/select-farm"
                         : "/dashboard"
                     }

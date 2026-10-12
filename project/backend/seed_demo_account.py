@@ -25,9 +25,12 @@ def seed_demo_account():
         'email': 'demo@livesteads.com',
         'first_name': 'Livestead',
         'last_name': 'Demo User',
-        'is_admin': True,
+        'is_admin': False,
         'is_active': True,
     })
+    user.is_admin = False
+    user.is_staff = False
+    user.is_superuser = False
     user.set_password('password1234')
     user.save()
     print(f"Demo User 'demo1234' {'created' if created else 'updated'}.")
@@ -290,9 +293,12 @@ def seed_demo_account():
         'email': 'john@example.com',
         'first_name': 'Demo',
         'last_name': 'User',
-        'is_admin': True,
+        'is_admin': False,
         'is_active': True,
     })
+    user_demo.is_admin = False
+    user_demo.is_staff = False
+    user_demo.is_superuser = False
     user_demo.set_password('password1234')
     user_demo.save()
 

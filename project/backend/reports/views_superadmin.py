@@ -25,12 +25,16 @@ User = get_user_model()
 
 
 class IsSuperUserOrStaff(permissions.BasePermission):
-    """Permission check strictly for platform superusers or staff members"""
+    """Permission check strictly for platform superusers, staff members, or platform admins"""
     def has_permission(self, request, view):
         return bool(
             request.user and
             request.user.is_authenticated and
-            (request.user.is_superuser or request.user.is_staff)
+            (
+                request.user.is_superuser or
+                request.user.is_staff or
+                getattr(request.user, 'is_admin', False)
+            )
         )
 
 
@@ -62,7 +66,7 @@ def superadmin_stats_view(request):
     """System-wide analytics and statistics for site administrators"""
     total_users = User.objects.count()
     active_users = User.objects.filter(is_active=True).count()
-    staff_users = User.objects.filter(Q(is_staff=True) | Q(is_superuser=True)).count()
+    staff_users = User.objects.filter(Q(is_staff=True) | Q(is_superuser=True) | Q(is_admin=True)).count()
     
     total_farms = Farm.objects.count()
     active_farms = Farm.objects.filter(is_active=True).count() if hasattr(Farm, 'is_active') else total_farms
@@ -147,8 +151,9 @@ class SuperadminUserDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
         user_obj = self.get_object()
         data = request.data.copy()
 
-        # Only Superusers can grant or revoke Staff and Superuser roles
-        if ('is_staff' in data or 'is_superuser' in data) and not request.user.is_superuser:
+        # Only Superusers or platform admins can grant or revoke Staff and Superuser roles
+        is_platform_admin = request.user.is_superuser or getattr(request.user, 'is_admin', False)
+        if ('is_staff' in data or 'is_superuser' in data) and not is_platform_admin:
             return Response(
                 {'detail': 'Only Superusers can grant or revoke Staff and Superuser roles.'},
                 status=status.HTTP_403_FORBIDDEN
@@ -157,9 +162,9 @@ class SuperadminUserDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
         # Update status flags if passed
         if 'is_active' in data:
             user_obj.is_active = bool(data['is_active'])
-        if 'is_staff' in data and request.user.is_superuser:
+        if 'is_staff' in data and is_platform_admin:
             user_obj.is_staff = bool(data['is_staff'])
-        if 'is_superuser' in data and request.user.is_superuser:
+        if 'is_superuser' in data and is_platform_admin:
             user_obj.is_superuser = bool(data['is_superuser'])
             if user_obj.is_superuser:
                 user_obj.is_staff = True
@@ -202,7 +207,7 @@ class SuperadminDisputeListCreateAPIView(generics.ListCreateAPIView):
         return [IsSuperUserOrStaff()]
 
     def get_queryset(self):
-        if self.request.user.is_superuser or self.request.user.is_staff:
+        if self.request.user.is_superuser or self.request.user.is_staff or getattr(self.request.user, 'is_admin', False):
             queryset = Dispute.objects.all()
         else:
             queryset = Dispute.objects.filter(reporter=self.request.user)

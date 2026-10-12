@@ -44,7 +44,8 @@ function Login() {
         mustChangePassword = Boolean(
           response.user?.must_change_password ?? response.user?.mustChangePassword
         );
-        isSuperAdmin = Boolean(
+        const isDemo = ["demo", "demo1234"].includes(response.user?.username) || ["demo", "demo1234"].includes(formData.username);
+        isSuperAdmin = !isDemo && Boolean(
           response.user?.is_superuser || response.user?.is_staff || response.user?.is_admin || response.user?.isAdmin
         );
 
@@ -94,7 +95,8 @@ function Login() {
         const mustChangePassword = Boolean(
           response.user?.must_change_password ?? response.user?.mustChangePassword
         );
-        const isSuper = Boolean(
+        const isDemo = ["demo", "demo1234"].includes(demoUsername) || ["demo", "demo1234"].includes(response.user?.username);
+        const isSuper = !isDemo && Boolean(
           response.user?.is_superuser || response.user?.is_staff || response.user?.is_admin || response.user?.isAdmin
         );
         handleLogin({

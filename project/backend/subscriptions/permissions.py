@@ -15,8 +15,8 @@ class IsSubscriptionActive(permissions.BasePermission):
         if not user or not user.is_authenticated:
             return False
 
-        # Superusers and staff members are exempt from subscription fees
-        if user.is_superuser or user.is_staff:
+        # Superusers, staff, admin members, and demo accounts are exempt from subscription fees
+        if user.is_superuser or user.is_staff or getattr(user, 'is_admin', False) or user.username in ['demo', 'demo1234'] or getattr(user, 'is_demo', False):
             return True
 
         # SAFE_METHODS (GET, HEAD, OPTIONS) allow viewing, but all mutation operations (POST, PUT, PATCH, DELETE)
