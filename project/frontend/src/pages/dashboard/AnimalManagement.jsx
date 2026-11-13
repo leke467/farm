@@ -11,6 +11,7 @@ import {
 } from "react-icons/fi";
 import { useFarmData } from "../../context/FarmDataContext";
 import AnimalCard from "../../components/animals/AnimalCard";
+import HousingManager from "../../components/animals/HousingManager";
 import { Dialog } from "@headlessui/react";
 import CategoryCombobox from "../../components/CategoryCombobox";
 import apiService from "../../services/api";
@@ -66,6 +67,8 @@ function AnimalManagement() {
       setViewTab("feed_logs");
     } else if (tab === "breeding_logs" || tab === "breeding") {
       setViewTab("breeding_logs");
+    } else if (tab === "housing" || tab === "pens" || tab === "buildings") {
+      setViewTab("housing");
     } else {
       setViewTab("animals");
     }
@@ -162,6 +165,8 @@ function AnimalManagement() {
       gender: "female",
       weight: "",
       status: "healthy",
+      building: "",
+      pen: "",
       notes: "",
     },
   });
@@ -179,6 +184,8 @@ function AnimalManagement() {
         gender: "female",
         weight: "",
         status: "healthy",
+        building: "",
+        pen: "",
         notes: "",
         is_group: false,
         count: 2,
@@ -211,6 +218,8 @@ function AnimalManagement() {
       setValue("gender", currentAnimal.gender || "female");
       setValue("weight", currentAnimal.weight || currentAnimal.avg_weight || "");
       setValue("status", currentAnimal.status || "healthy");
+      setValue("building", currentAnimal.building || "");
+      setValue("pen", currentAnimal.pen || "");
       setValue("notes", currentAnimal.notes || "");
       setValue("is_group", currentAnimal.is_group || false);
       setValue("count", currentAnimal.count || 2);
@@ -490,7 +499,87 @@ function AnimalManagement() {
         </div>
       </div>
 
-      {/* Filters and Search */}
+      {/* Navigation Tab Bar */}
+      <div className="mb-6 border-b border-gray-200">
+        <nav className="flex space-x-2 sm:space-x-8 overflow-x-auto pb-1">
+          <button
+            onClick={() => setViewTab("animals")}
+            className={`py-3 px-3 text-sm sm:text-base font-bold border-b-2 whitespace-nowrap transition-colors flex items-center gap-2 cursor-pointer ${
+              viewTab === "animals"
+                ? "border-green-600 text-green-700"
+                : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+            }`}
+          >
+            🐾 Animals & Herds
+            <span className="text-xs bg-gray-100 text-gray-700 px-2 py-0.5 rounded-full">
+              {safeAnimals.length}
+            </span>
+          </button>
+
+          <button
+            onClick={() => setViewTab("housing")}
+            className={`py-3 px-3 text-sm sm:text-base font-bold border-b-2 whitespace-nowrap transition-colors flex items-center gap-2 cursor-pointer ${
+              viewTab === "housing"
+                ? "border-emerald-600 text-emerald-700"
+                : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+            }`}
+          >
+            🏛️ Housing & Pens
+            <span className="text-xs bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full font-semibold">
+              Rooms & Transfers
+            </span>
+          </button>
+
+          <button
+            onClick={() => {
+              setViewTab("feed_logs");
+              fetchFeedRecords();
+            }}
+            className={`py-3 px-3 text-sm sm:text-base font-bold border-b-2 whitespace-nowrap transition-colors flex items-center gap-2 cursor-pointer ${
+              viewTab === "feed_logs"
+                ? "border-green-600 text-green-700"
+                : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+            }`}
+          >
+            🌾 Feed Logs
+            <span className="text-xs bg-gray-100 text-gray-700 px-2 py-0.5 rounded-full">
+              {feedRecords.length}
+            </span>
+          </button>
+
+          <button
+            onClick={() => {
+              setViewTab("breeding_logs");
+              fetchBreedingRecords();
+            }}
+            className={`py-3 px-3 text-sm sm:text-base font-bold border-b-2 whitespace-nowrap transition-colors flex items-center gap-2 cursor-pointer ${
+              viewTab === "breeding_logs"
+                ? "border-indigo-600 text-indigo-700"
+                : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+            }`}
+          >
+            🧬 Breeding & Gestation
+            <span className="text-xs bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full">
+              {breedingRecords.length}
+            </span>
+          </button>
+        </nav>
+      </div>
+
+      {viewTab === "housing" && (
+        <HousingManager
+          activeFarm={activeFarm}
+          animals={safeAnimals}
+          onRefreshAnimals={refreshData}
+          onLogFeed={(anim) => {
+            setSelectedFeedAnimal(anim);
+            setIsFeedModalOpen(true);
+          }}
+        />
+      )}
+
+      {/* Filters and Search (only in Animals tab) */}
+      {viewTab === "animals" && (
       <div className="mb-8 flex flex-col sm:flex-row sm:items-center space-y-3 sm:space-y-0 sm:space-x-4">
         <div className="relative flex-1">
           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -520,6 +609,7 @@ function AnimalManagement() {
           </select>
         </div>
       </div>
+      )}
 
       {/* View Switcher: Animals Grid vs Feed Logs Table vs Breeding Logs Table */}
       {viewTab === "animals" && (
@@ -939,6 +1029,30 @@ function AnimalManagement() {
                       />
                     </>
                   )}
+
+                  {/* Housing Location: Building & Pen/Room */}
+                  <div>
+                    <FormField
+                      label="Building / Facility (Optional)"
+                      type="text"
+                      register={register}
+                      name="building"
+                      errors={errors}
+                      placeholder="e.g. Building 1, Group 1"
+                      helperText="Facility or group housing this animal/group."
+                    />
+                  </div>
+                  <div>
+                    <FormField
+                      label="Pen / Room Number (Optional)"
+                      type="text"
+                      register={register}
+                      name="pen"
+                      errors={errors}
+                      placeholder="e.g. Pen 4 or Room 12"
+                      helperText="Specific pen or room (2-5 pigs)."
+                    />
+                  </div>
 
                   {/* Purchase Cost Field */}
                   <div className="md:col-span-2">

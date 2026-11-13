@@ -78,6 +78,13 @@ class InventoryTransactionListCreateView(generics.ListCreateAPIView):
         item = transaction.item
         if item:
             qty = Decimal(str(transaction.quantity or 0))
+            if transaction.pack_quantity and item.pack_size and float(item.pack_size) > 0:
+                pack_qty = Decimal(str(transaction.pack_quantity))
+                calc_qty = pack_qty * Decimal(str(item.pack_size))
+                if not transaction.quantity or transaction.quantity == pack_qty:
+                    transaction.quantity = calc_qty
+                    transaction.save(update_fields=['quantity'])
+                    qty = calc_qty
             if transaction.transaction_type == 'in':
                 item.quantity += qty
             elif transaction.transaction_type == 'out':
@@ -197,9 +204,6 @@ class DemandForecastListView(generics.ListAPIView):
                 user_farms = user_farms.filter(pk=farm_param)
             except ValueError:
                 pass
-        for f in user_farms:
-            from farms.analytics_generator import ensure_analytics_data_for_farm
-            ensure_analytics_data_for_farm(f)
         return DemandForecast.objects.filter(farm__in=user_farms)
 
 
@@ -274,9 +278,6 @@ class SupplierPerformanceListCreateView(generics.ListCreateAPIView):
                 user_farms = user_farms.filter(pk=farm_param)
             except ValueError:
                 pass
-        for f in user_farms:
-            from farms.analytics_generator import ensure_analytics_data_for_farm
-            ensure_analytics_data_for_farm(f)
         return SupplierPerformance.objects.filter(farm__in=user_farms)
 
 

@@ -27,6 +27,8 @@ class InventoryItem(models.Model):
     cost_per_unit = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     supplier = models.CharField(max_length=200, blank=True)
     notes = models.TextField(blank=True)
+    packaging_unit = models.CharField(max_length=50, blank=True, default='', help_text="Packaging / Bulk unit (e.g. Bags, Cartons, Crates, Bottles)")
+    pack_size = models.DecimalField(max_digits=10, decimal_places=3, null=True, blank=True, help_text="Quantity of base units per package (e.g. 50 kg per bag)")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     
@@ -42,6 +44,26 @@ class InventoryItem(models.Model):
         if self.cost_per_unit:
             return self.quantity * self.cost_per_unit
         return 0
+
+    @property
+    def packaging_quantity(self):
+        if self.pack_size and float(self.pack_size) > 0 and self.quantity is not None:
+            return round(float(self.quantity) / float(self.pack_size), 2)
+        return None
+
+    @property
+    def cost_per_packaging_unit(self):
+        if self.cost_per_unit and self.pack_size and float(self.pack_size) > 0:
+            return round(float(self.cost_per_unit) * float(self.pack_size), 2)
+        return None
+
+    @property
+    def formatted_quantity(self):
+        base_str = f"{self.quantity} {self.unit}"
+        if self.packaging_unit and self.pack_size and float(self.pack_size) > 0 and self.quantity is not None:
+            packs = round(float(self.quantity) / float(self.pack_size), 2)
+            return f"{base_str} ({packs:g} {self.packaging_unit})"
+        return base_str
 
 class InventoryTransaction(models.Model):
     TRANSACTION_TYPE_CHOICES = [
@@ -59,6 +81,8 @@ class InventoryTransaction(models.Model):
     item = models.ForeignKey(InventoryItem, on_delete=models.CASCADE, related_name='transactions')
     transaction_type = models.CharField(max_length=20, choices=TRANSACTION_TYPE_CHOICES)
     quantity = models.DecimalField(max_digits=10, decimal_places=2)
+    packaging_unit = models.CharField(max_length=50, blank=True, default='')
+    pack_quantity = models.DecimalField(max_digits=10, decimal_places=3, null=True, blank=True)
     cost_per_unit = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     total_cost = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='completed')

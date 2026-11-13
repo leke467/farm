@@ -24,6 +24,9 @@ class InventoryItemSerializer(serializers.ModelSerializer):
     transactions = InventoryTransactionSerializer(many=True, read_only=True)
     is_low_stock = serializers.ReadOnlyField()
     total_value = serializers.ReadOnlyField()
+    packaging_quantity = serializers.ReadOnlyField()
+    cost_per_packaging_unit = serializers.ReadOnlyField()
+    formatted_quantity = serializers.ReadOnlyField()
     
     class Meta:
         model = InventoryItem
@@ -59,12 +62,8 @@ class InventoryItemSerializer(serializers.ModelSerializer):
         expiry_date = data.get('expiry_date')
         purchase_date = data.get('purchase_date')
         
-        # Check min quantity <= current quantity
-        if min_quantity is not None and quantity is not None:
-            if float(min_quantity) > float(quantity):
-                raise serializers.ValidationError({
-                    "min_quantity": "Minimum quantity cannot be greater than current quantity"
-                })
+        # Minimum quantity is an alert reorder threshold
+        pass
         
         # Check expiry > purchase date
         if expiry_date and purchase_date:
@@ -165,6 +164,9 @@ class InventoryItemDetailedSerializer(serializers.ModelSerializer):
     cost_tracking = InventoryCostTrackingSerializer(read_only=True)
     is_low_stock = serializers.ReadOnlyField()
     total_value = serializers.ReadOnlyField()
+    packaging_quantity = serializers.ReadOnlyField()
+    cost_per_packaging_unit = serializers.ReadOnlyField()
+    formatted_quantity = serializers.ReadOnlyField()
     
     class Meta:
         model = InventoryItem
@@ -200,12 +202,8 @@ class InventoryItemDetailedSerializer(serializers.ModelSerializer):
         expiry_date = data.get('expiry_date')
         purchase_date = data.get('purchase_date')
         
-        # Check min quantity <= current quantity
-        if min_quantity is not None and quantity is not None:
-            if float(min_quantity) > float(quantity):
-                raise serializers.ValidationError({
-                    "min_quantity": "Minimum quantity cannot be greater than current quantity"
-                })
+        # Minimum quantity is an alert reorder threshold
+        pass
         
         # Check expiry > purchase date
         if expiry_date and purchase_date:

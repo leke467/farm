@@ -63,9 +63,6 @@ class CropYieldAnalysisListCreateView(generics.ListCreateAPIView):
                 user_farms = user_farms.filter(pk=farm_param)
             except ValueError:
                 pass
-        for f in user_farms:
-            from farms.analytics_generator import ensure_analytics_data_for_farm
-            ensure_analytics_data_for_farm(f)
         return CropYieldAnalysis.objects.filter(crop__farm__in=user_farms)
 
 class CropYieldAnalysisDetailView(generics.RetrieveUpdateDestroyAPIView):
@@ -93,9 +90,6 @@ class FertilizerRecommendationListCreateView(generics.ListCreateAPIView):
                 user_farms = user_farms.filter(pk=farm_param)
             except ValueError:
                 pass
-        for f in user_farms:
-            from farms.analytics_generator import ensure_analytics_data_for_farm
-            ensure_analytics_data_for_farm(f)
         return FertilizerRecommendation.objects.filter(crop__farm__in=user_farms)
 
 class FertilizerRecommendationDetailView(generics.RetrieveUpdateDestroyAPIView):
@@ -123,9 +117,6 @@ class WeatherImpactRecordListCreateView(generics.ListCreateAPIView):
                 user_farms = user_farms.filter(pk=farm_param)
             except ValueError:
                 pass
-        for f in user_farms:
-            from farms.analytics_generator import ensure_analytics_data_for_farm
-            ensure_analytics_data_for_farm(f)
         return WeatherImpactRecord.objects.filter(crop__farm__in=user_farms)
 
 class WeatherImpactRecordDetailView(generics.RetrieveUpdateDestroyAPIView):

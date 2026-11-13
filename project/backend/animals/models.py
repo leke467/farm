@@ -49,6 +49,8 @@ class Animal(models.Model):
     avg_weight = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True)
     established_date = models.DateField(null=True, blank=True)
     purchase_cost = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True, default=0, help_text="Initial purchase / acquisition price")
+    building = models.CharField(max_length=100, blank=True, default='', help_text="Building / Facility / House / Parent Group (e.g. Pig Building 1)")
+    pen = models.CharField(max_length=100, blank=True, default='', help_text="Pen / Room / Stall identifier (e.g. Pen 4)")
     
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -107,6 +109,8 @@ class FeedMixItem(models.Model):
 class FeedRecord(models.Model):
     animal = models.ForeignKey(Animal, on_delete=models.CASCADE, related_name='food_consumption', null=True, blank=True)
     group_name = models.CharField(max_length=100, blank=True)
+    building = models.CharField(max_length=100, blank=True, default='')
+    pen = models.CharField(max_length=100, blank=True, default='')
     date = models.DateField(default=timezone.now)
     amount = models.DecimalField(max_digits=8, decimal_places=2)
     unit = models.CharField(max_length=20, default='kg')
@@ -378,3 +382,62 @@ class AnimalProductionMetrics(models.Model):
     
     class Meta:
         verbose_name_plural = "Animal Production Metrics"
+
+class HousingUnit(models.Model):
+    farm = models.ForeignKey(Farm, on_delete=models.CASCADE, related_name='housing_units')
+    building = models.CharField(max_length=100, help_text="Building / House / Barn name (e.g. Pig Building 1)")
+    pen = models.CharField(max_length=100, help_text="Pen / Room / Stall identifier (e.g. Pen 1)")
+    animal_type = models.CharField(max_length=50, blank=True, default='pig')
+    capacity = models.PositiveIntegerField(default=10, help_text="Maximum animal capacity")
+    notes = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['building', 'pen']
+        unique_together = ['farm', 'building', 'pen']
+
+    def __str__(self):
+        return f"{self.building} - {self.pen}"
+
+
+class AnimalTransfer(models.Model):
+    TRANSFER_TYPE_CHOICES = [
+        ('pen_transfer', 'Internal Pen Transfer (Same Building)'),
+        ('group_transfer', 'Group / Building Transfer (Higher Level)'),
+    ]
+
+    farm = models.ForeignKey(Farm, on_delete=models.CASCADE, related_name='animal_transfers')
+    animal = models.ForeignKey(Animal, on_delete=models.CASCADE, related_name='transfers')
+    transfer_type = models.CharField(max_length=20, choices=TRANSFER_TYPE_CHOICES, default='pen_transfer')
+    
+    from_building = models.CharField(max_length=100, blank=True, default='')
+    from_pen = models.CharField(max_length=100, blank=True, default='')
+    to_building = models.CharField(max_length=100, blank=True, default='')
+    to_pen = models.CharField(max_length=100, blank=True, default='')
+    
+    count = models.PositiveIntegerField(default=1, help_text="Number of animals moved if group/batch")
+    transfer_date = models.DateField(default=timezone.now)
+    reason = models.CharField(max_length=200, blank=True, default='', help_text="Reason for transfer (e.g., sorting, weaning, medical)")
+    transferred_by = models.CharField(max_length=100, blank=True, default='')
+    notes = models.TextField(blank=True, default='')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-transfer_date', '-created_at']
+
+    def __str__(self):
+        return f"{self.animal.name}: {self.from_building} {self.from_pen} -> {self.to_building} {self.to_pen}"
+
+    def save(self, *args, **kwargs):
+        is_new = self.pk is None
+        super().save(*args, **kwargs)
+        if is_new and self.animal:
+            updated = False
+            if self.to_building and self.to_building.strip():
+                self.animal.building = self.to_building.strip()
+                updated = True
+            if self.to_pen and self.to_pen.strip():
+                self.animal.pen = self.to_pen.strip()
+                updated = True
+            if updated:
+                self.animal.save(update_fields=['building', 'pen', 'updated_at'])

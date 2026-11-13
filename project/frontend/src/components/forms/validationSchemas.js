@@ -49,6 +49,8 @@ export const animalSchema = yup.object().shape({
     }),
   avg_weight: commaNumber().nullable().optional(),
   purchase_cost: commaNumber().nullable().optional(),
+  building: yup.string().optional().nullable(),
+  pen: yup.string().optional().nullable(),
   notes: yup.string().optional(),
 });
 

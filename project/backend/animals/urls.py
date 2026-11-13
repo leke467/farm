@@ -26,4 +26,8 @@ urlpatterns = [
     path('production-metrics/<int:pk>/', views.AnimalProductionMetricsDetailView.as_view(), name='animal-production-metrics-detail'),
     path('health-alerts/', views.HealthAlertListCreateView.as_view(), name='health-alert-list-create'),
     path('health-alerts/<int:pk>/', views.HealthAlertDetailView.as_view(), name='health-alert-detail'),
+    path('housing/', views.HousingUnitListCreateView.as_view(), name='housing-list-create'),
+    path('housing/<int:pk>/', views.HousingUnitDetailView.as_view(), name='housing-detail'),
+    path('transfers/', views.AnimalTransferListCreateView.as_view(), name='transfer-list-create'),
+    path('transfers/<int:pk>/', views.AnimalTransferDetailView.as_view(), name='transfer-detail'),
 ]

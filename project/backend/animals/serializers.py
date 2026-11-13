@@ -4,7 +4,7 @@ from django.utils import timezone
 from .models import (Animal, WeightRecord, MedicalRecord, FeedRecord, SampleWeight, 
                      WaterQuality, Vaccination, BreedingCalendar, HealthAlert,
                      BreedingRecord, ProductionRecord, AnimalProductionMetrics,
-                     FeedMix, FeedMixItem, RecurringFeedSchedule)
+                     FeedMix, FeedMixItem, RecurringFeedSchedule, HousingUnit, AnimalTransfer)
 from farms.models import Farm
 from terra_track.validators import AnimalValidator, NumberValidator
 
@@ -441,3 +441,48 @@ class AnimalProductionMetricsSerializer(serializers.ModelSerializer):
         if value is not None and float(value) < 0:
             raise serializers.ValidationError('Production efficiency must be non-negative')
         return value
+
+
+class HousingUnitSerializer(serializers.ModelSerializer):
+    farm = serializers.PrimaryKeyRelatedField(queryset=Farm.objects.all(), required=False, allow_null=True)
+    current_occupancy = serializers.SerializerMethodField()
+    animals_summary = serializers.SerializerMethodField()
+
+    class Meta:
+        model = HousingUnit
+        fields = '__all__'
+        read_only_fields = ['created_at']
+
+    def get_current_occupancy(self, obj):
+        animals = Animal.objects.filter(farm=obj.farm, building=obj.building, pen=obj.pen).exclude(status='sold')
+        total = 0
+        for a in animals:
+            total += (a.count if a.is_group else 1)
+        return total
+
+    def get_animals_summary(self, obj):
+        animals = Animal.objects.filter(farm=obj.farm, building=obj.building, pen=obj.pen).exclude(status='sold')
+        return [
+            {
+                'id': a.id,
+                'name': a.name,
+                'animal_type': a.animal_type,
+                'is_group': a.is_group,
+                'count': a.count,
+                'weight': str(a.weight or a.avg_weight or ''),
+                'status': a.status,
+            }
+            for a in animals
+        ]
+
+
+class AnimalTransferSerializer(serializers.ModelSerializer):
+    farm = serializers.PrimaryKeyRelatedField(queryset=Farm.objects.all(), required=False, allow_null=True)
+    animal = serializers.PrimaryKeyRelatedField(queryset=Animal.objects.all())
+    animal_name = serializers.CharField(source='animal.name', read_only=True)
+    animal_type = serializers.CharField(source='animal.animal_type', read_only=True)
+
+    class Meta:
+        model = AnimalTransfer
+        fields = '__all__'
+        read_only_fields = ['created_at']

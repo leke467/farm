@@ -80,6 +80,13 @@ function AnimalCard({ animal, onEdit, onDelete, onLogFeed, onRecordProduction, o
                 <span>{animal.breed} {animal.type}</span>
               )}
             </div>
+            {(animal.building || animal.pen) && (
+              <div className="mt-1.5 flex items-center gap-1.5 text-xs font-semibold text-emerald-800">
+                <span className="bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded flex items-center gap-1">
+                  📍 {animal.building ? animal.building : ''} {animal.pen ? `• Pen ${animal.pen}` : ''}
+                </span>
+              </div>
+            )}
           </div>
 
           <div className="flex flex-wrap items-center gap-1.5 shrink-0">

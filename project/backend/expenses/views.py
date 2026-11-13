@@ -98,9 +98,6 @@ class RevenueListCreateView(generics.ListCreateAPIView):
                 user_farms = user_farms.filter(pk=farm_param)
             except ValueError:
                 pass
-        for f in user_farms:
-            from farms.analytics_generator import ensure_analytics_data_for_farm
-            ensure_analytics_data_for_farm(f)
         return Revenue.objects.filter(farm__in=user_farms)
 
     def perform_create(self, serializer):
@@ -140,9 +137,6 @@ class FinancialAnalysisListCreateView(generics.ListCreateAPIView):
                 user_farms = user_farms.filter(pk=farm_param)
             except ValueError:
                 pass
-        for f in user_farms:
-            from farms.analytics_generator import ensure_analytics_data_for_farm
-            ensure_analytics_data_for_farm(f)
         return FinancialAnalysis.objects.filter(farm__in=user_farms)
 
 class FinancialAnalysisDetailView(generics.RetrieveUpdateDestroyAPIView):
@@ -170,9 +164,6 @@ class DebtManagementListCreateView(generics.ListCreateAPIView):
                 user_farms = user_farms.filter(pk=farm_param)
             except ValueError:
                 pass
-        for f in user_farms:
-            from farms.analytics_generator import ensure_analytics_data_for_farm
-            ensure_analytics_data_for_farm(f)
         return DebtManagement.objects.filter(farm__in=user_farms)
 
     def perform_create(self, serializer):

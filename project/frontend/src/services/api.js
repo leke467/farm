@@ -246,6 +246,38 @@ class ApiService {
     });
   }
 
+  // Animal Housing & Pen methods
+  async getHousingUnits(params = {}) {
+    const queryString = new URLSearchParams(params).toString();
+    return this.request(`/animals/housing/${queryString ? `?${queryString}` : ""}`);
+  }
+
+  async createHousingUnit(unitData) {
+    return this.request("/animals/housing/", {
+      method: "POST",
+      body: JSON.stringify(unitData),
+    });
+  }
+
+  async deleteHousingUnit(id) {
+    return this.request(`/animals/housing/${id}/`, {
+      method: "DELETE",
+    });
+  }
+
+  // Animal Transfer methods
+  async getAnimalTransfers(params = {}) {
+    const queryString = new URLSearchParams(params).toString();
+    return this.request(`/animals/transfers/${queryString ? `?${queryString}` : ""}`);
+  }
+
+  async createAnimalTransfer(transferData) {
+    return this.request("/animals/transfers/", {
+      method: "POST",
+      body: JSON.stringify(transferData),
+    });
+  }
+
   // Crop methods
   async getCrops(params = {}) {
     const queryString = new URLSearchParams(params).toString();

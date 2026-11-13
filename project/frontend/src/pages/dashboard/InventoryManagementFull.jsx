@@ -22,6 +22,7 @@ const InventoryManagement = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isTransactionModalOpen, setIsTransactionModalOpen] = useState(false);
+  const [transactionUnitMode, setTransactionUnitMode] = useState("base"); // "base" | "packaging" 
   const [selectedItem, setSelectedItem] = useState(null);
   const [filterCategory, setFilterCategory] = useState("all");
   const [filterStock, setFilterStock] = useState("all");
@@ -50,6 +51,8 @@ const InventoryManagement = () => {
       location: "",
       purchase_date: "",
       expiry_date: "",
+      packaging_unit: "",
+      pack_size: "",
       notes: "",
     },
   });
@@ -123,6 +126,8 @@ const InventoryManagement = () => {
         cost_per_unit: data.cost_per_unit !== "" && data.cost_per_unit !== null && !isNaN(parseFloat(data.cost_per_unit)) ? parseFloat(data.cost_per_unit) : 0,
         quantity: data.quantity !== "" && data.quantity !== null && !isNaN(parseFloat(data.quantity)) ? parseFloat(data.quantity) : 0,
         min_quantity: data.min_quantity !== "" && data.min_quantity !== null && !isNaN(parseFloat(data.min_quantity)) ? parseFloat(data.min_quantity) : 0,
+        packaging_unit: data.packaging_unit || "",
+        pack_size: data.pack_size !== "" && data.pack_size !== null && !isNaN(parseFloat(data.pack_size)) ? parseFloat(data.pack_size) : null,
       };
 
       let res;
@@ -141,10 +146,10 @@ const InventoryManagement = () => {
             errMsg = rootErr;
           } else if (details.detail && typeof details.detail === "string") {
             errMsg = details.detail;
-          } else if (Object.keys(details).length > 0) {
-            errMsg = Object.entries(details)
-              .map(([key, val]) => `${key}: ${Array.isArray(val) ? val.join(", ") : val}`)
-              .join("; ");
+          } else {
+            const errs = Object.entries(details)
+              .map(([key, val]) => `${key}: ${Array.isArray(val) ? val.join(", ") : JSON.stringify(val)}`);
+            if (errs.length > 0) errMsg = errs.join(" | ");
           }
         }
         setApiError(errMsg);
@@ -174,11 +179,20 @@ const InventoryManagement = () => {
       return;
     }
 
+    let qty = Number(data.quantity || 0);
+    let packQty = null;
+    if (transactionUnitMode === "packaging" && selectedItem.pack_size) {
+      packQty = qty;
+      qty = qty * Number(selectedItem.pack_size);
+    }
+
     const payload = {
       item: selectedItem.id,
       item_id: selectedItem.id,
       transaction_type: data.transaction_type || "in",
-      quantity: Number(data.quantity || 0),
+      quantity: qty,
+      packaging_unit: selectedItem.packaging_unit || "",
+      pack_quantity: packQty,
       cost_per_unit: data.cost_per_unit ? Number(data.cost_per_unit) : null,
       transaction_date: data.transaction_date || new Date().toISOString().split("T")[0],
       reason: data.reason || "",
@@ -211,6 +225,8 @@ const InventoryManagement = () => {
     setItemValue("unit", item.unit);
     setItemValue("min_quantity", item.min_quantity);
     setItemValue("cost_per_unit", item.cost_per_unit || "");
+    setItemValue("packaging_unit", item.packaging_unit || "");
+    setItemValue("pack_size", item.pack_size || "");
     setItemValue("supplier", item.supplier);
     setItemValue("location", item.location);
     setItemValue("purchase_date", item.purchase_date || "");
@@ -431,9 +447,14 @@ const InventoryManagement = () => {
                       )}
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-700">
-                      <span className={Number(item.quantity || 0) <= Number(item.min_quantity || 0) ? "text-orange-600 font-bold" : ""}>
-                        {item.quantity} {item.unit}
-                      </span>
+                      <div className={Number(item.quantity || 0) <= Number(item.min_quantity || 0) ? "text-orange-600 font-bold" : "font-semibold text-gray-900"}>
+                        {Number(item.quantity || 0).toFixed(2)} {item.unit}
+                      </div>
+                      {item.pack_size && Number(item.pack_size) > 0 && (
+                        <div className="text-xs text-emerald-700 font-medium mt-0.5">
+                          {(Number(item.quantity) / Number(item.pack_size)).toFixed(1)} {item.packaging_unit || 'bags'} ({item.pack_size} {item.unit}/{item.packaging_unit ? item.packaging_unit.replace(/s$/, '') : 'bag'})
+                        </div>
+                      )}
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-700">{item.min_quantity} {item.unit}</td>
                     <td className="px-6 py-4 text-sm text-gray-700">{formatFarmCurrency(item.cost_per_unit || 0, activeFarm)}</td>
@@ -547,10 +568,27 @@ const InventoryManagement = () => {
                         options={unitOptions}
                         errors={itemErrors}
                       />
+                      <FormField
+                        register={registerItem}
+                        name="packaging_unit"
+                        label="Packaging Unit (Optional)"
+                        type="text"
+                        placeholder="e.g. bags, cartons, sacks"
+                        helperText="Container unit (e.g. bags if feed is measured in kg)."
+                        errors={itemErrors}
+                      />
+                      <NumberField
+                        register={registerItem}
+                        name="pack_size"
+                        label="Pack / Bag Size (Optional)"
+                        placeholder="e.g. 50"
+                        helperText="Units per pack (e.g. 50 kg/bag). Enables multi-unit conversions."
+                        errors={itemErrors}
+                      />
                       <NumberField
                         register={registerItem}
                         name="min_quantity"
-                        label="Minimum Quantity"
+                        label="Minimum Quantity (Reorder Alert Level)"
                         helperText="Safety stock level. Triggers Low Stock alert when reached."
                         errors={itemErrors}
                       />
@@ -673,10 +711,42 @@ const InventoryManagement = () => {
                       errors={transErrors}
                     />
 
+                    {selectedItem?.pack_size && Number(selectedItem.pack_size) > 0 && (
+                      <div className="p-2.5 bg-emerald-50 rounded-lg border border-emerald-200">
+                        <label className="block text-xs font-bold text-emerald-900 mb-1.5 uppercase">
+                          Record Quantity In:
+                        </label>
+                        <div className="grid grid-cols-2 gap-2">
+                          <button
+                            type="button"
+                            onClick={() => setTransactionUnitMode("base")}
+                            className={`py-1.5 px-3 text-xs font-bold rounded border transition-colors ${
+                              transactionUnitMode === "base"
+                                ? "bg-emerald-600 text-white border-emerald-600"
+                                : "bg-white text-emerald-800 border-emerald-300 hover:bg-emerald-100"
+                            }`}
+                          >
+                            Base ({selectedItem.unit})
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setTransactionUnitMode("packaging")}
+                            className={`py-1.5 px-3 text-xs font-bold rounded border transition-colors ${
+                              transactionUnitMode === "packaging"
+                                ? "bg-emerald-600 text-white border-emerald-600"
+                                : "bg-white text-emerald-800 border-emerald-300 hover:bg-emerald-100"
+                            }`}
+                          >
+                            {selectedItem.packaging_unit || "Bags"} ({selectedItem.pack_size} {selectedItem.unit}/pack)
+                          </button>
+                        </div>
+                      </div>
+                    )}
+
                     <NumberField
                       register={registerTransaction}
                       name="quantity"
-                      label="Quantity"
+                      label={`Quantity (${transactionUnitMode === "packaging" && selectedItem?.pack_size ? (selectedItem.packaging_unit || "Bags") : (selectedItem?.unit || "Units")})`}
                       errors={transErrors}
                     />
 

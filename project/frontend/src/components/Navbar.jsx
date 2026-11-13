@@ -104,18 +104,31 @@ function Navbar({ dark = false }) {
             </Link>
           </div>
 
-          {/* Mobile Hamburger Button */}
-          <button
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className={`md:hidden p-2.5 rounded-xl border transition ${
-              dark
-                ? "bg-slate-900 border-slate-800 text-white"
-                : "bg-emerald-50 border-emerald-200 text-emerald-900"
-            }`}
-            aria-label="Toggle Menu"
-          >
-            {mobileMenuOpen ? <FiX size={22} /> : <FiMenu size={22} />}
-          </button>
+          {/* Mobile Actions: Direct Sign In + Hamburger */}
+          <div className="md:hidden flex items-center gap-2">
+            <Link
+              to="/login"
+              className={`text-xs font-bold px-3 py-2 rounded-xl border transition shadow-xs ${
+                dark
+                  ? "bg-slate-900 border-slate-800 text-white hover:bg-slate-800"
+                  : "bg-white border-emerald-300 text-emerald-800 hover:bg-emerald-50"
+              }`}
+            >
+              Sign In
+            </Link>
+
+            <button
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className={`p-2 rounded-xl border transition ${
+                dark
+                  ? "bg-slate-900 border-slate-800 text-white"
+                  : "bg-emerald-50 border-emerald-200 text-emerald-900"
+              }`}
+              aria-label="Toggle Menu"
+            >
+              {mobileMenuOpen ? <FiX size={20} /> : <FiMenu size={20} />}
+            </button>
+          </div>
         </div>
 
         {/* Mobile Navigation Drawer */}

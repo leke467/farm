@@ -6,7 +6,7 @@ from django.db.models import Q
 from .models import (Animal, WeightRecord, MedicalRecord, FeedRecord, 
                      Vaccination, BreedingCalendar, HealthAlert, BreedingRecord,
                      ProductionRecord, AnimalProductionMetrics, FeedMix, FeedMixItem, RecurringFeedSchedule)
-from .serializers import (AnimalSerializer, WeightRecordSerializer, MedicalRecordSerializer, 
+from .serializers import (AnimalSerializer, WeightRecordSerializer, MedicalRecordSerializer, HousingUnitSerializer, AnimalTransferSerializer, 
                           FeedRecordSerializer, VaccinationSerializer, BreedingCalendarSerializer,
                           HealthAlertSerializer, BreedingRecordSerializer,
                           ProductionRecordSerializer, AnimalProductionMetricsSerializer,
@@ -258,19 +258,31 @@ class FeedRecordListCreateView(generics.ListCreateAPIView):
                     category='feed'
                 ).first()
                 if item and feed_record.amount > 0:
-                    item.quantity = max(0, float(item.quantity) - float(feed_record.amount))
+                    base_qty = float(feed_record.amount)
+                    is_pack = False
+                    if feed_record.unit and (
+                        (item.packaging_unit and feed_record.unit.lower() == item.packaging_unit.lower()) or
+                        feed_record.unit.lower() in ['bag', 'bags', 'carton', 'cartons', 'crate', 'crates', 'sack', 'sacks']
+                    ) and item.pack_size and float(item.pack_size) > 0:
+                        base_qty = float(feed_record.amount) * float(item.pack_size)
+                        is_pack = True
+
+                    item.quantity = max(0, float(item.quantity) - base_qty)
                     item.save()
+                    pack_desc = f" ({feed_record.amount} {item.packaging_unit})" if is_pack else ""
                     InventoryTransaction.objects.create(
                         item=item,
                         transaction_type='out',
-                        quantity=feed_record.amount,
+                        quantity=base_qty,
+                        packaging_unit=item.packaging_unit if is_pack else '',
+                        pack_quantity=feed_record.amount if is_pack else None,
                         reason=f"Animal Feed: {animal_desc}",
-                        notes=f"Auto-deducted daily feed entry for {animal_desc}",
+                        notes=f"Auto-deducted {base_qty:.2f} {item.unit}{pack_desc} for {animal_desc}",
                         created_by=self.request.user.username or 'System'
                     )
                     # Auto-calculate cost on feed record if zero/null
                     if (not feed_record.cost or float(feed_record.cost) == 0) and item.cost_per_unit:
-                        feed_record.cost = float(feed_record.amount) * float(item.cost_per_unit)
+                        feed_record.cost = float(base_qty) * float(item.cost_per_unit)
                         feed_record.save(update_fields=['cost'])
         except Exception as e:
             pass
@@ -464,9 +476,6 @@ class AnimalProductionMetricsListView(generics.ListAPIView):
 
     def get_queryset(self):
         user_farms = get_user_farms_queryset(self.request.user)
-        for f in user_farms:
-            from farms.analytics_generator import ensure_analytics_data_for_farm
-            ensure_analytics_data_for_farm(f)
         return AnimalProductionMetrics.objects.filter(animal__farm__in=user_farms)
 
 class AnimalProductionMetricsDetailView(generics.RetrieveAPIView):
@@ -488,3 +497,113 @@ class HealthAlertDetailView(generics.RetrieveUpdateDestroyAPIView):
         return HealthAlert.objects.filter(
             animal__farm__in=get_user_farms_queryset(self.request.user)
         )
+
+class HousingUnitListCreateView(generics.ListCreateAPIView):
+    serializer_class = HousingUnitSerializer
+    permission_classes = [permissions.IsAuthenticated, FarmMenuPermission]
+    farm_menu_key = 'animals'
+    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filterset_fields = ['building', 'pen', 'animal_type']
+    search_fields = ['building', 'pen', 'notes']
+    ordering_fields = ['building', 'pen', 'created_at']
+    ordering = ['building', 'pen']
+
+    def get_queryset(self):
+        user_farms = get_user_farms_queryset(self.request.user)
+        farm_param = self.request.query_params.get('farm') or self.request.query_params.get('farm_id')
+        qs = HousingUnit.objects.filter(farm__in=user_farms)
+        if farm_param:
+            qs = qs.filter(farm_id=farm_param)
+        return qs
+
+    def perform_create(self, serializer):
+        farm_id = self.request.data.get('farm') or self.request.query_params.get('farm') or self.request.query_params.get('farm_id')
+        farm = None
+        if farm_id:
+            farm = get_user_farms_queryset(self.request.user).filter(pk=farm_id).first()
+        if not farm:
+            farm = get_user_farms_queryset(self.request.user).first()
+        serializer.save(farm=farm)
+
+
+class HousingUnitDetailView(generics.RetrieveUpdateDestroyAPIView):
+    serializer_class = HousingUnitSerializer
+    permission_classes = [permissions.IsAuthenticated, FarmMenuPermission]
+    farm_menu_key = 'animals'
+
+    def get_queryset(self):
+        user_farms = get_user_farms_queryset(self.request.user)
+        return HousingUnit.objects.filter(farm__in=user_farms)
+
+
+class AnimalTransferListCreateView(generics.ListCreateAPIView):
+    serializer_class = AnimalTransferSerializer
+    permission_classes = [permissions.IsAuthenticated, FarmMenuPermission]
+    farm_menu_key = 'animals'
+    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filterset_fields = ['transfer_type', 'from_building', 'to_building', 'from_pen', 'to_pen', 'animal']
+    search_fields = ['animal__name', 'from_building', 'to_building', 'from_pen', 'to_pen', 'reason']
+    ordering_fields = ['transfer_date', 'created_at']
+    ordering = ['-transfer_date', '-created_at']
+
+    def get_queryset(self):
+        user_farms = get_user_farms_queryset(self.request.user)
+        farm_param = self.request.query_params.get('farm') or self.request.query_params.get('farm_id')
+        qs = AnimalTransfer.objects.filter(farm__in=user_farms)
+        if farm_param:
+            qs = qs.filter(farm_id=farm_param)
+        return qs
+
+    def perform_create(self, serializer):
+        animal = serializer.validated_data.get('animal')
+        farm = animal.farm if animal else None
+        if not farm:
+            farm_id = self.request.data.get('farm') or self.request.query_params.get('farm') or self.request.query_params.get('farm_id')
+            if farm_id:
+                farm = get_user_farms_queryset(self.request.user).filter(pk=farm_id).first()
+            if not farm:
+                farm = get_user_farms_queryset(self.request.user).first()
+
+        from_building = animal.building if animal else serializer.validated_data.get('from_building', '')
+        from_pen = animal.pen if animal else serializer.validated_data.get('from_pen', '')
+        to_building = serializer.validated_data.get('to_building', '')
+        to_pen = serializer.validated_data.get('to_pen', '')
+        transfer_type = serializer.validated_data.get('transfer_type', 'pen_transfer')
+
+        if transfer_type == 'pen_transfer' and not to_building and from_building:
+            to_building = from_building
+
+        user_name = self.request.user.get_full_name() or self.request.user.username or 'Staff'
+
+        transfer = serializer.save(
+            farm=farm,
+            from_building=from_building,
+            from_pen=from_pen,
+            to_building=to_building,
+            transferred_by=user_name
+        )
+
+        if animal:
+            if to_building:
+                animal.building = to_building
+            if to_pen:
+                animal.pen = to_pen
+            animal.save(update_fields=['building', 'pen'])
+
+            if farm and to_building and to_pen:
+                HousingUnit.objects.get_or_create(
+                    farm=farm,
+                    building=to_building,
+                    pen=to_pen,
+                    defaults={'animal_type': animal.animal_type}
+                )
+
+
+class AnimalTransferDetailView(generics.RetrieveUpdateDestroyAPIView):
+    serializer_class = AnimalTransferSerializer
+    permission_classes = [permissions.IsAuthenticated, FarmMenuPermission]
+    farm_menu_key = 'animals'
+
+    def get_queryset(self):
+        user_farms = get_user_farms_queryset(self.request.user)
+        return AnimalTransfer.objects.filter(farm__in=user_farms)

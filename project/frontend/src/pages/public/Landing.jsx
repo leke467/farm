@@ -25,16 +25,22 @@ function Landing() {
               Transform your agricultural operations with our comprehensive farm management system.
               Track livestock, manage crops, and optimize your farm's performance all in one place.
             </p>
-            <div className="mt-8 flex flex-col sm:flex-row sm:space-x-4 space-y-4 sm:space-y-0">
+            <div className="mt-8 flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4">
               <Link
                 to="/register"
-                className="bg-green-600 hover:bg-green-700 text-white text-lg px-8 py-3 sm:py-4 rounded-lg transition-colors text-center"
+                className="bg-green-600 hover:bg-green-700 text-white font-semibold text-lg px-8 py-3 sm:py-4 rounded-lg transition-colors text-center shadow-sm"
               >
                 Start Free Trial
               </Link>
               <Link
+                to="/login"
+                className="bg-white border-2 border-green-600 text-green-700 hover:bg-green-50 font-semibold text-lg px-8 py-3 sm:py-4 rounded-lg transition-colors text-center shadow-sm"
+              >
+                Sign In
+              </Link>
+              <Link
                 to="/features"
-                className="border-2 border-green-600 text-green-700 hover:bg-green-50 text-lg px-8 py-3 sm:py-4 rounded-lg transition-colors text-center"
+                className="text-green-700 hover:text-green-800 hover:bg-green-100/60 font-medium text-lg px-6 py-3 sm:py-4 rounded-lg transition-colors text-center"
               >
                 Explore Features
               </Link>

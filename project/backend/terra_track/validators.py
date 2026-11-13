@@ -192,10 +192,9 @@ class InventoryValidator:
     
     @staticmethod
     def validate_min_quantity(quantity, min_quantity):
-        """Min quantity must be less than current quantity"""
-        if min_quantity is not None and quantity is not None:
-            if float(min_quantity) > float(quantity):
-                raise ValidationError("Minimum quantity cannot be greater than current quantity")
+        """Min quantity is an alert reorder threshold (non-negative)"""
+        if min_quantity is not None and float(min_quantity) < 0:
+            raise ValidationError("Minimum quantity cannot be negative")
     
     @staticmethod
     def validate_expiry_date(expiry_date, purchase_date=None):

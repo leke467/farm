@@ -145,6 +145,7 @@ function DashboardLayout() {
       name: "Animals", 
       icon: <FiUsers size={20} />,
       subItems: [
+        { key: "animals-housing", path: `/${currentSlug}/animals?tab=housing`, name: "Housing & Pens" },
         { key: "animals-feed", path: `/${currentSlug}/animals?tab=feed_logs`, name: "Feed Logs" },
         { key: "animals-breeding", path: `/${currentSlug}/animals?tab=breeding_logs`, name: "Breeding Logs" },
       ]
@@ -277,29 +278,29 @@ function DashboardLayout() {
             className="px-4 py-4 border-b cursor-pointer hover:bg-gray-50 transition-colors group"
             title="Click to view user profile & subscription"
           >
-            <div className="flex items-center justify-between">
-              <div className="flex items-center">
-                <div className="h-10 w-10 rounded-full bg-emerald-100 text-emerald-800 font-bold flex items-center justify-center text-sm shadow-inner group-hover:scale-105 transition-transform">
-                  {initials}
-                </div>
-                <div className="ml-3 min-w-0">
+            <div className="flex items-center gap-2.5 min-w-0">
+              <div className="h-10 w-10 shrink-0 rounded-full bg-emerald-100 text-emerald-800 font-bold flex items-center justify-center text-sm shadow-inner group-hover:scale-105 transition-transform">
+                {initials}
+              </div>
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-1.5 min-w-0">
                   <p className="font-semibold text-sm text-gray-900 truncate group-hover:text-emerald-700 transition-colors">
                     {displayName}
                   </p>
-                  <p className="text-xs text-gray-500 truncate">
-                    {activeFarm?.name || farmSettings?.name || "Farm Name"}
-                  </p>
+                  {isOwner && (
+                    <span className={`shrink-0 px-1.5 py-0.5 text-[9px] font-black rounded-md uppercase tracking-wider ${
+                      subscription?.status === 'active' 
+                        ? 'bg-emerald-100 text-emerald-800' 
+                        : 'bg-sky-100 text-sky-800'
+                    }`}>
+                      {subscription?.status === 'active' ? 'PRO' : 'TRIAL'}
+                    </span>
+                  )}
                 </div>
+                <p className="text-xs text-gray-500 truncate">
+                  {activeFarm?.name || farmSettings?.name || "Farm Name"}
+                </p>
               </div>
-              {isOwner && (
-                <span className={`px-2 py-0.5 text-[10px] font-black rounded-md uppercase tracking-wider ${
-                  subscription?.status === 'active' 
-                    ? 'bg-emerald-100 text-emerald-800' 
-                    : 'bg-sky-100 text-sky-800'
-                }`}>
-                  {subscription?.status === 'active' ? 'PRO' : 'TRIAL'}
-                </span>
-              )}
             </div>
           </div>
 
