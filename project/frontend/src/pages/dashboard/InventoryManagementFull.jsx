@@ -125,25 +125,46 @@ const InventoryManagement = () => {
         min_quantity: data.min_quantity !== "" && data.min_quantity !== null && !isNaN(parseFloat(data.min_quantity)) ? parseFloat(data.min_quantity) : 0,
       };
 
+      let res;
       if (selectedItem) {
-        await apiService.patch(`/api/inventory/${selectedItem.id}/`, payload);
-        const msg = "Item updated successfully!";
-        toast.success(msg);
-        setApiSuccess(msg);
+        res = await apiService.patch(`/api/inventory/${selectedItem.id}/`, payload);
       } else {
-        await apiService.post("/api/inventory/", payload);
-        const msg = "Item added successfully!";
-        toast.success(msg);
-        setApiSuccess(msg);
+        res = await apiService.post("/api/inventory/", payload);
       }
+
+      if (res?._error) {
+        console.error("Item save API error:", res);
+        let errMsg = "Failed to save item";
+        if (typeof res === "object") {
+          const { _error, status, error: rootErr, ...details } = res;
+          if (rootErr && typeof rootErr === "string") {
+            errMsg = rootErr;
+          } else if (details.detail && typeof details.detail === "string") {
+            errMsg = details.detail;
+          } else if (Object.keys(details).length > 0) {
+            errMsg = Object.entries(details)
+              .map(([key, val]) => `${key}: ${Array.isArray(val) ? val.join(", ") : val}`)
+              .join("; ");
+          }
+        }
+        setApiError(errMsg);
+        toast.error(errMsg);
+        return;
+      }
+
+      const msg = selectedItem ? "Item updated successfully!" : "Item added successfully!";
+      toast.success(msg);
+      setApiSuccess(msg);
       resetItem();
       setIsAddModalOpen(false);
       setSelectedItem(null);
       fetchData();
       setTimeout(() => setApiSuccess(""), 3000);
     } catch (error) {
-      const errDetail = error.response?.data ? JSON.stringify(error.response.data) : "Failed to save item";
+      console.error("Item save error:", error);
+      const errDetail = error.response?.data ? JSON.stringify(error.response.data) : (error.message || "Failed to save item");
       setApiError(errDetail);
+      toast.error(errDetail);
     }
   };
 

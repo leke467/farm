@@ -683,6 +683,18 @@ class ApiService {
     return this.request(endpoint, config);
   }
 
+  // Generic PATCH request
+  async patch(endpoint, data = null, options = {}) {
+    const config = {
+      ...options,
+      method: 'PATCH',
+    };
+    if (data) {
+      config.body = JSON.stringify(data);
+    }
+    return this.request(endpoint, config);
+  }
+
   // Generic DELETE request
   async delete(endpoint, options = {}) {
     return this.request(endpoint, {
