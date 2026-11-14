@@ -402,7 +402,9 @@ class HousingUnit(models.Model):
 
 class AnimalTransfer(models.Model):
     TRANSFER_TYPE_CHOICES = [
+        ('pen', 'Internal Pen Transfer (Same Building)'),
         ('pen_transfer', 'Internal Pen Transfer (Same Building)'),
+        ('building', 'Group / Building Transfer (Higher Level)'),
         ('group_transfer', 'Group / Building Transfer (Higher Level)'),
     ]
 
@@ -416,7 +418,7 @@ class AnimalTransfer(models.Model):
     to_pen = models.CharField(max_length=100, blank=True, default='')
     
     count = models.PositiveIntegerField(default=1, help_text="Number of animals moved if group/batch")
-    transfer_date = models.DateField(default=timezone.now)
+    transfer_date = models.DateField(default=timezone.localdate)
     reason = models.CharField(max_length=200, blank=True, default='', help_text="Reason for transfer (e.g., sorting, weaning, medical)")
     transferred_by = models.CharField(max_length=100, blank=True, default='')
     notes = models.TextField(blank=True, default='')

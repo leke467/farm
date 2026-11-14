@@ -481,8 +481,17 @@ class AnimalTransferSerializer(serializers.ModelSerializer):
     animal = serializers.PrimaryKeyRelatedField(queryset=Animal.objects.all())
     animal_name = serializers.CharField(source='animal.name', read_only=True)
     animal_type = serializers.CharField(source='animal.animal_type', read_only=True)
+    transfer_date = serializers.DateField(required=False, default=timezone.localdate)
 
     class Meta:
         model = AnimalTransfer
         fields = '__all__'
         read_only_fields = ['created_at']
+
+    def validate_transfer_type(self, value):
+        val = str(value).lower()
+        if val in ['pen', 'pen_transfer']:
+            return 'pen'
+        if val in ['building', 'group_transfer', 'group']:
+            return 'building'
+        return val

@@ -5,7 +5,8 @@ from rest_framework.filters import SearchFilter, OrderingFilter
 from django.db.models import Q
 from .models import (Animal, WeightRecord, MedicalRecord, FeedRecord, 
                      Vaccination, BreedingCalendar, HealthAlert, BreedingRecord,
-                     ProductionRecord, AnimalProductionMetrics, FeedMix, FeedMixItem, RecurringFeedSchedule)
+                     ProductionRecord, AnimalProductionMetrics, FeedMix, FeedMixItem, RecurringFeedSchedule,
+                     HousingUnit, AnimalTransfer)
 from .serializers import (AnimalSerializer, WeightRecordSerializer, MedicalRecordSerializer, HousingUnitSerializer, AnimalTransferSerializer, 
                           FeedRecordSerializer, VaccinationSerializer, BreedingCalendarSerializer,
                           HealthAlertSerializer, BreedingRecordSerializer,
@@ -574,6 +575,9 @@ class AnimalTransferListCreateView(generics.ListCreateAPIView):
             to_building = from_building
 
         user_name = self.request.user.get_full_name() or self.request.user.username or 'Staff'
+        t_date = serializer.validated_data.get('transfer_date') or timezone.localdate()
+        if hasattr(t_date, 'date'):
+            t_date = t_date.date()
 
         transfer = serializer.save(
             farm=farm,
