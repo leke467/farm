@@ -63,9 +63,26 @@ function AnimalCard({ animal, onEdit, onDelete, onLogFeed, onRecordProduction, o
       <div className="p-6 border-b">
         <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
           <div className="flex-1 min-w-0">
+            {/* Housing Hierarchy Breadcrumb (Building > Pen) */}
+            {(animal.building || animal.pen) && (
+              <div className="mb-2 flex items-center gap-1.5 text-xs font-semibold text-emerald-800">
+                <span className="bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 rounded-md flex items-center gap-1.5 shadow-2xs">
+                  <span>🏛️ {animal.building || 'Unassigned Building'}</span>
+                  {animal.pen && (
+                    <>
+                      <span className="text-emerald-400">›</span>
+                      <span>🚪 {animal.pen.toLowerCase().startsWith('pen') ? animal.pen : `Pen ${animal.pen}`}</span>
+                    </>
+                  )}
+                </span>
+              </div>
+            )}
+
             <div className="flex flex-wrap items-center gap-2">
               <h3 className="text-xl font-bold text-gray-900 leading-snug break-words">
-                {animal.name}
+                {animal.isGroup || animal.is_group
+                  ? `${animal.count || 1} ${animal.breed ? animal.breed + ' ' : ''}${animal.type || animal.animal_type || 'Animals'}`
+                  : animal.name}
               </h3>
               {animal.status && (
                 <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold uppercase tracking-wider shrink-0 ${getStatusColor(animal.status)}`}>
@@ -73,20 +90,19 @@ function AnimalCard({ animal, onEdit, onDelete, onLogFeed, onRecordProduction, o
                 </span>
               )}
             </div>
-            <div className="mt-1 text-sm text-gray-600">
-              {animal.isGroup ? (
-                <span>{animal.count} {animal.breed} {animal.type}</span>
+
+            <div className="mt-1 text-sm text-gray-600 flex flex-wrap items-center gap-2">
+              {animal.isGroup || animal.is_group ? (
+                <div className="flex items-center gap-1.5 text-xs">
+                  <span className="text-gray-500 font-medium">Batch / Tag Name:</span>
+                  <span className="bg-gray-100 text-gray-800 px-2 py-0.5 rounded font-bold border border-gray-200">
+                    {animal.name}
+                  </span>
+                </div>
               ) : (
                 <span>{animal.breed} {animal.type}</span>
               )}
             </div>
-            {(animal.building || animal.pen) && (
-              <div className="mt-1.5 flex items-center gap-1.5 text-xs font-semibold text-emerald-800">
-                <span className="bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded flex items-center gap-1">
-                  📍 {animal.building ? animal.building : ''} {animal.pen ? `• Pen ${animal.pen}` : ''}
-                </span>
-              </div>
-            )}
           </div>
 
           <div className="flex flex-wrap items-center gap-1.5 shrink-0">
