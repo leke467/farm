@@ -3,7 +3,7 @@ import { FiHome, FiArrowRight, FiPlus, FiRefreshCw, FiClock, FiCheckCircle } fro
 import apiService from "../../services/api";
 import { useToast } from "../../context/ToastContext";
 
-export default function HousingManager({ activeFarm, animals, onRefreshAnimals, onLogFeed }) {
+export default function HousingManager({ activeFarm, animals, onRefreshAnimals, onLogFeed, onAddAnimal }) {
   const { toast } = useToast();
   const [transfers, setTransfers] = useState([]);
   const [isLoadingTransfers, setIsLoadingTransfers] = useState(false);
@@ -139,6 +139,14 @@ export default function HousingManager({ activeFarm, animals, onRefreshAnimals, 
           </p>
         </div>
         <div className="flex items-center gap-2">
+          {onAddAnimal && (
+            <button
+              onClick={() => onAddAnimal("Building 1", "Pen 1")}
+              className="btn btn-primary flex items-center gap-1.5 text-sm"
+            >
+              <FiPlus /> Add Animal / Pig
+            </button>
+          )}
           <button
             onClick={() => {
               if (onRefreshAnimals) onRefreshAnimals();
@@ -176,29 +184,48 @@ export default function HousingManager({ activeFarm, animals, onRefreshAnimals, 
                     {penKeys.length} Active Pens • {totalAnimalsInBuilding} Pigs/Animals
                   </p>
                 </div>
-                {/* Group Feed Button */}
-                {totalAnimalsInBuilding > 0 && onLogFeed && (
-                  <button
-                    onClick={() => {
-                      const firstAnimal = (penKeys.length > 0 && bData.pens[penKeys[0]][0]) || bData.unassigned[0];
-                      if (firstAnimal) {
-                        onLogFeed(firstAnimal);
-                        toast.info(`Feeding Group for ${buildingName}`);
-                      }
-                    }}
-                    className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold shadow-sm transition-colors"
-                    title={`Feed all animals in ${buildingName} as a group`}
-                  >
-                    🌾 Feed Building
-                  </button>
-                )}
+                <div className="flex items-center gap-1.5">
+                  {onAddAnimal && (
+                    <button
+                      onClick={() => onAddAnimal(buildingName, "")}
+                      className="px-2.5 py-1.5 bg-white hover:bg-emerald-50 text-emerald-800 border border-emerald-300 rounded-lg text-xs font-bold shadow-2xs transition-colors flex items-center gap-1"
+                      title={`Add animal to ${buildingName}`}
+                    >
+                      <FiPlus /> Add Animal
+                    </button>
+                  )}
+                  {/* Group Feed Button */}
+                  {totalAnimalsInBuilding > 0 && onLogFeed && (
+                    <button
+                      onClick={() => {
+                        const firstAnimal = (penKeys.length > 0 && bData.pens[penKeys[0]][0]) || bData.unassigned[0];
+                        if (firstAnimal) {
+                          onLogFeed(firstAnimal);
+                          toast.info(`Feeding Group for ${buildingName}`);
+                        }
+                      }}
+                      className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold shadow-sm transition-colors"
+                      title={`Feed all animals in ${buildingName} as a group`}
+                    >
+                      🌾 Feed Building
+                    </button>
+                  )}
+                </div>
               </div>
 
               {/* Pens Grid */}
               <div className="p-4 flex-1 space-y-4">
                 {penKeys.length === 0 && bData.unassigned.length === 0 ? (
-                  <div className="text-center py-8 text-gray-400 text-sm">
-                    No animals currently assigned to this building.
+                  <div className="text-center py-8 text-gray-400 text-sm space-y-2">
+                    <p>No animals currently assigned to this building.</p>
+                    {onAddAnimal && (
+                      <button
+                        onClick={() => onAddAnimal(buildingName, "Pen 1")}
+                        className="btn btn-outline text-xs px-3 py-1.5 inline-flex items-center gap-1.5"
+                      >
+                        <FiPlus /> Add first animal to {buildingName}
+                      </button>
+                    )}
                   </div>
                 ) : (
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -212,11 +239,23 @@ export default function HousingManager({ activeFarm, animals, onRefreshAnimals, 
                         >
                           <div className="flex items-center justify-between text-xs font-bold text-gray-700 mb-1.5">
                             <span className="bg-white px-2 py-0.5 rounded border border-gray-200">
-                              🚪 Pen {penNum}
+                              🚪 {penNum.toLowerCase().startsWith("pen") ? penNum : `Pen ${penNum}`}
                             </span>
-                            <span className={`px-2 py-0.5 rounded-full font-semibold ${penCount >= 5 ? 'bg-amber-100 text-amber-800' : 'bg-emerald-100 text-emerald-800'}`}>
-                              {penCount} {penCount === 1 ? 'Pig' : 'Pigs'}
-                            </span>
+                            <div className="flex items-center gap-1.5">
+                              <span className={`px-2 py-0.5 rounded-full font-semibold ${penCount >= 5 ? 'bg-amber-100 text-amber-800' : 'bg-emerald-100 text-emerald-800'}`}>
+                                {penCount} {penCount === 1 ? 'Pig' : 'Pigs'}
+                              </span>
+                              {onAddAnimal && (
+                                <button
+                                  type="button"
+                                  onClick={() => onAddAnimal(buildingName, penNum)}
+                                  className="text-emerald-700 hover:text-emerald-900 p-0.5 rounded hover:bg-emerald-100"
+                                  title={`Add animal directly to ${penNum}`}
+                                >
+                                  <FiPlus className="w-3.5 h-3.5" />
+                                </button>
+                              )}
+                            </div>
                           </div>
                           <div className="space-y-1">
                             {penAnimals.map((anim) => (

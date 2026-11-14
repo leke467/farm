@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useLocation } from "react-router-dom";
 import { useForm, Controller } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
@@ -45,6 +45,9 @@ function AnimalManagement() {
     setFarmType,
     refreshData,
   } = useFarmData();
+
+  // Defensive: ensure animals is an array
+  const safeAnimals = Array.isArray(animals) ? animals : [];
 
   const { toast } = useToast();
   const location = useLocation();
@@ -172,6 +175,76 @@ function AnimalManagement() {
   });
 
   const isGroup = watch("is_group");
+  const selectedBuildingWatch = watch("building");
+  const selectedPenWatch = watch("pen");
+
+  // Derive buildings dynamically from current animals + standard defaults
+  const availableBuildings = useMemo(() => {
+    const set = new Set(["Building 1", "Building 2", "Building 3"]);
+    (safeAnimals || []).forEach((a) => {
+      if (a.building && a.building.trim()) set.add(a.building.trim());
+    });
+    return Array.from(set);
+  }, [safeAnimals]);
+
+  // Derive pens for selected building (defaults to 1-15 plus any custom pens)
+  const availablePens = useMemo(() => {
+    const set = new Set();
+    for (let i = 1; i <= 15; i++) {
+      set.add(`Pen ${i}`);
+    }
+    const bTrim = (selectedBuildingWatch || "").trim().toLowerCase();
+    (safeAnimals || []).forEach((a) => {
+      if ((!bTrim || (a.building || "").trim().toLowerCase() === bTrim) && a.pen && a.pen.trim()) {
+        set.add(a.pen.trim());
+      }
+    });
+    return Array.from(set);
+  }, [safeAnimals, selectedBuildingWatch]);
+
+  // Real-time pen occupancy calculation
+  const penOccupancy = useMemo(() => {
+    if (!selectedBuildingWatch || !selectedPenWatch) return null;
+    const bTrim = selectedBuildingWatch.trim().toLowerCase();
+    const pTrim = selectedPenWatch.trim().toLowerCase();
+    const matching = (safeAnimals || []).filter(
+      (a) =>
+        (a.building || "").trim().toLowerCase() === bTrim &&
+        (a.pen || "").trim().toLowerCase() === pTrim &&
+        a.status !== "sold" &&
+        (!currentAnimal || String(a.id) !== String(currentAnimal.id))
+    );
+    const count = matching.reduce((sum, a) => sum + (a.is_group ? (a.count || 1) : 1), 0);
+    return {
+      count,
+      animals: matching.map((a) => a.name),
+    };
+  }, [safeAnimals, selectedBuildingWatch, selectedPenWatch, currentAnimal]);
+
+  // Helper to open Add Animal/Group Modal with pre-filled housing
+  const handleOpenAddModal = (preset = {}) => {
+    setCurrentAnimal(null);
+    setIsEditModalOpen(false);
+    reset({
+      name: "",
+      animal_type: preset.animal_type || (farmType === "pig" ? "pig" : "cow"),
+      breed: "",
+      birth_date: "",
+      gender: "female",
+      weight: "",
+      status: "healthy",
+      building: preset.building || "Building 1",
+      pen: preset.pen || "",
+      notes: "",
+      is_group: false,
+      count: 2,
+      purchase_cost: "",
+    });
+    setIsGroupForm(false);
+    setApiError("");
+    setApiSuccess("");
+    setIsAddModalOpen(true);
+  };
 
   // Reset form when modal closes
   useEffect(() => {
@@ -268,6 +341,8 @@ function AnimalManagement() {
         established_date: data.is_group ? dateVal : null,
         purchase_cost: costVal,
         purchasePrice: costVal,
+        building: (data.building || "").trim(),
+        pen: (data.pen || "").trim(),
       };
 
       const animalCost = costVal;
@@ -374,9 +449,6 @@ function AnimalManagement() {
     }
   };
 
-  // Defensive: ensure animals is an array
-  const safeAnimals = Array.isArray(animals) ? animals : [];
-
   // Filter animals
   const filterAnimals = () => {
     let filteredAnimals = safeAnimals;
@@ -388,14 +460,16 @@ function AnimalManagement() {
       );
     }
 
-    // Apply search
+    // Apply search (matches name, type, breed, building, or pen)
     if (searchTerm) {
       const term = searchTerm.toLowerCase();
       filteredAnimals = filteredAnimals.filter(
         (animal) =>
           (animal.name || "").toLowerCase().includes(term) ||
           (animal.animal_type || "").toLowerCase().includes(term) ||
-          (animal.breed || "").toLowerCase().includes(term)
+          (animal.breed || "").toLowerCase().includes(term) ||
+          (animal.building || "").toLowerCase().includes(term) ||
+          (animal.pen || "").toLowerCase().includes(term)
       );
     }
 
@@ -490,7 +564,7 @@ function AnimalManagement() {
 
             <button
               className="btn btn-primary col-span-2 sm:col-span-1 flex items-center justify-center text-xs sm:text-sm py-2 px-3 shadow-xs"
-              onClick={() => setIsAddModalOpen(true)}
+              onClick={() => handleOpenAddModal()}
             >
               <FiPlus className="mr-1.5" />
               {farmType === "large" ? "Add Group" : "Add Animal"}
@@ -571,6 +645,7 @@ function AnimalManagement() {
           activeFarm={activeFarm}
           animals={safeAnimals}
           onRefreshAnimals={refreshData}
+          onAddAnimal={(building, pen) => handleOpenAddModal({ building, pen })}
           onLogFeed={(anim) => {
             setSelectedFeedAnimal(anim);
             setIsFeedModalOpen(true);
@@ -1030,28 +1105,119 @@ function AnimalManagement() {
                     </>
                   )}
 
-                  {/* Housing Location: Building & Pen/Room */}
-                  <div>
-                    <FormField
-                      label="Building / Facility (Optional)"
-                      type="text"
-                      register={register}
-                      name="building"
-                      errors={errors}
-                      placeholder="e.g. Building 1, Group 1"
-                      helperText="Facility or group housing this animal/group."
-                    />
-                  </div>
-                  <div>
-                    <FormField
-                      label="Pen / Room Number (Optional)"
-                      type="text"
-                      register={register}
-                      name="pen"
-                      errors={errors}
-                      placeholder="e.g. Pen 4 or Room 12"
-                      helperText="Specific pen or room (2-5 pigs)."
-                    />
+                  {/* Housing Location: Building & Pen/Room Hierarchy */}
+                  <div className="md:col-span-2 p-4 bg-emerald-50/50 rounded-xl border border-emerald-200/80 space-y-3">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+                      <label className="text-sm font-bold text-gray-900 flex items-center gap-1.5">
+                        <span className="text-base">🏛️</span> Housing & Pen Assignment
+                      </label>
+                      <span className="text-[11px] text-emerald-800 font-medium">
+                        Hierarchy: Building &gt; Pen (suggested 2-5 pigs per pen)
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-xs font-semibold text-gray-700 mb-1">
+                          Building / Facility
+                        </label>
+                        <div className="relative">
+                          <input
+                            list="building-datalist"
+                            type="text"
+                            {...register("building")}
+                            placeholder="e.g. Building 1"
+                            className="input w-full text-sm font-medium"
+                          />
+                          <datalist id="building-datalist">
+                            {availableBuildings.map((b) => (
+                              <option key={b} value={b} />
+                            ))}
+                          </datalist>
+                        </div>
+                        <p className="text-[11px] text-gray-500 mt-1">
+                          Select existing building or type custom
+                        </p>
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-semibold text-gray-700 mb-1">
+                          Pen / Room Number
+                        </label>
+                        <div className="relative">
+                          <input
+                            list="pen-datalist"
+                            type="text"
+                            {...register("pen")}
+                            placeholder="e.g. Pen 1, Pen 2"
+                            className="input w-full text-sm font-medium"
+                          />
+                          <datalist id="pen-datalist">
+                            {availablePens.map((p) => (
+                              <option key={p} value={p} />
+                            ))}
+                          </datalist>
+                        </div>
+                        <p className="text-[11px] text-gray-500 mt-1">
+                          Select pen (Pen 1–15) or type custom room
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Quick presets for building */}
+                    <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
+                      <span className="text-xs text-gray-500 font-medium">Building Presets:</span>
+                      {availableBuildings.slice(0, 4).map((b) => (
+                        <button
+                          key={b}
+                          type="button"
+                          onClick={() => setValue("building", b, { shouldValidate: true, shouldDirty: true })}
+                          className={`px-2 py-0.5 text-xs rounded-md border font-medium transition-colors ${
+                            selectedBuildingWatch === b
+                              ? "bg-emerald-600 text-white border-emerald-600"
+                              : "bg-white text-gray-700 border-gray-300 hover:bg-gray-100"
+                          }`}
+                        >
+                          {b}
+                        </button>
+                      ))}
+                    </div>
+
+                    {/* Live Occupancy feedback */}
+                    {selectedPenWatch && selectedBuildingWatch && (
+                      <div
+                        className={`p-2.5 rounded-lg text-xs flex items-center justify-between border ${
+                          penOccupancy && penOccupancy.count >= 5
+                            ? "bg-amber-50 border-amber-300 text-amber-900"
+                            : penOccupancy && penOccupancy.count > 0
+                            ? "bg-blue-50 border-blue-300 text-blue-900"
+                            : "bg-emerald-100/70 border-emerald-300 text-emerald-900"
+                        }`}
+                      >
+                        <div className="flex items-center gap-2">
+                          <span className="text-base shrink-0">
+                            {penOccupancy && penOccupancy.count >= 5 ? "⚠️" : penOccupancy && penOccupancy.count > 0 ? "ℹ️" : "✅"}
+                          </span>
+                          <div>
+                            <span className="font-bold">
+                              {selectedBuildingWatch} • {selectedPenWatch}:
+                            </span>{" "}
+                            {penOccupancy && penOccupancy.count > 0 ? (
+                              <span>
+                                Currently houses <strong>{penOccupancy.count}</strong> {penOccupancy.count === 1 ? "animal" : "animals"}
+                                {penOccupancy.animals.length > 0 && ` (${penOccupancy.animals.slice(0, 3).join(", ")}${penOccupancy.animals.length > 3 ? "..." : ""})`}.{" "}
+                                {penOccupancy.count >= 5 ? "Pen capacity reached (recommended: 2-5 pigs)." : "Room available (target: 2-5 pigs)."}
+                              </span>
+                            ) : (
+                              <span>Currently empty. Ready for placement (recommended: 2-5 pigs).</span>
+                            )}
+                          </div>
+                        </div>
+                        <span className="font-mono font-bold text-xs px-2 py-0.5 rounded bg-white/90 border border-current shrink-0 ml-2">
+                          {penOccupancy ? penOccupancy.count : 0} in Pen
+                        </span>
+                      </div>
+                    )}
                   </div>
 
                   {/* Purchase Cost Field */}
